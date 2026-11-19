@@ -3,7 +3,7 @@
 A static parody meeting site. No build step and no server.
 
 ## Files
-- `index.html`: the landing page with every setting (your name, camera, app look, topic, participants, chat, light/dark theme), the "Have an idea?" popup, and the short disclaimer.
+- `index.html`: the landing page with every setting (your name, camera, app look, topic, call timer, participants, chat, light/dark theme), the "Have an idea?" popup, and the short disclaimer.
 - `meeting.html`: the meeting room. It reads the settings and draws the Teamş, Zooм, Webbex or Meeţ look, or the visitor's own custom app.
 - `disclaimer.html`: the full disclaimer.
 - `shared.js`: settings, parody logos, names, topics and chat lines (edit these lists to add content).
@@ -11,6 +11,7 @@ A static parody meeting site. No build step and no server.
 
 ## Custom options
 - **Custom topic:** pick "Custom (make your own)" in the topic list, then type a meeting title and the lines people say in chat.
+- **Call timer:** in the Topic and timer card, start the meeting clock at 00:00 (default), 15 min, 30 min or 1 hour.
 - **Custom app look:** pick the fifth card, then set the app name, logo letter, brand colour, logo shape and layout (controls on top, bottom bar, or floating pill).
 
 ## In the call

@@ -57,10 +57,13 @@
 </section>
 
 <section class="card" aria-labelledby="h-topic">
-<h2 id="h-topic">3. Topic of discussion</h2>
+<h2 id="h-topic">3. Topic and timer</h2>
 <label class="f" for="topic">What the meeting is about</label>
 <select class="input" id="topic"></select>
 <p class="hint">Each topic comes with its own meeting title and conversation.</p>
+<div class="field"><span class="f" id="l-timer">Call timer starts at</span>
+<div class="seg" role="group" aria-labelledby="l-timer" id="timerPick"></div>
+<p class="hint">Join a call that has already been going for a while. The meeting clock starts from here.</p></div>
 <div id="customTopic" class="subpanel">
 <h3>Make your own topic</h3>
 <div class="field"><label class="f" for="ctTitle">Meeting title</label><input class="input" id="ctTitle" type="text" maxlength="60" placeholder="e.g. Weekly team sync"></div>
@@ -129,6 +132,7 @@
 <dl class="sum">
 <dt>Topic</dt><dd id="sumTopic"></dd>
 <dt>People</dt><dd id="sumPeople"></dd>
+<dt>Timer</dt><dd id="sumTimer"></dd>
 <dt>Chat</dt><dd id="sumChat"></dd>
 <dt>Theme</dt><dd id="sumTheme"></dd>
 </dl>
@@ -200,6 +204,7 @@ function updateCustomApp(patch) {
   S.customApp = setCustomApp({ ...S.customApp, ...patch });
   renderApps(); renderCustomApp(); save();
 }
+function renderTimer() { $('timerPick').innerHTML = TIMER_STARTS.map(t => `<button class="chip" type="button" data-timer="${t.min}" aria-pressed="${S.timer === t.min}">${t.label}</button>`).join(''); }
 function renderCustomTopic() { $('customTopic').style.display = S.topic === CUSTOM_TOPIC ? 'flex' : 'none'; }
 
 function renderPeople() {
@@ -227,6 +232,7 @@ function summary() {
   $('sumPeople').textContent = (S.name || 'You') + ' + ' + S.count + (S.count === 1 ? ' other' : ' others');
   const srcs = ['generic', 'topic', 'own'].filter(k => S.chat[k]).length;
   $('sumChat').textContent = !S.chat.on || !srcs ? 'Off' : (S.chat.freq === 'rare' ? 'On, rare' : 'On, occasional');
+  $('sumTimer').textContent = TIMER_STARTS.find(t => t.min === S.timer).short;
   $('sumTheme').textContent = { system: 'Match my device', light: 'Light', dark: 'Dark' }[S.theme];
   $('join').href = settingsUrl('meeting.html', S);
 }
@@ -242,13 +248,14 @@ $('caName').value = S.customApp.name;
 $('caLetter').value = S.customApp.letter;
 $('ownText').value = S.chat.ownText;
 $('ideaClose').innerHTML = ico('x');
-paintTheme(); renderApps(); renderCustomApp(); renderCustomTopic(); renderPeople(); renderChat(); summary();
+paintTheme(); renderApps(); renderCustomApp(); renderCustomTopic(); renderTimer(); renderPeople(); renderChat(); summary();
 
 /* Events */
 $('myName').addEventListener('input', e => { S.name = e.target.value; save(); });
 $('camSwitch').addEventListener('click', () => { S.cam = !S.cam; $('camSwitch').setAttribute('aria-pressed', S.cam); save(); });
 $('apps').addEventListener('click', e => { const b = e.target.closest('[data-skin]'); if (!b) return; S.skin = b.dataset.skin; renderApps(); renderCustomApp(); save(); });
 $('topic').addEventListener('change', e => { S.topic = e.target.value; renderCustomTopic(); save(); if (S.topic === CUSTOM_TOPIC) $('ctTitle').focus(); });
+$('timerPick').addEventListener('click', e => { const b = e.target.closest('[data-timer]'); if (!b) return; S.timer = +b.dataset.timer; renderTimer(); save(); $('timerPick').querySelector(`[data-timer="${S.timer}"]`).focus(); });
 $('ctTitle').addEventListener('input', e => { S.customTopic.title = e.target.value; save(); });
 $('ctLines').addEventListener('input', e => { S.customTopic.lines = e.target.value; save(); });
 $('caName').addEventListener('input', e => { const letterWasAuto = !$('caLetter').dataset.touched; updateCustomApp(letterWasAuto ? { name: e.target.value, letter: '' } : { name: e.target.value }); if (letterWasAuto) $('caLetter').value = S.customApp.letter; });

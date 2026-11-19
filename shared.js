@@ -157,6 +157,7 @@ const CHAT_REPLIES = [
 const DEFAULTS = {
   name: 'Eli', cam: true, count: 5, names: NAME_POOL.slice(), spare: SPARE_NAMES.slice(),
   skin: 'teams', topic: 'Finance', theme: 'system',
+  timer: 0,   /* minutes the call has already been running when you join: 0, 15, 30 or 60 */
   customTopic: { title: 'Weekly team sync', lines: 'Can we circle back on this?\nGood progress this week\nWho\u2019s taking the action item?' },
   customApp: { name: 'MeetSpace', color: '#E4572E', letter: 'M', shape: 'square', layout: 'bottom' },
   chat: { on: true, generic: true, topic: true, own: false, freq: 'rare', ownText: 'Can everyone see my screen?\nSorry, my internet dropped for a sec\nLet’s take that offline' }
@@ -164,6 +165,7 @@ const DEFAULTS = {
 /* Paste a Formspree form URL here (https://formspree.io/f/xxxxxxx) to switch on the "Have an idea?" messages. */
 const FEEDBACK_ENDPOINT = '';
 
+const TIMER_STARTS = [{ min: 0, label: 'Just started (00:00)', short: 'From 00:00' }, { min: 15, label: '15 min', short: 'From 15:00' }, { min: 30, label: '30 min', short: 'From 30:00' }, { min: 60, label: '1 hour', short: 'From 1:00:00' }];
 const STORE_KEY = 'trm-settings-v1';
 function loadSettings() {
   let s = null;
@@ -176,6 +178,7 @@ function loadSettings() {
   if (!SKIN[out.skin]) out.skin = 'teams';
   if (!TOPICS.includes(out.topic) && out.topic !== CUSTOM_TOPIC) out.topic = 'Finance';
   out.count = Math.max(1, Math.min(16, +out.count || 5));
+  out.timer = TIMER_STARTS.some(t => t.min === +out.timer) ? +out.timer : 0;
   return out;
 }
 function saveSettings(s) { try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) {} }

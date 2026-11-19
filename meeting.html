@@ -189,7 +189,9 @@ const W = WORDS[L === 'teams' || L === 'zoom' || L === 'webex' || L === 'meet' ?
 document.title = topicTitle(S) + ' | ' + SKIN[skin].say;
 
 const state = {
-  muted: false, camOn: !!S.cam, mirror: true, unread: 0, start: Date.now(), full: false,
+  muted: false, camOn: !!S.cam, mirror: true, unread: 0, full: false,
+  start: Date.now() - S.timer * 60000,   /* the clock can start at 15, 30 or 60 minutes */
+  joined: Date.now(),                    /* chat pacing follows when you joined, not the clock */
   panel: null, ended: null, view: 'gallery', hand: false, react: null, rec: false, cc: false, caption: null,
   people: S.names.slice(0, S.count).map((name, i) => ({ name: name.trim() || 'Guest ' + (i + 1), ...AVATAR[i % AVATAR.length], muted: i % 3 === 1, speaking: false, hand: false, react: null }))
 };
@@ -438,6 +440,7 @@ function infoHtml() {
   const fg = C.panelText || C.text, line = C.panelLine || C.line;
   return `<p style="margin:0;font-size:15px;font-weight:600">${title}</p>
     <p style="margin:0;font-size:14px;opacity:.75">${esc(SKIN[skin].say)} · ${state.people.length + 1} people · started ${new Date(state.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
+    <p style="margin:0;font-size:14px">Running for <strong data-timer style="font-variant-numeric:tabular-nums">${elapsed()}</strong></p>
     <h3>Share this site</h3>
     <div style="display:flex;gap:8px;align-items:center"><input readonly value="${esc(SITE_URL)}" aria-label="Site link" style="flex:1;min-width:0;height:40px;padding:0 10px;border-radius:6px;border:1px solid ${line};background:${C.field};color:${fg}"><button class="pill-btn" data-share style="border:0;background:${C.accent};color:${C.onAccent}">Copy</button></div>
     <p style="margin:0;font-size:12.5px;opacity:.7">This is a parody meeting for entertainment only. Nobody else can join.</p>`;
@@ -488,7 +491,7 @@ function draw(key, lines) {
 }
 let lastSender = -1, chatTimer = null;
 function pickLine() {
-  const mins = (Date.now() - state.start) / 60000 * SPEED;
+  const mins = (Date.now() - state.joined) / 60000 * SPEED;
   const phase = mins < 3 ? 'open' : mins > 30 ? 'close' : 'middle';
   const own = S.chat.own ? S.chat.ownText.split('\n').map(t => t.trim()).filter(Boolean) : [];
   const options = [];
