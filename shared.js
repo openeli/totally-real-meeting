@@ -87,6 +87,9 @@ const DEFAULTS = {
   skin: 'teams', topic: 'Finance', theme: 'system',
   chat: { on: true, generic: true, topic: true, own: false, freq: 'rare', ownText: 'Can everyone see my screen?\nSorry, my internet dropped for a sec\nLet’s take that offline' }
 };
+/* Paste a Formspree form URL here (https://formspree.io/f/xxxxxxx) to switch on the "Have an idea?" messages. */
+const FEEDBACK_ENDPOINT = '';
+
 const STORE_KEY = 'trm-settings-v1';
 function loadSettings() {
   let s = null;

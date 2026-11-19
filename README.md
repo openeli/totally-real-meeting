@@ -12,8 +12,11 @@ A static parody meeting site. No build step and no server.
 ## Try it
 Open `index.html` in a browser. To see chat messages within seconds instead of minutes, add `&fast=1` to the end of the meeting page address.
 
-## Publish
-Drag the `site` folder onto Netlify (app.netlify.com/drop). The feedback form already has the Netlify Forms attributes, so messages show up in the Netlify dashboard. The camera needs HTTPS, which Netlify provides.
+## Publish (GitHub Pages)
+Settings → Pages → Source: "Deploy from a branch", branch `main`, folder `/ (root)`. The site appears at https://openeli.github.io/totally-real-meeting/ a minute or two later and updates on every merge to `main`. Free GitHub accounts need the repository to be public for Pages.
+
+## Feedback messages
+GitHub Pages can't receive form posts. Create a free form at formspree.io, then paste its URL into `FEEDBACK_ENDPOINT` in `shared.js`.
 
 ## Not built yet
 - Topic audio (our own clips). The mute buttons already have a hook for it in `meeting.html` (`toggleMute`).

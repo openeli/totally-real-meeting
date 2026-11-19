@@ -135,13 +135,12 @@
 </footer>
 
 <div class="modal" id="idea" hidden>
-<form class="dialog" role="dialog" aria-modal="true" aria-labelledby="idea-title" name="feedback" method="POST" data-netlify="true" netlify-honeypot="company" id="ideaForm">
+<form class="dialog" role="dialog" aria-modal="true" aria-labelledby="idea-title" name="feedback" id="ideaForm">
 <div class="row" style="align-items:flex-start">
 <h2 id="idea-title">Have an idea?</h2>
 <button class="sq ghost" type="button" id="ideaClose" aria-label="Close" style="border:0;margin:-8px -8px 0 0"></button>
 </div>
 <p class="hint" style="font-size:15px">A better meeting resource or else? Send us a message.</p>
-<input type="hidden" name="form-name" value="feedback">
 <p class="sr"><label>Leave this empty <input name="company" tabindex="-1" autocomplete="off"></label></p>
 <label class="f" for="ideaMsg">Message</label>
 <textarea class="input" id="ideaMsg" name="message" rows="4" required></textarea>
@@ -251,9 +250,18 @@ document.addEventListener('keydown', e => {
   }
 });
 if (location.hash === '#idea') openIdea();
-$('ideaForm').addEventListener('submit', e => {
-  /* On Netlify the form posts for real; opened as a local file we just say thanks. */
-  if (location.protocol === 'file:') { e.preventDefault(); $('ideaThanks').textContent = 'Thanks! (This is a local preview, so nothing was sent.)'; $('ideaForm').reset(); }
+$('ideaForm').addEventListener('submit', async e => {
+  /* GitHub Pages can't receive forms, so messages go to a form service set in shared.js (FEEDBACK_ENDPOINT). */
+  e.preventDefault();
+  const form = $('ideaForm'), out = $('ideaThanks');
+  if (form.company.value) return;                       /* honeypot: bots fill this, people don't */
+  if (!FEEDBACK_ENDPOINT) { out.textContent = 'Thanks! Messages aren\u2019t switched on yet, so this one wasn\u2019t sent.'; return; }
+  out.textContent = 'Sending\u2026';
+  try {
+    const r = await fetch(FEEDBACK_ENDPOINT, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(form) });
+    if (!r.ok) throw new Error(r.status);
+    out.textContent = 'Thanks! We got your message.'; form.reset();
+  } catch (err) { out.textContent = 'Sorry, that didn\u2019t go through. Please try again later.'; }
 });
 </script>
 </body>
