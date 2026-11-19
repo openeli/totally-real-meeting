@@ -1,36 +1,98 @@
-# Totally Real Meeting (prototype)
+# Totally Real Meeting
 
-A static parody meeting site. No build step and no server.
+**A parody video call that looks and behaves like the apps you already know.** Pick an app look, a topic and who shows up, then join a meeting that feels lived-in: people arrive, talk, react and reply to you in the chat.
 
-## Files
-- `index.html`: the landing page with every setting (your name, camera, app look, topic, call timer, participants, chat, light/dark theme), the "Have an idea?" popup, and the short disclaimer.
-- `meeting.html`: the meeting room. It reads the settings and draws the Teamş, Zooм, Webbex or Meeţ look, or the visitor's own custom app.
+**Try it live: https://openeli.github.io/totally-real-meeting/**
+
+![The setup page](docs/landing.png)
+
+> Made for fun. The meeting screens are parodies of popular apps and are not affiliated with or endorsed by their makers. Don't use it to mislead anyone. [Read the full disclaimer](https://openeli.github.io/totally-real-meeting/disclaimer.html).
+
+## Why it stands out
+
+Most fake call pages give you one screen and a frozen grid of faces. This one is built to hold up for a whole meeting.
+
+- **Four app looks, not one.** Teamş, Zooм, Webbex and Meeţ each copy their own app's layout, colours, wording, menus and settings. There is no single design dressed up four ways.
+- **Or design your own app.** Choose a name, logo letter, brand colour, logo shape and one of three layouts (controls on top, a bottom bar or a floating pill).
+- **The whole call, start to finish:**
+  - **Before:** a pre-join screen with a camera preview and mic and camera toggles.
+  - **During:** a connecting step, then people drop in one by one.
+  - **After:** each app's own leave and end steps lead to an after-call screen with Rejoin and a quality rating.
+- **Live captions that flow.** Words appear one or two at a time as people speak. While someone talks, the text is lowercase and unpunctuated, now and then with a misheard word. When the sentence ends, it settles into its final form, the same way real captions behave.
+- **Conversations that fit the topic.** Ten ready-made topics, from Budget review to Town hall, each come with their own meeting title, captions and chat lines. You can also write your own topic.
+- **A chat that answers you.** Say "hello" and someone welcomes you by your first name. Ask "can you hear me?" and the reply depends on whether your mic is muted. "Can you see me?" depends on your camera. People pause, show "is typing…", then reply.
+- **People who act like people.**
+  - One person talks for a while before passing the floor on, and someone chips in with an "mm-hmm".
+  - Reactions and raised hands are rare and random, and whoever raises a hand speaks next.
+- **Working menus.** These all open and work, drawn in each app's own style:
+  - People, with mute toggles and Mute all
+  - Raise hand, reactions and gallery or speaker view
+  - Record (just a red pill, nothing is saved), captions and meeting info
+  - In-call settings
+- **Your real camera, if you want it.** Your webcam shows in your own tile and never leaves your device.
+- **Fits your situation.** The call clock can start at 00:00, 15 minutes, 30 minutes or 1 hour. You can set the participant count (1 to 16), edit or shuffle their names, and turn chat on or off.
+- **Light and dark.** The setup page follows your device or your choice. So do the app looks that have a light mode in real life.
+- **Phones too.** Every look adapts to small screens, for example Zooм's End button moves to the top, like the mobile app.
+- **Private and simple.** It's a static site with no accounts, no analytics and no server. Everything runs in your browser.
+
+## A look inside
+
+| Teamş, with the chat open | Zooм |
+|---|---|
+| ![Teamş call with chat](docs/teams.png) | ![Zooм call](docs/zoom.png) |
+| **Webbex (light)** | **Meeţ** |
+| ![Webbex call](docs/webex.png) | ![Meeţ call](docs/meet.png) |
+| **Your own app (HuddleHub)** | **Meeţ pre-join screen** |
+| ![Custom app](docs/custom.png) | ![Pre-join screen](docs/prejoin.png) |
+
+<img src="docs/phone.png" alt="Zooм on a phone" width="260">
+
+## How to use it
+
+1. Open the [live site](https://openeli.github.io/totally-real-meeting/).
+2. Pick an app look, a topic, the sound and timer, and who's in the meeting.
+3. Press **Join meeting**, check your camera on the pre-join screen, then join.
+4. Use full screen for the most convincing view.
+
+## Sound
+
+The meeting is silent for now, so what people say appears as live captions from the first second. You can turn captions off during the call. An option with real audio is planned.
+
+## For developers
+
+No build step and no server: open `index.html` in a browser.
+
+### Files
+- `index.html`: the setup page with every setting, the "Have an idea?" popup and the short disclaimer.
+- `meeting.html`: the meeting room. It draws the chosen look and runs the call.
 - `disclaimer.html`: the full disclaimer.
-- `shared.js`: settings, parody logos, names, topics and chat lines (edit these lists to add content).
-- `site.css`: styles for the landing and disclaimer pages.
+- `shared.js`: settings, parody logos, names, topics, captions and chat lines.
+- `site.css`: styles for the setup and disclaimer pages.
+- `docs/`: screenshots for this page.
 
-## Custom options
-- **Custom topic:** pick "Custom (make your own)" in the topic list, then type a meeting title and the lines people say in chat.
-- **Sound:** no audio for now (the default), so what people say shows as live captions from the start. Captions come from `SPOKEN_TOPIC` (about 14 lines per topic) and `SPOKEN_GENERIC` in `shared.js`. Captions stream in a word or two at a time, lowercase and unpunctuated, sometimes with a misheard word (`MISHEARD` in `meeting.html`), then each sentence settles into its final form; they clear after a few seconds of silence. One person holds the floor for a few lines, with short pauses and the odd "mm-hmm" (`BACKCHANNEL`).
-- **Call timer:** in the Topic and timer card, start the meeting clock at 00:00 (default), 15 min, 30 min or 1 hour.
-- **Custom app look:** pick the fifth card, then set the app name, logo letter, brand colour, logo shape and layout (controls on top, bottom bar, or floating pill).
+### Add or change content
+All in `shared.js` unless noted:
+- `TOPICS` and `TOPIC_TITLE`: topics and their meeting titles.
+- `SPOKEN_TOPIC` and `SPOKEN_GENERIC`: what people say (the captions). `BACKCHANNEL` holds the short "mm-hmm" lines.
+- `CHAT_GENERIC` and `CHAT_TOPIC`: chat messages, by meeting phase and by topic.
+- `CHAT_REPLIES`: rules for answering what the visitor types.
+- `NAME_POOL` and `SPARE_NAMES`: participant names.
+- `MISHEARD` in `meeting.html`: words the captions sometimes get wrong before correcting.
 
-## In the call
-- **Joining:** each look starts with its own pre-join screen (camera preview, mic and camera toggles, Join). Then a short connecting step; about half the people are already there and the rest drop in with a "joined" notice. With a 15, 30 or 60 minute timer, everyone is already there.
-- **Menus:** People (mute anyone, Mute all), Raise hand, Reactions, View (gallery or speaker), More, Record (just a red pill, nothing is saved), Captions, Meeting info.
-- **Share:** shares the site link (or copies it).
-- **Settings:** opens inside the call, drawn like each app: a side pane in Teamş, a light dialog in Zooм, a dialog in Webbex and a white dialog with pill tabs in Meeţ.
-- **Leaving:** each app has its own leave and end steps (Teamş: Leave with an End meeting option and a confirm; Zooм and Webbex: a popover with End for all and Leave; Meeţ: a leave or end choice). Then an after-call screen with Rejoin, a quality rating, and in Meeţ a 60 second countdown home.
-- **Chat replies:** people answer what you type, using only your first name ("Eli Perry" becomes "Eli"); the default name Guest gets replies without a name. "Hello" gets a welcome, "can you hear me?" checks your mic, "can you see me?" checks your camera. Edit or add rules in `CHAT_REPLIES` in `shared.js`.
+### Testing shortcuts
+Add these to the end of the meeting page address:
+- `&fast=1` makes chat messages, reactions and arrivals come within seconds.
+- `&skip=1` skips the pre-join screen.
 
-## Try it
-Open `index.html` in a browser. To see chat messages within seconds instead of minutes, add `&fast=1` to the end of the meeting page address. Add `&skip=1` to go straight past the pre-join screen.
+### Publish (GitHub Pages)
+In the repository settings, open **Pages** and set the source to "Deploy from a branch", with branch `main` and folder `/ (root)`. The site updates a minute or two after every merge to `main`. A free GitHub account needs the repository to be public.
 
-## Publish (GitHub Pages)
-Settings → Pages → Source: "Deploy from a branch", branch `main`, folder `/ (root)`. The site appears at https://openeli.github.io/totally-real-meeting/ a minute or two later and updates on every merge to `main`. Free GitHub accounts need the repository to be public for Pages.
+### Feedback messages
+GitHub Pages can't receive form posts. To turn on the "Have an idea?" form, create a free form at formspree.io and paste its URL into `FEEDBACK_ENDPOINT` in `shared.js`.
 
-## Feedback messages
-GitHub Pages can't receive form posts. Create a free form at formspree.io, then paste its URL into `FEEDBACK_ENDPOINT` in `shared.js`.
+### Planned
+- Meeting audio from our own clips. The "With audio" option is shown as coming soon. The mute buttons already have a hook for it in `meeting.html` (`toggleMute`).
 
-## Not built yet
-- Topic audio (our own clips). The "With audio" option in Sound is shown as coming soon, and the mute buttons already have a hook for it in `meeting.html` (`toggleMute`).
+## Disclaimer
+
+This is a parody made for entertainment only. Product names belong to their owners, and the lookalike screens are not the real apps. The people in the call are fictional. Don't use it to deceive anyone. See the [full disclaimer](https://openeli.github.io/totally-real-meeting/disclaimer.html).
