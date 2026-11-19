@@ -58,7 +58,7 @@
 </section>
 
 <section class="card" aria-labelledby="h-topic">
-<h2 id="h-topic">3. Topic, sound and timer</h2>
+<h2 id="h-topic">3. The meeting</h2>
 <label class="f" for="topic">What the meeting is about</label>
 <select class="input" id="topic"></select>
 <p class="hint">Each topic comes with its own meeting title and conversation.</p>
@@ -71,6 +71,10 @@
 <div class="field"><span class="f" id="l-timer">Call timer starts at</span>
 <div class="seg" role="group" aria-labelledby="l-timer" id="timerPick"></div>
 <p class="hint">Join a call that has already been going for a while. The meeting clock starts from here.</p></div>
+<div class="field" style="gap:10px">
+<button class="switch" type="button" id="loopSwitch" aria-pressed="false"><span class="track"><span class="knob"></span></span><span>Meeting on a loop <span class="hint" style="display:inline">(off: it runs start to finish, about an hour, then the host ends it)</span></span></button>
+<button class="switch" type="button" id="driftSwitch" aria-pressed="true"><span class="track"><span class="knob"></span></span><span>Small talk, jokes and side-tracks <span class="hint" style="display:inline">(now and then, like a real meeting)</span></span></button>
+</div>
 <div id="customTopic" class="subpanel">
 <h3>Make your own topic</h3>
 <div class="field"><label class="f" for="ctTitle">Meeting title</label><input class="input" id="ctTitle" type="text" maxlength="60" placeholder="e.g. Weekly team sync"></div>
@@ -141,6 +145,7 @@
 <dt>People</dt><dd id="sumPeople"></dd>
 <dt>Sound</dt><dd>Captions, no audio</dd>
 <dt>Timer</dt><dd id="sumTimer"></dd>
+<dt>Length</dt><dd id="sumLength"></dd>
 <dt>Chat</dt><dd id="sumChat"></dd>
 <dt>Theme</dt><dd id="sumTheme"></dd>
 </dl>
@@ -241,6 +246,7 @@ function summary() {
   const srcs = ['generic', 'topic', 'own'].filter(k => S.chat[k]).length;
   $('sumChat').textContent = !S.chat.on || !srcs ? 'Off' : (S.chat.freq === 'rare' ? 'On, rare' : 'On, occasional');
   $('sumTimer').textContent = TIMER_STARTS.find(t => t.min === S.timer).short;
+  $('sumLength').textContent = S.length === 'loop' ? 'On a loop' : 'Start to finish';
   $('sumTheme').textContent = { system: 'Match my device', light: 'Light', dark: 'Dark' }[S.theme];
   $('join').href = settingsUrl('meeting.html', S);
 }
@@ -260,6 +266,10 @@ paintTheme(); renderApps(); renderCustomApp(); renderCustomTopic(); renderTimer(
 
 /* Events */
 $('myName').addEventListener('input', e => { S.name = e.target.value; save(); });
+$('loopSwitch').setAttribute('aria-pressed', S.length === 'loop');
+$('driftSwitch').setAttribute('aria-pressed', S.drift !== 'none');
+$('loopSwitch').addEventListener('click', () => { S.length = S.length === 'loop' ? 'full' : 'loop'; $('loopSwitch').setAttribute('aria-pressed', S.length === 'loop'); save(); });
+$('driftSwitch').addEventListener('click', () => { S.drift = S.drift === 'none' ? 'some' : 'none'; $('driftSwitch').setAttribute('aria-pressed', S.drift !== 'none'); save(); });
 $('camSwitch').addEventListener('click', () => { S.cam = !S.cam; $('camSwitch').setAttribute('aria-pressed', S.cam); save(); });
 $('apps').addEventListener('click', e => { const b = e.target.closest('[data-skin]'); if (!b) return; S.skin = b.dataset.skin; renderApps(); renderCustomApp(); save(); });
 $('topic').addEventListener('change', e => { S.topic = e.target.value; renderCustomTopic(); save(); if (S.topic === CUSTOM_TOPIC) $('ctTitle').focus(); });

@@ -18,8 +18,10 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
   - **Before:** a pre-join screen with a camera preview and mic and camera toggles.
   - **During:** a connecting step, then people drop in one by one.
   - **After:** each app's own leave and end steps lead to an after-call screen with Rejoin and a quality rating.
+- **A meeting that runs about an hour, then ends.** It opens with small talk while people wait, works through four agenda items, then wraps up with a recap, action items and goodbyes. People leave one by one and the host ends the meeting, shown the way each app shows it (Zooм pops up "This meeting has been ended by host"). Prefer it to go on forever? Turn on **Meeting on a loop**.
+- **Jokes and side-tracks, if you want them.** Now and then someone talks on mute, a cat walks across a keyboard, or the meeting drifts onto lunch spots before the host pulls it back. One switch keeps the meeting strictly on topic instead.
 - **Live captions that flow.** Words appear one or two at a time as people speak. While someone talks, the text is lowercase and unpunctuated, now and then with a misheard word. When the sentence ends, it settles into its final form, the same way real captions behave.
-- **Conversations that fit the topic.** Ten ready-made topics, from Budget review to Town hall, each come with their own meeting title, captions and chat lines. You can also write your own topic.
+- **Conversations that fit the topic.** Ten ready-made topics, from Budget review to Town hall, each come with their own meeting title, agenda, captions, action items and chat lines. You can also write your own topic.
 - **A chat that answers you.** Say "hello" and someone welcomes you by your first name. Ask "can you hear me?" and the reply depends on whether your mic is muted. "Can you see me?" depends on your camera. People pause, show "is typing…", then reply.
 - **People who act like people.**
   - One person talks for a while before passing the floor on, and someone chips in with an "mm-hmm".
@@ -30,7 +32,7 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
   - Record (just a red pill, nothing is saved), captions and meeting info
   - In-call settings
 - **Your real camera, if you want it.** Your webcam shows in your own tile and never leaves your device.
-- **Fits your situation.** The call clock can start at 00:00, 15 minutes, 30 minutes or 1 hour. You can set the participant count (1 to 16), edit or shuffle their names, and turn chat on or off.
+- **Fits your situation.** The call clock can start at 00:00, 15 minutes, 30 minutes or 1 hour. Join late and you skip the opening, straight into the agenda. You can set the participant count (1 to 16), edit or shuffle their names, and turn chat on or off.
 - **Light and dark.** The setup page follows your device or your choice. So do the app looks that have a light mode in real life.
 - **Phones too.** Every look adapts to small screens, for example Zooм's End button moves to the top, like the mobile app.
 - **Private and simple.** It's a static site with no accounts, no analytics and no server. Everything runs in your browser.
@@ -66,14 +68,15 @@ No build step and no server: open `index.html` in a browser.
 - `index.html`: the setup page with every setting, the "Have an idea?" popup and the short disclaimer.
 - `meeting.html`: the meeting room. It draws the chosen look and runs the call.
 - `disclaimer.html`: the full disclaimer.
-- `shared.js`: settings, parody logos, names, topics, captions and chat lines.
+- `shared.js`: settings, parody logos, names, topics and chat lines.
+- `talk.js`: what people say out loud (the captions): small talk, the agenda for each topic, jokes, side-tracks and the wrap-up.
 - `site.css`: styles for the setup and disclaimer pages.
 - `docs/`: screenshots for this page.
 
 ### Add or change content
 All in `shared.js` unless noted:
 - `TOPICS` and `TOPIC_TITLE`: topics and their meeting titles.
-- `SPOKEN_TOPIC` and `SPOKEN_GENERIC`: what people say (the captions). `BACKCHANNEL` holds the short "mm-hmm" lines.
+- In `talk.js`: `AGENDA` holds each topic's four agenda items and their lines, `ACTION_ITEMS` the closing to-dos, `MEETING_LINES` and `REPLY_LINES` the everyday talk, `BACKCHANNEL` the short "mm-hmm" lines, `JOKES` and `SIDE_TRACKS` the light moments, and `WRAP_START`, `RECAP`, `WRAP_END` and `GOODBYES` the ending. Multi-person exchanges use the roles `H` (host) and `A`, `B`, `C` (three different people).
 - `CHAT_GENERIC` and `CHAT_TOPIC`: chat messages, by meeting phase and by topic.
 - `CHAT_REPLIES`: rules for answering what the visitor types.
 - `NAME_POOL` and `SPARE_NAMES`: participant names.
@@ -83,6 +86,7 @@ All in `shared.js` unless noted:
 Add these to the end of the meeting page address:
 - `&fast=1` makes chat messages, reactions and arrivals come within seconds.
 - `&skip=1` skips the pre-join screen.
+- `&endin=180` squeezes the whole meeting, from small talk to the host ending it, into that many seconds.
 
 ### Publish (GitHub Pages)
 In the repository settings, open **Pages** and set the source to "Deploy from a branch", with branch `main` and folder `/ (root)`. The site updates a minute or two after every merge to `main`. A free GitHub account needs the repository to be public.
