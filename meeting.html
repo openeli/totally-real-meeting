@@ -48,6 +48,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[r
 .rec i{width:10px;height:10px;border-radius:50%;background:#E5322D;animation:blink 1.4s infinite}
 @keyframes blink{50%{opacity:.35}}
 .captions{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:2;max-width:min(760px,calc(100% - 32px));padding:10px 16px;border-radius:8px;background:rgba(0,0,0,.78);color:#fff;font-size:18px;line-height:1.35}
+.captions:empty{display:none}
+.captions .cl{display:block}
+.captions .cl + .cl{margin-top:6px}
+.captions .cl.old{opacity:.62}
 .captions b{font-weight:600;margin-right:6px;opacity:.8}
 #toast{position:fixed;z-index:6;width:min(320px,calc(100% - 32px));padding:12px 14px;border-radius:8px;display:flex;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:13px;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none}
 #toast.show{opacity:1;transform:none;pointer-events:auto;cursor:pointer}
@@ -207,7 +211,7 @@ const state = {
   muted: false, camOn: !!S.cam, mirror: true, unread: 0, full: false,
   start: Date.now() - S.timer * 60000,   /* the clock can start at 15, 30 or 60 minutes */
   joined: Date.now(),                    /* chat pacing follows when you joined, not the clock */
-  panel: null, ended: null, view: 'gallery', hand: false, react: null, rec: false, cc: !S.audio, caption: null,   /* with no audio, captions start on */
+  panel: null, ended: null, view: 'gallery', hand: false, react: null, rec: false, cc: !S.audio, capLines: [],   /* with no audio, captions start on */
   phase: 'lobby',   /* lobby, connecting, call; then ended */
   people: []
 
@@ -264,7 +268,7 @@ function personTile(p, i) {
 }
 function overlays() {
   return `${state.phase === 'connecting' ? `<div class="connecting" role="status"><span class="spin" aria-hidden="true"></span>${L === 'meet' ? 'Joining…' : 'Connecting…'}</div>` : ''}${state.rec ? '<div class="rec"><i aria-hidden="true"></i>Recording</div>' : ''}
-    ${state.cc && state.caption ? `<div class="captions" aria-live="polite"><b>${esc(state.caption.name)}</b>${esc(state.caption.text)}</div>` : ''}`;
+    ${state.cc ? `<div class="captions" id="cap" aria-live="off">${captionsHtml()}</div>` : ''}`;
 }
 /* On a wide screen an open panel sits beside the tiles, the way the desktop apps do it, so the controls stay reachable. */
 const PANEL_GAP = { teams: [64, 0, 0], zoom: [44, 72, 0], webex: [52, 84, 0], meet: [16, 80, 16] };
@@ -390,38 +394,97 @@ function stopCam() { if (stream) { stream.getTracks().forEach(t => t.stop()); st
 function setCam(on) { state.camOn = on; S.cam = on; saveSettings(S); if (on) startCam(); else stopCam(); render(); refreshPanels(); }
 
 /* ---------- who is "speaking", and live captions ---------- */
+/* Live captions arrive the way real ones do: a word or two at a time, lowercase and unpunctuated while the
+   person is still talking, sometimes with a misheard word, then the sentence settles into its final form. */
+const MISHEARD = { to: 'two', there: 'their', for: 'four', right: 'write', here: 'hear', know: 'no', week: 'weak', by: 'buy', our: 'are', new: 'knew', see: 'sea', one: 'won', way: 'weigh', great: 'grate', board: 'bored' };
+const capLimit = () => isNarrow() ? 110 : 190;   /* characters shown per speaker before older words scroll away */
+function tail(t) {
+  const n = capLimit(); if (t.length <= n) return t;
+  const cut = t.slice(-n); return '…' + cut.slice(cut.indexOf(' ') + 1);
+}
+function captionsHtml() {
+  return state.capLines.map((c, i) => `<span class="cl${i < state.capLines.length - 1 ? ' old' : ''}"><b>${esc(c.name)}</b>${esc(tail(c.text))}</span>`).join('');
+}
+function paintCaptions() { const el = document.getElementById('cap'); if (el) el.innerHTML = captionsHtml(); }
+let capClear = null;
+function interim(words) {
+  return words.map(w => {
+    let t = w.replace(/[.,!?;:“”"]/g, '');
+    t = t === 'I' || /^I[’']/.test(t) || /^[A-Z0-9]{2,}$/.test(t) ? t : t.toLowerCase();
+    return MISHEARD[t] && Math.random() < 0.08 ? MISHEARD[t] : t;
+  }).join(' ');
+}
+function setSpeaker(p) {
+  const changed = state.people.some(x => x.speaking !== (x === p));
+  state.people.forEach(x => x.speaking = x === p);
+  if (changed) render();
+}
+/* Stream one sentence from p into the captions, then call done. */
+function speak(p, text, done) {
+  clearTimeout(capClear);
+  setSpeaker(p);
+  let entry = state.capLines.at(-1);
+  if (!entry || entry.name !== p.name) { entry = { name: p.name, text: '' }; state.capLines.push(entry); state.capLines = state.capLines.slice(-2); }
+  const base = entry.text ? entry.text + ' ' : '';
+  const words = text.split(/\s+/);
+  let i = 0, shown = [];
+  const step = () => {
+    if (state.ended) return;
+    if (p.muted || !state.people.includes(p)) { entry.text = base + interim(shown); paintCaptions(); return done(); }
+    i = Math.min(words.length, i + (Math.random() < 0.25 ? 2 : 1));
+    shown = words.slice(0, i);
+    entry.text = base + interim(shown); paintCaptions();
+    if (i < words.length) {
+      const last = words[i - 1];
+      /* roughly two and a half words a second, slower after a comma, with the odd hesitation */
+      setTimeout(step, 230 + Math.random() * 260 + (/[,;:]$/.test(last) ? 320 : 0) + (Math.random() < 0.05 ? 700 : 0));
+    } else {
+      /* a beat later the recogniser settles: capitals, punctuation, corrected words */
+      setTimeout(() => { if (state.ended) return; entry.text = base + text; paintCaptions(); done(); }, 350 + Math.random() * 450);
+    }
+  };
+  setTimeout(step, 150);
+}
+/* After a few seconds of silence the captions clear, like the real ones. */
+function quiet(ms, then) {
+  state.people.forEach(x => x.speaking = false); render();
+  clearTimeout(capClear);
+  capClear = setTimeout(() => { state.capLines = []; paintCaptions(); }, 5000);
+  setTimeout(then, ms);
+}
 /* One person holds the floor for a few sentences, others chip in now and then, and there are short pauses between turns. */
-const sayFor = text => Math.max(2600, text.split(/\s+/).length * 380);   /* about two and a half words a second */
 let turn = null, nextUp = null;
 function nextSpeaker() {
   if (state.ended) return;
   const live = state.people.filter(p => !p.muted);
-  state.people.forEach(p => p.speaking = false);
-  if (!live.length) { state.caption = null; turn = null; render(); return setTimeout(nextSpeaker, 4000); }
+  if (!live.length) { turn = null; return quiet(4000, nextSpeaker); }
   if (!turn || turn.left <= 0 || !live.includes(turn.p)) {
     /* Someone who raised a hand gets to talk next; otherwise the floor usually stays with a few regulars. */
     const fresh = turn && live.length > 1 && Math.random() < 0.85 ? live.filter(x => x !== turn.p) : live;
     const p = nextUp && live.includes(nextUp) ? nextUp : fresh[Math.floor(Math.pow(Math.random(), 1.6) * fresh.length)];
     nextUp = null;
-    if (turn && turn.p !== p && Math.random() < 0.3) {
-      /* a brief "mm-hmm" from someone else before the next person starts */
-      const others = live.filter(x => x !== p && x !== turn.p);
-      if (!others.length) { turn = { p, left: 2 + Math.floor(Math.random() * 4) }; return setTimeout(nextSpeaker, 800); }
-      const q = others[Math.floor(Math.random() * others.length)];
-      q.speaking = true; state.caption = { name: q.name, text: draw('bc', BACKCHANNEL) }; render();
-      turn = { p, left: 2 + Math.floor(Math.random() * 4) };
-      return setTimeout(nextSpeaker, 1400 + Math.random() * 800);
-    }
+    const prev = turn && turn.p;
     turn = { p, left: 2 + Math.floor(Math.random() * 4) };
-    if (state.caption) { state.caption = null; render(); return setTimeout(nextSpeaker, 600 + Math.random() * 1600); }
+    if (prev && prev !== p && Math.random() < 0.3) {
+      /* a brief "mm-hmm" from someone else before the next person starts */
+      const others = live.filter(x => x !== p && x !== prev);
+      if (others.length) {
+        const q = others[Math.floor(Math.random() * others.length)];
+        return speak(q, draw('bc', BACKCHANNEL), () => setTimeout(nextSpeaker, 500 + Math.random() * 700));
+      }
+    }
+    if (prev) return quiet(700 + Math.random() * 1500, () => sayLine());
   }
-  turn.p.speaking = true; turn.left--;
+  sayLine();
+}
+function sayLine() {
+  if (state.ended) return;
+  if (!turn || turn.p.muted || !state.people.includes(turn.p)) return nextSpeaker();
+  turn.left--;
   /* mostly the topic, with the odd everyday line ("Can everyone see my screen?") */
   const topical = spokenLines(S);
   const text = topical.length && Math.random() < 0.75 ? draw('spoken', topical) : draw('everyday', SPOKEN_GENERIC);
-  state.caption = { name: turn.p.name, text };
-  render();
-  setTimeout(nextSpeaker, sayFor(text) + Math.random() * 700);
+  speak(turn.p, text, () => setTimeout(nextSpeaker, 250 + Math.random() * 700));
 }
 
 /* ---------- other people raise hands and react, rarely and at random ---------- */
@@ -511,7 +574,7 @@ function refreshPanels() {
 }
 document.getElementById('people').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  if ('muteall' in b.dataset) { state.people.forEach(p => { p.muted = true; p.speaking = false; }); state.caption = null; notice('Everyone else is muted'); render(); refreshPanels(); }
+  if ('muteall' in b.dataset) { state.people.forEach(p => { p.muted = true; p.speaking = false; }); notice('Everyone else is muted'); render(); refreshPanels(); }
   else roomAction(b);
 });
 document.getElementById('info').addEventListener('click', e => { const b = e.target.closest('[data-share]'); if (b) shareSite(); });

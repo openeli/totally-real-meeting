@@ -11,7 +11,7 @@ A static parody meeting site. No build step and no server.
 
 ## Custom options
 - **Custom topic:** pick "Custom (make your own)" in the topic list, then type a meeting title and the lines people say in chat.
-- **Sound:** no audio for now (the default), so what people say shows as live captions from the start. Captions come from `SPOKEN_TOPIC` (about 14 lines per topic) and `SPOKEN_GENERIC` in `shared.js`. One person holds the floor for a few lines, with short pauses and the odd "mm-hmm" (`BACKCHANNEL`).
+- **Sound:** no audio for now (the default), so what people say shows as live captions from the start. Captions come from `SPOKEN_TOPIC` (about 14 lines per topic) and `SPOKEN_GENERIC` in `shared.js`. Captions stream in a word or two at a time, lowercase and unpunctuated, sometimes with a misheard word (`MISHEARD` in `meeting.html`), then each sentence settles into its final form; they clear after a few seconds of silence. One person holds the floor for a few lines, with short pauses and the odd "mm-hmm" (`BACKCHANNEL`).
 - **Call timer:** in the Topic and timer card, start the meeting clock at 00:00 (default), 15 min, 30 min or 1 hour.
 - **Custom app look:** pick the fifth card, then set the app name, logo letter, brand colour, logo shape and layout (controls on top, bottom bar, or floating pill).
 
