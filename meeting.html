@@ -169,7 +169,7 @@ const hasLight = skin === 'teams' || skin === 'webex' || skin === 'custom';
 const CA = S.customApp;
 /* The custom look borrows one of three layouts; everything else about it comes from the settings. */
 const L = skin === 'custom' ? { top: 'teams', bottom: 'zoom', pill: 'webex' }[CA.layout] : skin;
-const me = (S.name || 'You').trim() || 'You';
+const me = (S.name || '').trim() || 'Guest';
 const isNarrow = () => matchMedia('(max-width:700px)').matches;
 const SITE_URL = new URL('index.html', location.href).href.replace(/index\.html$/, '');
 
@@ -548,7 +548,8 @@ function incoming(p, line) {
 }
 
 /* People answer what you type: a greeting, "can you hear me?", "can you see me?" and so on (rules in shared.js). */
-const firstName = me === 'You' ? '' : me.split(/\s+/)[0];
+/* Replies use your first name only ("Eli Perry" becomes "Eli"). A guest gets replies without a name. */
+const firstName = /^guest$/i.test(me) ? '' : me.split(/\s+/)[0];
 function fill(line, other) {
   let t = line.replace(/\{other\}/g, other);
   if (firstName) return t.replace(/\{name\}/g, firstName);
