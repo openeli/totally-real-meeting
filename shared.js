@@ -92,73 +92,7 @@ function topicLines(s) {
   return CHAT_TOPIC[s.topic] || [];
 }
 
-/* What people say out loud, shown as live captions. A speaker keeps the floor for a few lines, like a real call. */
-const SPOKEN_GENERIC = [
-  'Okay, so where were we?', 'Let me share a bit of context first.', 'I think that makes sense, as long as we keep it simple.',
-  'Can everyone see my screen? Just give me a thumbs up.', 'Let me pull that up real quick.', 'Good question. I’ll follow up after the call.',
-  'Sorry, I was on mute. Can you hear me now?', 'Let’s park that and come back to it at the end.', 'Just to build on what was said,',
-  'I don’t want to go too deep into the weeds here.', 'Quick reminder that we have a hard stop at the top of the hour.', 'Does anyone have anything to add before we move on?',
-  'Sorry, you cut out for a second there. Could you repeat that?', 'I’ll drop the link in the chat.', 'So, long story short, we’re in a good place.',
-  'I’ll take that as an action item.', 'Let’s make sure we capture that in the notes.', 'Sorry, someone’s at the door. One second.'
-];
-const SPOKEN_TOPIC = {
-  'Budget review': ['So this is the draft budget for next quarter.', 'Overall spend is flat, but the mix has shifted quite a bit.', 'Software licences are the biggest jump, mostly from renewals.',
-    'Travel is still capped at last year’s level.', 'We found about forty thousand in savings by consolidating vendors.', 'Headcount is the one line we haven’t locked yet.',
-    'If we approve the two new roles, we’re roughly two percent over.', 'I’d rather trim the events line than cut training.', 'Can finance confirm the contingency number?',
-    'The marketing ask came in higher than expected.', 'We need sign-off by Friday to make the planning deadline.', 'Let’s go line by line on the top five items.',
-    'Facilities costs dropped now that we gave up the second floor.', 'Anything under five thousand can stay with the team leads.'],
-  'Customer success': ['Renewals this month are looking strong.', 'We had two escalations last week, both resolved now.', 'The onboarding survey scores went up again.',
-    'One of our larger accounts is asking for a dedicated contact.', 'Churn risk is mostly in the smaller plans.', 'I’d like us to reach out to the quiet accounts before renewal.',
-    'Support response times are under four hours on average.', 'The new help centre articles cut tickets by about ten percent.', 'They loved the training session we ran for their team.',
-    'We should share that case study with sales.', 'Health scores for the enterprise group are mostly green.', 'Let’s flag the three accounts that haven’t logged in this month.',
-    'Their main ask is better reporting.', 'I’ll set up a check-in call with their admin next week.'],
-  'Engineering standup': ['Yesterday I finished the login refactor.', 'Today I’m picking up the flaky test in checkout.', 'No blockers on my side.',
-    'I’m blocked on the API keys for staging.', 'The deploy went out this morning without issues.', 'I’ve got a pull request up if anyone has time to review.',
-    'We saw a spike in errors last night, but it was a third party outage.', 'I’ll pair with Sam on the caching bug after this.', 'The migration is about halfway done.',
-    'I’m out tomorrow afternoon, just a heads up.', 'Can we keep this to fifteen minutes today?', 'Let’s take the database discussion offline.',
-    'Performance on the dashboard page is much better now.', 'I’m still waiting on design for the settings screen.'],
-  'Finance': ['Revenue came in slightly ahead of forecast.', 'Gross margin held steady at around sixty percent.', 'Operating expenses were up, mostly from hiring.',
-    'Cash position is healthy, with about eighteen months of runway.', 'Receivables are taking longer to collect this quarter.', 'We’re revising the full year outlook upward a little.',
-    'The currency swings hurt us in Europe.', 'Let me walk you through the quarter on one slide.', 'If you look at the third column, that’s year over year.',
-    'Most of the variance is timing, not a real change.', 'We’ll close the books by the tenth.', 'Audit prep starts next month.',
-    'I’d like every department to review their accruals.', 'Any questions on the numbers before I move on?'],
-  'HR': ['Thanks for joining. This is a quick update on the new policy.', 'The hybrid schedule stays at three days in the office.', 'Open enrolment for benefits starts on the first.',
-    'We’re adding two extra wellness days this year.', 'Managers will get a short guide before the rollout.', 'Performance reviews move to twice a year.',
-    'Please complete the training module by the end of the month.', 'The handbook will be updated by next week.', 'If you have questions, the HR inbox is the best place.',
-    'Parental leave is going up to sixteen weeks.', 'We’re running a short survey on the onboarding experience.', 'Nothing changes for contractors right now.',
-    'The holiday calendar is already on the intranet.', 'We’ll hold office hours on Thursday for anything that’s unclear.'],
-  'Leadership': ['Let’s start with the big picture.', 'Our top three priorities haven’t changed.', 'Hiring is slower than planned, and that’s the main risk.',
-    'I want every team to own one clear goal for the quarter.', 'We need a decision on the partnership by next week.', 'Customer feedback is the strongest it’s been all year.',
-    'Let’s be honest about what we’re not going to do.', 'Who owns the follow-up on this?', 'I’d like a one-page summary from each team.',
-    'The board meeting is in three weeks.', 'We should celebrate the launch. The team did great work.', 'Let’s align on the message before it goes out company-wide.',
-    'I’m worried we’re spreading ourselves too thin.', 'Let’s revisit this in two weeks with data.'],
-  'Marketing': ['The campaign went live on Monday.', 'Click-through is well above our benchmark.', 'Paid social is doing better than search this time.',
-    'The video ad is our best performer by far.', 'We’re seeing a lot of traffic from the newsletter.', 'Let’s A/B test the two headlines next week.',
-    'The landing page conversion rate dipped a little on mobile.', 'Budget is about sixty percent spent.', 'The webinar has over three hundred sign-ups.',
-    'I’d like sales to follow up on those leads within a day.', 'Brand guidelines are updated in the shared drive.', 'Let’s keep the tone friendly but confident.',
-    'The partner co-marketing piece goes out on the fifteenth.', 'We’ll share a full report at the end of the month.'],
-  'Product roadmap': ['Here’s the roadmap for the next two quarters.', 'The top request from customers is still better search.', 'We’re moving offline mode into Q2.',
-    'Reporting gets a full redesign this quarter.', 'Let’s scope that before we commit to a date.', 'Design has early mock-ups ready to share.',
-    'We’re cutting two smaller features to make room.', 'The beta for the mobile app starts next month.', 'I want to validate this with five customers first.',
-    'Integrations are a big ask from the enterprise side.', 'Engineering estimates about six weeks for that.', 'Let’s not promise dates externally yet.',
-    'We’ll review the roadmap again after the user research.', 'Any feedback on priorities, send it my way.'],
-  'Sales': ['We’re at about eighty percent of target with three weeks left.', 'Pipeline looks healthy for next quarter.', 'Two big deals are in legal review right now.',
-    'The new pricing page is helping with smaller deals.', 'Our win rate against competitors went up.', 'I need help from product on one security questionnaire.',
-    'The demo yesterday went really well.', 'They asked for a discount, but I held the line.', 'Let’s focus on deals that can close this month.',
-    'Our renewals team flagged a few upsell chances.', 'Can marketing send more leads from the webinar?', 'I’ll update the forecast in the CRM tonight.',
-    'The east region is ahead, and the west is catching up.', 'Great work on the call yesterday, by the way.'],
-  'Town hall': ['Welcome, everyone, and thanks for joining.', 'It’s been a big quarter, so let’s get into it.', 'First, a warm welcome to our new team members.',
-    'We hit our main goal two weeks early.', 'Customer numbers are up about twenty percent.', 'A huge thank you to the support team for a busy month.',
-    'The new office opens in the spring.', 'We’ll leave time for questions at the end.', 'There’s a question in the chat about remote work.',
-    'Slides will be shared after the meeting.', 'Let’s give a shout-out to the launch team.', 'Next quarter is about focus and quality.',
-    'Please fill out the engagement survey this week.', 'Thanks again, everyone. Have a great rest of your day.']
-};
-/* Short sounds people make while someone else is talking. */
-const BACKCHANNEL = ['Mm-hmm.', 'Right.', 'Yeah.', 'Got it.', 'Makes sense.', 'Okay.', 'Agreed.', 'Sure.', 'Yep, that works.'];
-/* Lines about the meeting's topic (your own lines for a custom topic). */
-function spokenLines(s) {
-  return s.topic === CUSTOM_TOPIC ? topicLines(s) : (SPOKEN_TOPIC[s.topic] || []).concat(topicLines(s));
-}
+/* What people say out loud (the captions) lives in talk.js. */
 
 const NAME_POOL = ['Maria Lopez', 'James Carter', 'Priya Nair', 'Tom Becker', 'Aisha Khan', 'Daniel Kim', 'Sofia Rossi', 'Liam O’Brien', 'Grace Chen', 'Omar Haddad', 'Emma Novak', 'Lucas Silva', 'Hannah Weber', 'Kenji Sato', 'Olivia Brooks', 'Mateo Garcia'];
 const SPARE_NAMES = ['Rachel Green', 'Victor Hale', 'Nina Patel', 'Ben Foster', 'Zoe Martin', 'Ravi Shah', 'Chloe Dubois', 'Samuel Ortiz', 'Mia Johansson', 'Ethan Wright', 'Leila Ahmadi', 'Noah Fischer', 'Isabel Moreno', 'Yuki Tanaka', 'Adam Kowalski', 'Fatima Zahra'];
@@ -227,6 +161,8 @@ const DEFAULTS = {
   skin: 'teams', topic: 'Finance', theme: 'system',
   audio: false,   /* no audio files yet: what people say shows as live captions */
   timer: 0,   /* minutes the call has already been running when you join: 0, 15, 30 or 60 */
+  length: 'full',   /* 'full': the meeting runs start to finish (about an hour) and ends; 'loop': it keeps going */
+  drift: 'some',    /* 'some': small talk, jokes and side-tracks now and then; 'none': stays on topic */
   customTopic: { title: 'Weekly team sync', lines: 'Can we circle back on this?\nGood progress this week\nWho\u2019s taking the action item?' },
   customApp: { name: 'MeetSpace', color: '#E4572E', letter: 'M', shape: 'square', layout: 'bottom' },
   chat: { on: true, generic: true, topic: true, own: false, freq: 'rare', ownText: 'Can everyone see my screen?\nSorry, my internet dropped for a sec\nLet’s take that offline' }
@@ -248,6 +184,8 @@ function loadSettings() {
   if (!TOPICS.includes(out.topic) && out.topic !== CUSTOM_TOPIC) out.topic = 'Finance';
   out.count = Math.max(1, Math.min(16, +out.count || 5));
   out.timer = TIMER_STARTS.some(t => t.min === +out.timer) ? +out.timer : 0;
+  if (out.length !== 'loop') out.length = 'full';
+  if (out.drift !== 'none') out.drift = 'some';
   return out;
 }
 function saveSettings(s) { try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) {} }
