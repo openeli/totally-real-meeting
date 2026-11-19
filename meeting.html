@@ -47,7 +47,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[r
 .rec{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:2;display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:16px;background:rgba(0,0,0,.65);color:#fff;font-size:13px;font-weight:600}
 .rec i{width:10px;height:10px;border-radius:50%;background:#E5322D;animation:blink 1.4s infinite}
 @keyframes blink{50%{opacity:.35}}
-.captions{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:2;max-width:min(760px,calc(100% - 32px));padding:10px 16px;border-radius:8px;background:rgba(0,0,0,.78);color:#fff;font-size:18px;line-height:1.35}
+.captions{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:2;max-width:min(760px,max(420px,calc(100% - 720px)));padding:10px 16px;border-radius:8px;background:rgba(0,0,0,.78);color:#fff;font-size:18px;line-height:1.35}
 .captions:empty{display:none}
 .captions .cl{display:block}
 .captions .cl + .cl{margin-top:6px}
@@ -426,6 +426,7 @@ function speak(p, text, done) {
   let entry = state.capLines.at(-1);
   if (!entry || entry.name !== p.name) { entry = { name: p.name, text: '' }; state.capLines.push(entry); state.capLines = state.capLines.slice(-2); }
   const base = entry.text ? entry.text + ' ' : '';
+  if (!/[.!?…]$/.test(text)) text += '.';   /* spoken lines always end as a sentence */
   const words = text.split(/\s+/);
   let i = 0, shown = [];
   const step = () => {
