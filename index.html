@@ -58,10 +58,16 @@
 </section>
 
 <section class="card" aria-labelledby="h-topic">
-<h2 id="h-topic">3. Topic and timer</h2>
+<h2 id="h-topic">3. Topic, sound and timer</h2>
 <label class="f" for="topic">What the meeting is about</label>
 <select class="input" id="topic"></select>
 <p class="hint">Each topic comes with its own meeting title and conversation.</p>
+<div class="field"><span class="f" id="l-audio">Sound</span>
+<div class="seg" role="group" aria-labelledby="l-audio">
+<button class="chip" type="button" data-audio="off" aria-pressed="true">No audio, captions on</button>
+<button class="chip" type="button" data-audio="on" aria-pressed="false" disabled style="opacity:.55;cursor:not-allowed">With audio (coming soon)</button>
+</div>
+<p class="hint">The meeting is silent, so what people say shows as live captions. You can turn captions off during the call.</p></div>
 <div class="field"><span class="f" id="l-timer">Call timer starts at</span>
 <div class="seg" role="group" aria-labelledby="l-timer" id="timerPick"></div>
 <p class="hint">Join a call that has already been going for a while. The meeting clock starts from here.</p></div>
@@ -133,6 +139,7 @@
 <dl class="sum">
 <dt>Topic</dt><dd id="sumTopic"></dd>
 <dt>People</dt><dd id="sumPeople"></dd>
+<dt>Sound</dt><dd>Captions, no audio</dd>
 <dt>Timer</dt><dd id="sumTimer"></dd>
 <dt>Chat</dt><dd id="sumChat"></dd>
 <dt>Theme</dt><dd id="sumTheme"></dd>
