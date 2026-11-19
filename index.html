@@ -41,6 +41,19 @@
 <section class="card" aria-labelledby="h-app">
 <h2 id="h-app">2. Meeting app look</h2>
 <div class="apps" id="apps"></div>
+<div id="customApp" class="subpanel">
+<h3>Design your own app</h3>
+<div class="fields">
+<div class="field"><label class="f" for="caName">App name</label><input class="input" id="caName" type="text" maxlength="24"></div>
+<div class="field"><label class="f" for="caLetter">Logo letter</label><input class="input" id="caLetter" type="text" maxlength="1" style="max-width:88px;text-transform:uppercase"></div>
+</div>
+<div class="field"><span class="f" id="l-color">Brand colour</span>
+<div class="chips" role="group" aria-labelledby="l-color" id="caColors"></div></div>
+<div class="field"><span class="f" id="l-shape">Logo shape</span>
+<div class="seg" role="group" aria-labelledby="l-shape"><button class="chip" type="button" data-shape="square">Rounded square</button><button class="chip" type="button" data-shape="circle">Circle</button></div></div>
+<div class="field"><span class="f" id="l-layout">Layout</span>
+<div class="seg" role="group" aria-labelledby="l-layout" id="caLayouts"></div></div>
+</div>
 </section>
 
 <section class="card" aria-labelledby="h-topic">
@@ -48,6 +61,11 @@
 <label class="f" for="topic">What the meeting is about</label>
 <select class="input" id="topic"></select>
 <p class="hint">Each topic comes with its own meeting title and conversation.</p>
+<div id="customTopic" class="subpanel">
+<h3>Make your own topic</h3>
+<div class="field"><label class="f" for="ctTitle">Meeting title</label><input class="input" id="ctTitle" type="text" maxlength="60" placeholder="e.g. Weekly team sync"></div>
+<div class="field"><label class="f" for="ctLines">Things people say about it <span class="hint" style="display:inline">(one per line, used in the chat)</span></label><textarea class="input" id="ctLines" rows="4"></textarea></div>
+</div>
 </section>
 
 <section class="card" aria-labelledby="h-people">
@@ -169,6 +187,21 @@ function renderApps() {
   $('apps').innerHTML = SKINS.map(s => `<button class="app" type="button" data-skin="${s.id}" aria-pressed="${S.skin === s.id}">${brand(s.id, 28)}<small>${s.hint}</small><small>${s.modes}</small></button>`).join('');
 }
 
+function renderCustomApp() {
+  const on = S.skin === 'custom';
+  $('customApp').style.display = on ? 'flex' : 'none';
+  if (!on) return;
+  $('caColors').innerHTML = CUSTOM_COLORS.map(c => `<button class="swatch" type="button" data-color="${c}" aria-pressed="${S.customApp.color === c}" aria-label="Colour ${c}" style="background:${c}"></button>`).join('')
+    + `<label class="swatch pick" title="Pick any colour"><span class="sr">Pick any colour</span><input type="color" id="caPick" value="${S.customApp.color}"></label>`;
+  $('caLayouts').innerHTML = CUSTOM_LAYOUTS.map(l => `<button class="chip" type="button" data-layout="${l.id}" aria-pressed="${S.customApp.layout === l.id}">${l.label}</button>`).join('');
+  document.querySelectorAll('[data-shape]').forEach(b => b.setAttribute('aria-pressed', S.customApp.shape === b.dataset.shape));
+}
+function updateCustomApp(patch) {
+  S.customApp = setCustomApp({ ...S.customApp, ...patch });
+  renderApps(); renderCustomApp(); save();
+}
+function renderCustomTopic() { $('customTopic').style.display = S.topic === CUSTOM_TOPIC ? 'flex' : 'none'; }
+
 function renderPeople() {
   $('count').textContent = S.count;
   $('people').innerHTML = S.names.slice(0, S.count).map((n, i) => {
@@ -190,7 +223,7 @@ function renderChat() {
 
 function summary() {
   $('sumBrand').innerHTML = brand(S.skin, 30);
-  $('sumTopic').textContent = TOPIC_TITLE[S.topic];
+  $('sumTopic').textContent = topicTitle(S);
   $('sumPeople').textContent = (S.name || 'You') + ' + ' + S.count + (S.count === 1 ? ' other' : ' others');
   const srcs = ['generic', 'topic', 'own'].filter(k => S.chat[k]).length;
   $('sumChat').textContent = !S.chat.on || !srcs ? 'Off' : (S.chat.freq === 'rare' ? 'On, rare' : 'On, occasional');
@@ -201,16 +234,33 @@ function summary() {
 /* Initial values */
 $('myName').value = S.name;
 $('camSwitch').setAttribute('aria-pressed', S.cam);
-$('topic').innerHTML = TOPICS.map(t => `<option value="${t}"${t === S.topic ? ' selected' : ''}>${t}</option>`).join('');
+$('topic').innerHTML = TOPICS.map(t => `<option value="${t}"${t === S.topic ? ' selected' : ''}>${t}</option>`).join('')
+  + `<option value="${CUSTOM_TOPIC}"${S.topic === CUSTOM_TOPIC ? ' selected' : ''}>Custom (make your own)</option>`;
+$('ctTitle').value = S.customTopic.title;
+$('ctLines').value = S.customTopic.lines;
+$('caName').value = S.customApp.name;
+$('caLetter').value = S.customApp.letter;
 $('ownText').value = S.chat.ownText;
 $('ideaClose').innerHTML = ico('x');
-paintTheme(); renderApps(); renderPeople(); renderChat(); summary();
+paintTheme(); renderApps(); renderCustomApp(); renderCustomTopic(); renderPeople(); renderChat(); summary();
 
 /* Events */
 $('myName').addEventListener('input', e => { S.name = e.target.value; save(); });
 $('camSwitch').addEventListener('click', () => { S.cam = !S.cam; $('camSwitch').setAttribute('aria-pressed', S.cam); save(); });
-$('apps').addEventListener('click', e => { const b = e.target.closest('[data-skin]'); if (!b) return; S.skin = b.dataset.skin; renderApps(); save(); });
-$('topic').addEventListener('change', e => { S.topic = e.target.value; save(); });
+$('apps').addEventListener('click', e => { const b = e.target.closest('[data-skin]'); if (!b) return; S.skin = b.dataset.skin; renderApps(); renderCustomApp(); save(); });
+$('topic').addEventListener('change', e => { S.topic = e.target.value; renderCustomTopic(); save(); if (S.topic === CUSTOM_TOPIC) $('ctTitle').focus(); });
+$('ctTitle').addEventListener('input', e => { S.customTopic.title = e.target.value; save(); });
+$('ctLines').addEventListener('input', e => { S.customTopic.lines = e.target.value; save(); });
+$('caName').addEventListener('input', e => { const letterWasAuto = !$('caLetter').dataset.touched; updateCustomApp(letterWasAuto ? { name: e.target.value, letter: '' } : { name: e.target.value }); if (letterWasAuto) $('caLetter').value = S.customApp.letter; });
+$('caLetter').addEventListener('input', e => { e.target.dataset.touched = '1'; updateCustomApp({ letter: e.target.value }); });
+$('customApp').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.color) updateCustomApp({ color: b.dataset.color });
+  if (b.dataset.shape) updateCustomApp({ shape: b.dataset.shape });
+  if (b.dataset.layout) updateCustomApp({ layout: b.dataset.layout });
+  const again = document.querySelector(`[data-color="${b.dataset.color}"],[data-layout="${b.dataset.layout}"],[data-shape="${b.dataset.shape}"]`); again && again.focus();
+});
+$('customApp').addEventListener('change', e => { if (e.target.id === 'caPick') updateCustomApp({ color: e.target.value }); });
 $('dec').addEventListener('click', () => { S.count = Math.max(1, S.count - 1); renderPeople(); save(); });
 $('inc').addEventListener('click', () => { S.count = Math.min(16, S.count + 1); renderPeople(); save(); });
 $('people').addEventListener('input', e => {

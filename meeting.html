@@ -64,7 +64,10 @@ saveSettings(S);
 const params = new URLSearchParams(location.search);
 const FAST = params.get('fast') === '1';   /* add &fast=1 to see chat within seconds when demoing */
 const skin = S.skin;
-const hasLight = skin === 'teams' || skin === 'webex';
+const hasLight = skin === 'teams' || skin === 'webex' || skin === 'custom';
+const CA = S.customApp;
+/* The custom look borrows one of three layouts; everything else about it comes from the settings. */
+const L = skin === 'custom' ? { top: 'teams', bottom: 'zoom', pill: 'webex' }[CA.layout] : skin;
 const light = hasLight && resolvedTheme(S) === 'light';
 const me = (S.name || 'You').trim() || 'You';
 
@@ -72,14 +75,17 @@ const C = {
   teams: light
     ? { stage: '#F0F0F0', bar: '#FFFFFF', line: '#E0E0E0', text: '#242424', muted: '#5C5C5C', tile: '#E6E6E6', self: '#D4D4D4', label: 'rgba(255,255,255,.88)', panel: '#FFFFFF', field: '#F5F5F5', ring: '#5B5FC7', leave: '#C4314B', radius: '6px' }
     : { stage: '#141414', bar: '#1F1F1F', line: '#333333', text: '#FFFFFF', muted: '#C8C8C8', tile: '#292929', self: '#101010', label: 'rgba(0,0,0,.6)', panel: '#1F1F1F', field: '#2B2B2B', ring: '#7F85F5', leave: '#C4314B', radius: '6px' },
-  zoom: { stage: '#1A1A1A', bar: '#1A1A1A', line: '#2E2E2E', text: '#FFFFFF', muted: '#BDBDBD', tile: '#242424', self: '#101010', label: 'rgba(0,0,0,.55)', panel: '#242424', field: '#1A1A1A', ring: '#3DDC84', leave: '#E02828', radius: '4px' },
+  custom: light
+    ? { stage: '#F3F4F6', bar: '#FFFFFF', line: '#E1E3E8', text: '#16171A', muted: '#555B66', tile: '#E6E8EC', self: '#D5D8DE', label: 'rgba(255,255,255,.88)', panel: '#FFFFFF', field: '#F3F4F6', ring: CA.color, leave: '#E03131', radius: '10px', pill: '#FFFFFF', btn: '#ECEEF1', btnOn: '#F8D9D2', share: CA.color, chip: '#ECEEF1' }
+    : { stage: '#16171A', bar: '#1E1F23', line: '#2E3036', text: '#FFFFFF', muted: '#B8BCC6', tile: '#26282D', self: '#101114', label: 'rgba(0,0,0,.6)', panel: '#1E1F23', field: '#26282D', ring: CA.color, leave: '#E03131', radius: '10px', pill: '#26282D', btn: '#33363C', btnOn: '#5A1F14', share: CA.color, chip: '#2A2C31' },
+  zoom: { share: '#3DDC84', chip: '#2A2A2A', stage: '#1A1A1A', bar: '#1A1A1A', line: '#2E2E2E', text: '#FFFFFF', muted: '#BDBDBD', tile: '#242424', self: '#101010', label: 'rgba(0,0,0,.55)', panel: '#242424', field: '#1A1A1A', ring: '#3DDC84', leave: '#E02828', radius: '4px' },
   webex: light
     ? { stage: '#F7F7F7', bar: '#FFFFFF', line: '#DEDEDE', text: '#121212', muted: '#545454', tile: '#E8E8E8', self: '#D4D4D4', label: 'rgba(255,255,255,.88)', panel: '#FFFFFF', field: '#F0F0F0', ring: '#1170CF', leave: '#D4371C', radius: '8px', pill: '#FFFFFF', btn: '#EDEDED', btnOn: '#F8D9D2' }
     : { stage: '#000000', bar: '#121212', line: '#2A2A2A', text: '#FFFFFF', muted: '#B5B5B5', tile: '#1F1F1F', self: '#101010', label: 'rgba(0,0,0,.6)', panel: '#1A1A1A', field: '#262626', ring: '#64B4FA', leave: '#D4371C', radius: '8px', pill: '#262626', btn: '#3A3A3A', btnOn: '#5A1F14' },
   meet: { stage: '#202124', bar: '#202124', line: '#3C4043', text: '#E8EAED', muted: '#BDC1C6', tile: '#3C4043', self: '#151617', label: 'transparent', panel: '#FFFFFF', panelText: '#202124', field: '#F1F3F4', ring: '#8AB4F8', leave: '#EA4335', radius: '8px', btn: '#3C4043' }
 }[skin];
 
-document.title = TOPIC_TITLE[S.topic] + ' | ' + SKIN[skin].say;
+document.title = topicTitle(S) + ' | ' + SKIN[skin].say;
 document.body.style.background = C.stage;
 
 const state = {
@@ -119,7 +125,7 @@ function tiles() {
 }
 
 const settingsHref = 'index.html';
-const title = esc(TOPIC_TITLE[S.topic]);
+const title = esc(topicTitle(S));
 
 function render() {
   const room = document.getElementById('room');
@@ -127,10 +133,10 @@ function render() {
   const unread = state.unread ? state.unread : '';
   let html = '';
 
-  if (skin === 'teams') {
+  if (L === 'teams') {
     const b = (k, t, attr = '') => `<button class="ibtn lbl" ${attr} style="color:${C.text}">${k}<span>${t}</span></button>`;
     html = `<div style="height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px 0 16px;background:${C.bar};border-bottom:1px solid ${C.line}">
-      <div style="display:flex;align-items:center;gap:14px;min-width:0">${brand('teams', 24)}<span class="hide-sm" style="width:1px;height:20px;background:${C.line}"></span><span data-timer class="hide-xs" style="font-weight:600;font-variant-numeric:tabular-nums">${elapsed()}</span><span class="hide-sm" style="width:1px;height:20px;background:${C.line}"></span><span class="hide-sm" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</span></div>
+      <div style="display:flex;align-items:center;gap:14px;min-width:0">${brand(skin, 24)}<span class="hide-sm" style="width:1px;height:20px;background:${C.line}"></span><span data-timer class="hide-xs" style="font-weight:600;font-variant-numeric:tabular-nums">${elapsed()}</span><span class="hide-sm" style="width:1px;height:20px;background:${C.line}"></span><span class="hide-sm" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</span></div>
       <div style="display:flex;align-items:center;gap:2px">
         ${b(ico('chat') + `<span class="badge">${unread}</span>`, 'Chat', 'data-chat aria-label="Chat"')}
         <span class="hide-sm" style="display:flex">${b(ico('people'), 'People')}${b(ico('hand'), 'Raise')}${b(ico('smile'), 'React')}${b(ico('view'), 'View')}</span>
@@ -142,23 +148,23 @@ function render() {
       </div></div>${tiles()}`;
   }
 
-  if (skin === 'zoom') {
+  if (L === 'zoom') {
     const b = (k, t, attr = '', col = C.text) => `<button class="ibtn lbl" ${attr} style="color:${col};width:84px">${k}<span style="color:${C.text}">${t}</span></button>`;
     html = `<div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px">
-      <span style="display:flex;align-items:center;gap:12px;min-width:0">${brand('zoom', 20)}<span class="hide-sm" style="font-size:12px;color:${C.muted};white-space:nowrap">${title}</span></span>
-      <span style="display:flex;gap:6px">${canFull ? `<button class="ibtn" data-full aria-label="Full screen" style="height:32px;padding:0 10px;gap:6px;border-radius:6px;background:#2A2A2A;color:${C.text};font-size:12px">${ico(state.full ? 'exitfull' : 'full', 14)}<span class="hide-sm">${state.full ? 'Exit full screen' : 'Full screen'}</span></button>` : ''}<a class="ibtn" href="${settingsHref}" style="height:32px;padding:0 10px;gap:6px;border-radius:6px;background:#2A2A2A;color:${C.text};font-size:12px">${ico('gear', 14)}<span class="hide-sm">Settings</span></a></span></div>
+      <span style="display:flex;align-items:center;gap:12px;min-width:0">${brand(skin, 20)}<span class="hide-sm" style="font-size:12px;color:${C.muted};white-space:nowrap">${title}</span></span>
+      <span style="display:flex;gap:6px">${canFull ? `<button class="ibtn" data-full aria-label="Full screen" style="height:32px;padding:0 10px;gap:6px;border-radius:6px;background:${C.chip};color:${C.text};font-size:12px">${ico(state.full ? 'exitfull' : 'full', 14)}<span class="hide-sm">${state.full ? 'Exit full screen' : 'Full screen'}</span></button>` : ''}<a class="ibtn" href="${settingsHref}" style="height:32px;padding:0 10px;gap:6px;border-radius:6px;background:${C.chip};color:${C.text};font-size:12px">${ico('gear', 14)}<span class="hide-sm">Settings</span></a></span></div>
       ${tiles()}
       <div style="height:72px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 8px;background:${C.bar};border-top:1px solid ${C.line}">
         <div style="display:flex">${b(micIco(), state.muted ? 'Unmute' : 'Mute', `data-mute aria-pressed="${state.muted}"`, state.muted ? '#E02828' : C.text)}${b(camIco(), state.camOn ? 'Stop Video' : 'Start Video', `data-cam aria-pressed="${!state.camOn}"`, state.camOn ? C.text : '#E02828')}</div>
-        <div style="display:flex">${b(ico('people'), 'Participants')}${b(ico('chat') + `<span class="badge" style="right:20px">${unread}</span>`, 'Chat', 'data-chat aria-label="Chat"')}${b(ico('share'), 'Share', '', '#3DDC84')}<span class="hide-sm" style="display:flex">${b(ico('rec'), 'Record')}${b(ico('smile'), 'Reactions')}${b(ico('more'), 'More')}</span></div>
+        <div style="display:flex">${b(ico('people'), 'Participants')}${b(ico('chat') + `<span class="badge" style="right:20px">${unread}</span>`, 'Chat', 'data-chat aria-label="Chat"')}${b(ico('share'), 'Share', '', C.share)}<span class="hide-sm" style="display:flex">${b(ico('rec'), 'Record')}${b(ico('smile'), 'Reactions')}${b(ico('more'), 'More')}</span></div>
         <a href="${settingsHref}" style="height:34px;padding:0 18px;border-radius:8px;background:${C.leave};color:#fff;font-weight:600;display:inline-flex;align-items:center;text-decoration:none">End</a>
       </div>`;
   }
 
-  if (skin === 'webex') {
+  if (L === 'webex') {
     const r = (k, attr = '', bg = C.btn, label = '') => `<button class="ibtn" ${attr} ${label ? `aria-label="${label}"` : ''} style="height:44px;min-width:44px;padding:0 14px;gap:8px;border-radius:22px;background:${bg};color:${C.text}">${k}</button>`;
     html = `<div style="height:52px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px 0 16px;background:${C.bar};border-bottom:1px solid ${C.line}">
-      <span style="display:flex;gap:12px;align-items:center;min-width:0">${brand('webex', 24)}<span style="width:1px;height:20px;background:${C.line}"></span><strong class="hide-sm" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</strong><span data-timer style="color:${C.muted};font-variant-numeric:tabular-nums">${elapsed()}</span></span>
+      <span style="display:flex;gap:12px;align-items:center;min-width:0">${brand(skin, 24)}<span style="width:1px;height:20px;background:${C.line}"></span><strong class="hide-sm" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</strong><span data-timer style="color:${C.muted};font-variant-numeric:tabular-nums">${elapsed()}</span></span>
       <span style="display:flex;gap:4px"><span class="hide-sm" style="display:flex">${r(ico('view', 18) + '<span class="hide-sm" style="font-size:13px">Layout</span>', '', 'transparent', 'Layout')}</span>${canFull ? r(fullIco(), 'data-full', 'transparent', 'Full screen') : ''}<a class="ibtn" href="${settingsHref}" aria-label="Settings" style="width:44px;height:44px;border-radius:22px;color:${C.text}">${ico('gear', 18)}</a></span></div>
       ${tiles()}
       <div style="height:84px;flex:none;position:relative;display:flex;align-items:center;justify-content:center;padding:0 12px">
@@ -230,7 +236,7 @@ document.getElementById('chatInput').style.cssText += `;background:${C.field};bo
 document.getElementById('chatClose').innerHTML = ico('x');
 document.getElementById('chatSend').innerHTML = ico('send');
 toastEl.style.background = skin === 'meet' ? '#2D2E31' : C.panel; toastEl.style.color = skin === 'meet' ? '#E8EAED' : C.text;
-toastEl.style[skin === 'teams' ? 'top' : 'bottom'] = skin === 'teams' ? '76px' : '96px';
+toastEl.style[L === 'teams' ? 'top' : 'bottom'] = L === 'teams' ? '76px' : '96px';
 toastEl.style.right = '16px';
 
 function addMsg(from, text, av) {
@@ -259,7 +265,7 @@ function pickLine() {
   const own = S.chat.own ? S.chat.ownText.split('\n').map(t => t.trim()).filter(Boolean) : [];
   const options = [];
   if (S.chat.generic) options.push(() => draw('g-' + phase, CHAT_GENERIC[phase]));
-  if (S.chat.topic && phase === 'middle') options.push(() => draw('t', CHAT_TOPIC[S.topic] || []));
+  if (S.chat.topic && phase === 'middle') options.push(() => draw('t', topicLines(S)));
   if (own.length && phase === 'middle') options.push(() => draw('o', own));
   if (!options.length && S.chat.generic === false && phase !== 'middle') return null;
   if (!options.length) return null;
@@ -312,7 +318,7 @@ document.addEventListener('fullscreenchange', () => { state.full = !!document.fu
 document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (e.key === 'Escape' && state.chatOpen) closeChat();
-  const shortcut = (skin === 'teams' && e.ctrlKey && e.shiftKey && k === 'm') || (skin === 'zoom' && e.altKey && k === 'a') || (skin === 'meet' && (e.ctrlKey || e.metaKey) && k === 'd') || (skin === 'webex' && e.ctrlKey && k === 'm');
+  const shortcut = (L === 'teams' && e.ctrlKey && e.shiftKey && k === 'm') || (L === 'zoom' && e.altKey && k === 'a') || (skin === 'meet' && (e.ctrlKey || e.metaKey) && k === 'd') || (L === 'webex' && e.ctrlKey && k === 'm');
   if (shortcut) { e.preventDefault(); toggleMute(); }
 });
 addEventListener('resize', () => render());

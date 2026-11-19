@@ -42,9 +42,37 @@ const SKINS = [
   { id: 'webex', name: 'Webbex', say: 'Webex parody', hint: 'Floating pill of round controls', modes: 'Light and dark' },
   { id: 'meet', name: 'Meeţ', say: 'Meet parody', hint: 'Round buttons on a charcoal stage', modes: 'Dark' }
 ];
+SKINS.push({ id: 'custom', name: 'Your app', say: 'Custom meeting app', hint: 'Your own name, colour, logo and layout', modes: 'Light and dark' });
 const SKIN = Object.fromEntries(SKINS.map(s => [s.id, s]));
+const escHtml = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/* The custom look: the visitor picks its name, colour, logo letter, logo shape and layout. */
+const CUSTOM_COLORS = ['#E4572E', '#2F9E44', '#7048E8', '#0B7285', '#D6336C', '#1C7ED6', '#F08C00', '#495057'];
+const CUSTOM_LAYOUTS = [
+  { id: 'top', label: 'Controls on top' },
+  { id: 'bottom', label: 'Control bar at the bottom' },
+  { id: 'pill', label: 'Floating pill' }
+];
+let CUSTOM_APP = { name: 'MeetSpace', color: '#E4572E', letter: 'M', shape: 'square', layout: 'bottom' };
+function setCustomApp(c) {
+  const ok = c && typeof c === 'object' ? c : {};
+  CUSTOM_APP = {
+    name: String(ok.name || '').trim().slice(0, 24) || 'MeetSpace',
+    color: /^#[0-9a-f]{6}$/i.test(ok.color || '') ? ok.color : '#E4572E',
+    letter: (String(ok.letter || '').trim()[0] || (String(ok.name || 'M').trim()[0] || 'M')).toUpperCase(),
+    shape: ok.shape === 'circle' ? 'circle' : 'square',
+    layout: ['top', 'bottom', 'pill'].includes(ok.layout) ? ok.layout : 'bottom'
+  };
+  SKIN.custom.name = CUSTOM_APP.name;
+  SKIN.custom.say = CUSTOM_APP.name + ' (custom meeting app)';
+  return CUSTOM_APP;
+}
+LOGO.custom = s => {
+  const c = CUSTOM_APP, shape = c.shape === 'circle' ? '<circle cx="16" cy="16" r="14"' : '<rect x="2" y="2" width="28" height="28" rx="8"';
+  return `<svg width="${s}" height="${s}" viewBox="0 0 32 32" aria-hidden="true">${shape} fill="${c.color}"/><text x="16" y="21.5" text-anchor="middle" font-family="Fredoka, Figtree, sans-serif" font-weight="600" font-size="16" fill="#fff">${escHtml(c.letter)}</text></svg>`;
+};
 /* Visible parody name is hidden from screen readers; they hear the plain description instead. */
-const brand = (id, size = 22) => `<span class="brand">${LOGO[id](size)}<span class="wm" aria-hidden="true" style="font-size:${Math.round(size * 0.72)}px">${SKIN[id].name}</span><span class="sr">${SKIN[id].say}</span></span>`;
+const brand = (id, size = 22) => `<span class="brand">${LOGO[id](size)}<span class="wm" aria-hidden="true" style="font-size:${Math.round(size * 0.72)}px">${escHtml(SKIN[id].name)}</span><span class="sr">${escHtml(SKIN[id].say)}</span></span>`;
 
 const TOPICS = ['Budget review', 'Customer success', 'Engineering standup', 'Finance', 'HR', 'Leadership', 'Marketing', 'Product roadmap', 'Sales', 'Town hall'];
 const TOPIC_TITLE = {
@@ -52,6 +80,17 @@ const TOPIC_TITLE = {
   'Finance': 'Finance: Q3 numbers', 'HR': 'HR: policy update', 'Leadership': 'Leadership sync', 'Marketing': 'Marketing campaign review',
   'Product roadmap': 'Product roadmap planning', 'Sales': 'Sales pipeline review', 'Town hall': 'All-hands town hall'
 };
+
+/* 'Custom' lets the visitor write their own meeting title and conversation lines. */
+const CUSTOM_TOPIC = 'Custom';
+function topicTitle(s) {
+  if (s.topic === CUSTOM_TOPIC) return (s.customTopic.title || '').trim() || 'Team meeting';
+  return TOPIC_TITLE[s.topic];
+}
+function topicLines(s) {
+  if (s.topic === CUSTOM_TOPIC) return (s.customTopic.lines || '').split('\n').map(t => t.trim()).filter(Boolean);
+  return CHAT_TOPIC[s.topic] || [];
+}
 
 const NAME_POOL = ['Maria Lopez', 'James Carter', 'Priya Nair', 'Tom Becker', 'Aisha Khan', 'Daniel Kim', 'Sofia Rossi', 'Liam O’Brien', 'Grace Chen', 'Omar Haddad', 'Emma Novak', 'Lucas Silva', 'Hannah Weber', 'Kenji Sato', 'Olivia Brooks', 'Mateo Garcia'];
 const SPARE_NAMES = ['Rachel Green', 'Victor Hale', 'Nina Patel', 'Ben Foster', 'Zoe Martin', 'Ravi Shah', 'Chloe Dubois', 'Samuel Ortiz', 'Mia Johansson', 'Ethan Wright', 'Leila Ahmadi', 'Noah Fischer', 'Isabel Moreno', 'Yuki Tanaka', 'Adam Kowalski', 'Fatima Zahra'];
@@ -85,6 +124,8 @@ const CHAT_TOPIC = {
 const DEFAULTS = {
   name: 'Eli', cam: true, count: 5, names: NAME_POOL.slice(), spare: SPARE_NAMES.slice(),
   skin: 'teams', topic: 'Finance', theme: 'system',
+  customTopic: { title: 'Weekly team sync', lines: 'Can we circle back on this?\nGood progress this week\nWho\u2019s taking the action item?' },
+  customApp: { name: 'MeetSpace', color: '#E4572E', letter: 'M', shape: 'square', layout: 'bottom' },
   chat: { on: true, generic: true, topic: true, own: false, freq: 'rare', ownText: 'Can everyone see my screen?\nSorry, my internet dropped for a sec\nLet’s take that offline' }
 };
 /* Paste a Formspree form URL here (https://formspree.io/f/xxxxxxx) to switch on the "Have an idea?" messages. */
@@ -97,8 +138,10 @@ function loadSettings() {
   if (!s) { try { s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) {} }
   const out = Object.assign(structuredClone(DEFAULTS), s || {});
   out.chat = Object.assign(structuredClone(DEFAULTS.chat), (s && s.chat) || {});
+  out.customTopic = Object.assign(structuredClone(DEFAULTS.customTopic), (s && s.customTopic) || {});
+  out.customApp = setCustomApp(Object.assign(structuredClone(DEFAULTS.customApp), (s && s.customApp) || {}));
   if (!SKIN[out.skin]) out.skin = 'teams';
-  if (!TOPICS.includes(out.topic)) out.topic = 'Finance';
+  if (!TOPICS.includes(out.topic) && out.topic !== CUSTOM_TOPIC) out.topic = 'Finance';
   out.count = Math.max(1, Math.min(16, +out.count || 5));
   return out;
 }
