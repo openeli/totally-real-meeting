@@ -42,9 +42,37 @@ const SKINS = [
   { id: 'webex', name: 'Webbex', say: 'Webex parody', hint: 'Floating pill of round controls', modes: 'Light and dark' },
   { id: 'meet', name: 'Meeţ', say: 'Meet parody', hint: 'Round buttons on a charcoal stage', modes: 'Dark' }
 ];
+SKINS.push({ id: 'custom', name: 'Your app', say: 'Custom meeting app', hint: 'Your own name, colour, logo and layout', modes: 'Light and dark' });
 const SKIN = Object.fromEntries(SKINS.map(s => [s.id, s]));
+const escHtml = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/* The custom look: the visitor picks its name, colour, logo letter, logo shape and layout. */
+const CUSTOM_COLORS = ['#E4572E', '#2F9E44', '#7048E8', '#0B7285', '#D6336C', '#1C7ED6', '#F08C00', '#495057'];
+const CUSTOM_LAYOUTS = [
+  { id: 'top', label: 'Controls on top' },
+  { id: 'bottom', label: 'Control bar at the bottom' },
+  { id: 'pill', label: 'Floating pill' }
+];
+let CUSTOM_APP = { name: 'MeetSpace', color: '#E4572E', letter: 'M', shape: 'square', layout: 'bottom' };
+function setCustomApp(c) {
+  const ok = c && typeof c === 'object' ? c : {};
+  CUSTOM_APP = {
+    name: String(ok.name || '').trim().slice(0, 24) || 'MeetSpace',
+    color: /^#[0-9a-f]{6}$/i.test(ok.color || '') ? ok.color : '#E4572E',
+    letter: (String(ok.letter || '').trim()[0] || (String(ok.name || 'M').trim()[0] || 'M')).toUpperCase(),
+    shape: ok.shape === 'circle' ? 'circle' : 'square',
+    layout: ['top', 'bottom', 'pill'].includes(ok.layout) ? ok.layout : 'bottom'
+  };
+  SKIN.custom.name = CUSTOM_APP.name;
+  SKIN.custom.say = CUSTOM_APP.name + ' (custom meeting app)';
+  return CUSTOM_APP;
+}
+LOGO.custom = s => {
+  const c = CUSTOM_APP, shape = c.shape === 'circle' ? '<circle cx="16" cy="16" r="14"' : '<rect x="2" y="2" width="28" height="28" rx="8"';
+  return `<svg width="${s}" height="${s}" viewBox="0 0 32 32" aria-hidden="true">${shape} fill="${c.color}"/><text x="16" y="21.5" text-anchor="middle" font-family="Fredoka, Figtree, sans-serif" font-weight="600" font-size="16" fill="#fff">${escHtml(c.letter)}</text></svg>`;
+};
 /* Visible parody name is hidden from screen readers; they hear the plain description instead. */
-const brand = (id, size = 22) => `<span class="brand">${LOGO[id](size)}<span class="wm" aria-hidden="true" style="font-size:${Math.round(size * 0.72)}px">${SKIN[id].name}</span><span class="sr">${SKIN[id].say}</span></span>`;
+const brand = (id, size = 22) => `<span class="brand">${LOGO[id](size)}<span class="wm" aria-hidden="true" style="font-size:${Math.round(size * 0.72)}px">${escHtml(SKIN[id].name)}</span><span class="sr">${escHtml(SKIN[id].say)}</span></span>`;
 
 const TOPICS = ['Budget review', 'Customer success', 'Engineering standup', 'Finance', 'HR', 'Leadership', 'Marketing', 'Product roadmap', 'Sales', 'Town hall'];
 const TOPIC_TITLE = {
@@ -52,6 +80,17 @@ const TOPIC_TITLE = {
   'Finance': 'Finance: Q3 numbers', 'HR': 'HR: policy update', 'Leadership': 'Leadership sync', 'Marketing': 'Marketing campaign review',
   'Product roadmap': 'Product roadmap planning', 'Sales': 'Sales pipeline review', 'Town hall': 'All-hands town hall'
 };
+
+/* 'Custom' lets the visitor write their own meeting title and conversation lines. */
+const CUSTOM_TOPIC = 'Custom';
+function topicTitle(s) {
+  if (s.topic === CUSTOM_TOPIC) return (s.customTopic.title || '').trim() || 'Team meeting';
+  return TOPIC_TITLE[s.topic];
+}
+function topicLines(s) {
+  if (s.topic === CUSTOM_TOPIC) return (s.customTopic.lines || '').split('\n').map(t => t.trim()).filter(Boolean);
+  return CHAT_TOPIC[s.topic] || [];
+}
 
 const NAME_POOL = ['Maria Lopez', 'James Carter', 'Priya Nair', 'Tom Becker', 'Aisha Khan', 'Daniel Kim', 'Sofia Rossi', 'Liam O’Brien', 'Grace Chen', 'Omar Haddad', 'Emma Novak', 'Lucas Silva', 'Hannah Weber', 'Kenji Sato', 'Olivia Brooks', 'Mateo Garcia'];
 const SPARE_NAMES = ['Rachel Green', 'Victor Hale', 'Nina Patel', 'Ben Foster', 'Zoe Martin', 'Ravi Shah', 'Chloe Dubois', 'Samuel Ortiz', 'Mia Johansson', 'Ethan Wright', 'Leila Ahmadi', 'Noah Fischer', 'Isabel Moreno', 'Yuki Tanaka', 'Adam Kowalski', 'Fatima Zahra'];
@@ -82,11 +121,51 @@ const CHAT_TOPIC = {
   'Town hall': ['Congrats to the team!', 'Will slides be shared?', 'Great update']
 };
 
+/* Replies to what you type in the meeting chat. The first rule whose pattern matches wins.
+   {name} is your first name and {other} is another person in the call.
+   A rule with "when" picks its lines by your mic or camera: "muted" or "live", "on" or "off".
+   "who" is how many people answer (a greeting can get two). "chance" below 1 means people sometimes stay quiet. */
+const CHAT_REPLIES = [
+  { pattern: /\b(can|could|do|does)\s+(you|u|everyone|anyone|any1|y'?all|you guys|you all)\s+hear\s+me\b|\bam i (audible|on mute|muted)\b|\bhear me (ok|okay|now)\b|\bis my (mic|audio|sound) (on|working|ok|okay)\b/i,
+    when: 'mic', lines: {
+      live: ['Yes, we can hear you.', 'Loud and clear, {name}.', 'Yep, you sound great.', 'Yes! All good.'],
+      muted: ['You’re on mute, {name}.', 'Nope, {name}, you’re muted.', 'We can’t hear you. Your mic is off.', 'You’re still on mute 🙂'] } },
+  { pattern: /\b(can|could|do|does)\s+(you|u|everyone|anyone|y'?all|you guys|you all)\s+see\s+me\b|\bsee my (video|camera|face)\b|\bis my (camera|video|cam) (on|working|ok|okay)\b/i,
+    when: 'cam', lines: {
+      on: ['Yeah, we see you.', 'Yep, looking good, {name}.', 'We can see you!'],
+      off: ['Nope, {name}, your camera is off.', 'Your video is off, we only see your initials.', 'Not yet, your camera looks off.'] } },
+  { pattern: /\b(can|could|do)\s+(you|u|everyone|anyone|y'?all)\s+see\s+my\s+screen\b|\b(am i|is it) sharing\b/i,
+    lines: ['Not yet, still loading on my end.', 'Nothing is shared yet.', 'I just see your tile, {name}.'] },
+  { pattern: /^\s*(hi+|hello+|hey+|hiya|howdy|yo|morning|good (morning|afternoon|evening)|greetings)\b/i, who: 2,
+    lines: ['Thank you for joining, {name}!', 'Hi {name}!', 'Hey {name}, welcome.', 'Hello!', 'Glad you could make it, {name}.', 'Hi! 👋'] },
+  { pattern: /\b(sorry|apologies)\b.*\blate\b|\brunning late\b|\bjust joined\b/i,
+    lines: ['No worries, we just started.', 'All good, {name}.', 'You didn’t miss much!'] },
+  { pattern: /\b(bye|goodbye|see (you|ya)|gotta (go|run)|have to (go|drop|run)|dropping off|signing off)\b/i, who: 2,
+    lines: ['Bye {name}!', 'Thanks, {name}. See you next time.', 'Take care!', 'Have a good one!'] },
+  { pattern: /\b(thanks|thank you|thx|ty|cheers)\b/i,
+    lines: ['Of course!', 'Anytime, {name}.', 'Thank you too!', 'Happy to help.'] },
+  { pattern: /\b(lag+(ing|gy)?|frozen|froze|freezing|cutting out|breaking up|robot(ic)?)\b/i,
+    lines: ['You froze for a second there.', 'It’s fine on my end.', 'Might be the Wi-Fi.', 'Same here, it’s choppy.'] },
+  { pattern: /\b(lol|haha+|lmao|😂|🤣)\b|😂|🤣/i, chance: 0.6,
+    lines: ['😂', 'haha', 'lol', 'Right?!'] },
+  { pattern: /\?\s*$/, chance: 0.7,
+    lines: ['Good question.', 'Let me get back to you on that.', 'I think so?', 'Not sure, {other} might know.', 'Let’s take that offline.', '{other}, can you take that one?'] },
+  { pattern: /.*/, chance: 0.3,
+    lines: ['👍', '+1', 'Agreed', 'Makes sense', 'Noted, {name}.'] }
+];
+
 const DEFAULTS = {
   name: 'Eli', cam: true, count: 5, names: NAME_POOL.slice(), spare: SPARE_NAMES.slice(),
   skin: 'teams', topic: 'Finance', theme: 'system',
+  timer: 0,   /* minutes the call has already been running when you join: 0, 15, 30 or 60 */
+  customTopic: { title: 'Weekly team sync', lines: 'Can we circle back on this?\nGood progress this week\nWho\u2019s taking the action item?' },
+  customApp: { name: 'MeetSpace', color: '#E4572E', letter: 'M', shape: 'square', layout: 'bottom' },
   chat: { on: true, generic: true, topic: true, own: false, freq: 'rare', ownText: 'Can everyone see my screen?\nSorry, my internet dropped for a sec\nLet’s take that offline' }
 };
+/* Paste a Formspree form URL here (https://formspree.io/f/xxxxxxx) to switch on the "Have an idea?" messages. */
+const FEEDBACK_ENDPOINT = '';
+
+const TIMER_STARTS = [{ min: 0, label: 'Just started (00:00)', short: 'From 00:00' }, { min: 15, label: '15 min', short: 'From 15:00' }, { min: 30, label: '30 min', short: 'From 30:00' }, { min: 60, label: '1 hour', short: 'From 1:00:00' }];
 const STORE_KEY = 'trm-settings-v1';
 function loadSettings() {
   let s = null;
@@ -94,9 +173,12 @@ function loadSettings() {
   if (!s) { try { s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) {} }
   const out = Object.assign(structuredClone(DEFAULTS), s || {});
   out.chat = Object.assign(structuredClone(DEFAULTS.chat), (s && s.chat) || {});
+  out.customTopic = Object.assign(structuredClone(DEFAULTS.customTopic), (s && s.customTopic) || {});
+  out.customApp = setCustomApp(Object.assign(structuredClone(DEFAULTS.customApp), (s && s.customApp) || {}));
   if (!SKIN[out.skin]) out.skin = 'teams';
-  if (!TOPICS.includes(out.topic)) out.topic = 'Finance';
+  if (!TOPICS.includes(out.topic) && out.topic !== CUSTOM_TOPIC) out.topic = 'Finance';
   out.count = Math.max(1, Math.min(16, +out.count || 5));
+  out.timer = TIMER_STARTS.some(t => t.min === +out.timer) ? +out.timer : 0;
   return out;
 }
 function saveSettings(s) { try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) {} }

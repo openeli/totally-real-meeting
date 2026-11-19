@@ -11,84 +11,193 @@
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{font-family:Figtree,system-ui,sans-serif;overflow:hidden}
-button,input{font:inherit;color:inherit}
+button,input,select{font:inherit;color:inherit}
 a{color:inherit}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .brand{display:inline-flex;align-items:center;gap:8px;flex:none}
 .wm{font-family:Fredoka,Figtree,sans-serif;font-weight:600;letter-spacing:.01em}
-#room{position:relative;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#room{position:relative;height:100dvh;display:flex;flex-direction:column;overflow:hidden;transition:opacity .22s}
+.stage{position:relative;flex:1;min-height:0;display:flex}
 .grid{flex:1;min-height:0;display:grid;gap:8px;padding:12px;grid-auto-rows:minmax(0,1fr);overflow:auto}
+.speaker{flex:1;min-height:0;display:grid;gap:8px;padding:12px;grid-template-columns:minmax(0,1fr) 220px}
+.speaker .main{display:flex;min-height:0}
+.speaker .main .tile{flex:1}
+.speaker .strip{display:flex;flex-direction:column;gap:8px;overflow:auto;min-height:0}
+.speaker .strip .tile{flex:none;height:130px;min-height:0}
+.speaker .strip .avatar{width:56px;height:56px;font-size:20px}
 .tile{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:120px;transition:outline-color .2s}
 .avatar{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:600}
 .dense .avatar{width:64px;height:64px;font-size:22px}
-.tile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.speaker .main .avatar{width:140px;height:140px;font-size:50px}
+.tile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tile video.mirror{transform:scaleX(-1)}
 .name{position:absolute;left:8px;bottom:8px;max-width:calc(100% - 16px);display:flex;align-items:center;gap:4px;padding:3px 4px 3px 8px;border-radius:4px;font-size:13px;z-index:1}
 .name .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .name button{width:28px;height:24px;flex:none;border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.hand{position:absolute;top:8px;left:8px;z-index:1;width:30px;height:30px;border-radius:8px;background:#FFC83D;color:#3A2A00;display:flex;align-items:center;justify-content:center}
+.react{position:absolute;top:6px;right:10px;z-index:1;font-size:34px;line-height:1;animation:pop 3.5s ease-out forwards;pointer-events:none}
+@keyframes pop{0%{transform:translateY(16px) scale(.6);opacity:0}12%{transform:none;opacity:1}80%{opacity:1}100%{transform:translateY(-24px);opacity:0}}
 .ibtn{border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;position:relative}
 .lbl{flex-direction:column;gap:3px;font-size:11px;width:64px;height:52px;border-radius:6px}
-.lbl:hover{background:rgba(127,127,127,.18)}
+.lbl:hover,.lbl[aria-expanded="true"]{background:rgba(127,127,127,.18)}
+.lbl[aria-pressed="true"].on{background:rgba(127,127,127,.24)}
 .badge{position:absolute;top:4px;right:12px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#C4314B;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .badge:empty{display:none}
-button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #8EA6FF;outline-offset:2px}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[role=menuitem]:focus-visible,[role=menuitemradio]:focus-visible,[role=tab]:focus-visible{outline:3px solid #8EA6FF;outline-offset:2px}
+.rec{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:2;display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:16px;background:rgba(0,0,0,.65);color:#fff;font-size:13px;font-weight:600}
+.rec i{width:10px;height:10px;border-radius:50%;background:#E5322D;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.35}}
+.captions{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:2;max-width:min(760px,calc(100% - 32px));padding:10px 16px;border-radius:8px;background:rgba(0,0,0,.78);color:#fff;font-size:18px;line-height:1.35}
+.captions b{font-weight:600;margin-right:6px;opacity:.8}
 #toast{position:fixed;z-index:6;width:min(320px,calc(100% - 32px));padding:12px 14px;border-radius:8px;display:flex;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:13px;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none}
 #toast.show{opacity:1;transform:none;pointer-events:auto;cursor:pointer}
+#notice{position:fixed;z-index:9;left:50%;top:76px;transform:translate(-50%,-6px);padding:10px 16px;border-radius:8px;background:#2B2B2B;color:#fff;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.35);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:calc(100% - 32px)}
+#notice.show{opacity:1;transform:translate(-50%,0)}
 .av{width:32px;height:32px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
-#chat{position:fixed;z-index:5;top:0;right:0;bottom:0;width:340px;max-width:100%;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.25)}
-#chat[hidden]{display:none}
-#chat header{display:flex;align-items:center;justify-content:space-between;padding:12px 8px 12px 16px;font-weight:600}
-#msgs{flex:1;overflow:auto;padding:8px 16px;display:flex;flex-direction:column;gap:14px}
+.side{position:fixed;z-index:5;top:0;right:0;bottom:0;width:340px;max-width:100%;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.25)}
+.side[hidden]{display:none}
+.side header{display:flex;align-items:center;justify-content:space-between;padding:12px 8px 12px 16px;font-weight:600;font-size:16px}
+.side .body{flex:1;overflow:auto;padding:8px 16px 16px;display:flex;flex-direction:column;gap:14px}
 .msg{display:flex;gap:10px}
 .msg .meta{font-size:12px;opacity:.75}
 .msg .text{font-size:14px;margin-top:2px;overflow-wrap:anywhere}
 #chat form{display:flex;gap:8px;padding:12px 16px 16px}
 #chat input{flex:1;min-width:0;height:44px;padding:0 12px;border-radius:8px}
+.prow{display:flex;align-items:center;gap:10px;min-height:44px}
+.prow .pn{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .pn small{display:block;font-size:12px;opacity:.7}
+.prow button{width:40px;height:40px;border:0;background:transparent;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.pill-btn{min-height:40px;padding:0 16px;border-radius:8px;cursor:pointer;font-weight:600}
+.menu{position:fixed;z-index:8;min-width:220px;max-width:calc(100% - 16px);padding:6px 0;box-shadow:0 10px 32px rgba(0,0,0,.35);font-size:14px}
+.menu[hidden]{display:none}
+.menu [role=menuitem],.menu [role=menuitemradio]{display:flex;align-items:center;gap:12px;width:100%;min-height:40px;padding:0 16px;border:0;background:transparent;text-align:left;cursor:pointer}
+.menu .check{width:18px;flex:none;display:inline-flex}
+.menu hr{border:0;height:1px;margin:6px 0}
+.menu.reactions{display:flex;gap:4px;padding:6px;min-width:0}
+.menu.reactions[hidden]{display:none}
+.menu.reactions button{width:48px;height:48px;font-size:28px;border:0;background:transparent;border-radius:10px;cursor:pointer}
+.scrim{position:fixed;inset:0;z-index:7;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px}
+.scrim[hidden]{display:none}
+.dialog{width:min(760px,100%);height:min(540px,calc(100dvh - 32px));display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.dialog header{display:flex;align-items:center;justify-content:space-between;padding:14px 12px 14px 24px;font-size:20px;font-weight:600}
+.dialog .cols{flex:1;min-height:0;display:flex}
+.dialog nav{width:200px;flex:none;padding:8px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+.dialog nav button{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 14px;border:0;background:transparent;text-align:left;cursor:pointer;font-size:14px}
+.dialog .pane{flex:1;min-width:0;overflow:auto;padding:8px 24px 24px}
+.set{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;padding:6px 0}
+.set .t{font-size:14px}.set .t small{display:block;font-size:12.5px;opacity:.72;margin-top:2px}
+.set h3,.pane h3,.body h3{margin:16px 0 4px;font-size:13px;font-weight:600;letter-spacing:.02em;opacity:.8;text-transform:uppercase}
+.tog{width:44px;height:24px;flex:none;border-radius:12px;border:0;position:relative;cursor:pointer;padding:0}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}
+.tog[aria-checked="true"]::after{left:23px}
+.radios{display:flex;flex-wrap:wrap;gap:8px}
+.radios button{min-height:36px;padding:0 14px;border-radius:18px;cursor:pointer;font-size:14px}
+.linkrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.menu .danger{margin:4px 8px;width:calc(100% - 16px)!important;justify-content:center;border-radius:8px;font-weight:600}
+.confirm{width:min(440px,100%);padding:20px 24px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.confirm h2{margin:0 0 8px;font-size:20px;font-weight:600}
+.confirm p{margin:0 0 20px;font-size:14px;line-height:1.45;opacity:.85}
+.confirm .acts{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.end{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px 16px;text-align:center}
+.end h1{margin:0;font-size:clamp(24px,4vw,36px);font-weight:500}
+.end .meta{margin:0;font-size:14px;opacity:.75}
+.end .acts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.end .btn{min-height:40px;padding:0 22px;cursor:pointer;font-weight:600;font-size:14px;display:inline-flex;align-items:center;text-decoration:none}
+.fb{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:12px;font-size:14px}
+.fb .opts{display:flex;gap:6px}
+.fb .opts button{width:44px;height:44px;border:0;background:transparent;cursor:pointer;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
+.fb .opts button:hover{background:rgba(127,127,127,.15)}
+.safe{display:flex;gap:16px;align-items:center;text-align:left;max-width:420px;margin-top:20px;padding:16px 20px;border:1px solid #DADCE0;border-radius:8px}
+.count{position:absolute;top:16px;left:16px;display:flex;align-items:center;gap:12px;font-size:14px}
+.count svg{transform:rotate(-90deg)}
 @media (max-width:420px){.hide-xs{display:none!important}}
 @media (min-width:701px){.show-sm{display:none!important}}
-@media (max-width:700px){.show-sm{display:flex}.grid{gap:6px;padding:8px}.avatar{width:64px;height:64px;font-size:22px}.name{font-size:12px}.lbl{width:46px!important}.lbl span{display:none}.hide-sm{display:none!important}#toast{left:16px;right:16px!important}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:700px){.show-sm{display:flex}.grid{gap:6px;padding:8px}.avatar{width:64px;height:64px;font-size:22px}.name{font-size:12px}.lbl{width:46px!important}.lbl span{display:none}.hide-sm{display:none!important}#toast{left:16px;right:16px!important}
+  .speaker{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 110px;padding:8px;gap:6px}.speaker .strip{flex-direction:row}.speaker .strip .tile{width:140px;height:100%}.speaker .main .avatar{width:96px;height:96px;font-size:34px}
+  .dialog{height:calc(100dvh - 32px)}.dialog .cols{flex-direction:column}.dialog nav{width:auto;flex-direction:row;overflow-x:auto;padding:4px 8px}.dialog nav button{flex:none}.dialog .pane{padding:8px 16px 20px}.captions{font-size:15px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 <div id="room"></div>
-<aside id="chat" hidden aria-label="Meeting chat">
-<header><span>Meeting chat</span><button class="ibtn" id="chatClose" aria-label="Close chat" style="width:44px;height:44px"></button></header>
-<div id="msgs" role="log" aria-live="polite"></div>
+<aside id="chat" class="side" hidden aria-labelledby="chatTitle">
+<header><span id="chatTitle">Meeting chat</span><button class="ibtn" data-close aria-label="Close chat" style="width:44px;height:44px"></button></header>
+<div id="msgs" class="body" role="log" aria-live="polite"></div>
 <form id="chatForm"><label class="sr" for="chatInput">Type a message</label><input id="chatInput" autocomplete="off" placeholder="Type a message"><button class="ibtn" aria-label="Send" style="width:44px;height:44px;border-radius:8px" id="chatSend"></button></form>
 </aside>
+<aside id="people" class="side" hidden aria-labelledby="peopleTitle">
+<header><span id="peopleTitle">People</span><button class="ibtn" data-close aria-label="Close" style="width:44px;height:44px"></button></header>
+<div class="body" id="peopleBody"></div>
+</aside>
+<aside id="info" class="side" hidden aria-labelledby="infoTitle">
+<header><span id="infoTitle">Meeting details</span><button class="ibtn" data-close aria-label="Close" style="width:44px;height:44px"></button></header>
+<div class="body" id="infoBody"></div>
+</aside>
+<aside id="setSide" class="side" hidden aria-labelledby="setSideTitle">
+<header><span id="setSideTitle">Settings</span><button class="ibtn" data-close aria-label="Close settings" style="width:44px;height:44px"></button></header>
+<div class="body" id="setSideBody"></div>
+</aside>
+<div id="menu" class="menu" role="menu" hidden></div>
+<div id="scrim" class="scrim" hidden><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" id="dlg"></div></div>
+<div id="confirm" class="scrim" hidden><div class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="cfTitle" aria-describedby="cfText" id="cf"></div></div>
 <div id="toast" role="status"></div>
+<div id="notice" role="status" aria-live="polite"></div>
 
 <script>
 const S = loadSettings();
 saveSettings(S);
 const params = new URLSearchParams(location.search);
-const FAST = params.get('fast') === '1';   /* add &fast=1 to see chat within seconds when demoing */
+const FAST = params.get('fast') === '1';   /* add &fast=1 to see chat, reactions and hands within seconds when demoing */
+const SPEED = FAST ? 20 : 1;
 const skin = S.skin;
-const hasLight = skin === 'teams' || skin === 'webex';
-const light = hasLight && resolvedTheme(S) === 'light';
+const hasLight = skin === 'teams' || skin === 'webex' || skin === 'custom';
+const CA = S.customApp;
+/* The custom look borrows one of three layouts; everything else about it comes from the settings. */
+const L = skin === 'custom' ? { top: 'teams', bottom: 'zoom', pill: 'webex' }[CA.layout] : skin;
 const me = (S.name || 'You').trim() || 'You';
+const isNarrow = () => matchMedia('(max-width:700px)').matches;
+const SITE_URL = new URL('index.html', location.href).href.replace(/index\.html$/, '');
 
-const C = {
-  teams: light
-    ? { stage: '#F0F0F0', bar: '#FFFFFF', line: '#E0E0E0', text: '#242424', muted: '#5C5C5C', tile: '#E6E6E6', self: '#D4D4D4', label: 'rgba(255,255,255,.88)', panel: '#FFFFFF', field: '#F5F5F5', ring: '#5B5FC7', leave: '#C4314B', radius: '6px' }
-    : { stage: '#141414', bar: '#1F1F1F', line: '#333333', text: '#FFFFFF', muted: '#C8C8C8', tile: '#292929', self: '#101010', label: 'rgba(0,0,0,.6)', panel: '#1F1F1F', field: '#2B2B2B', ring: '#7F85F5', leave: '#C4314B', radius: '6px' },
-  zoom: { stage: '#1A1A1A', bar: '#1A1A1A', line: '#2E2E2E', text: '#FFFFFF', muted: '#BDBDBD', tile: '#242424', self: '#101010', label: 'rgba(0,0,0,.55)', panel: '#242424', field: '#1A1A1A', ring: '#3DDC84', leave: '#E02828', radius: '4px' },
-  webex: light
-    ? { stage: '#F7F7F7', bar: '#FFFFFF', line: '#DEDEDE', text: '#121212', muted: '#545454', tile: '#E8E8E8', self: '#D4D4D4', label: 'rgba(255,255,255,.88)', panel: '#FFFFFF', field: '#F0F0F0', ring: '#1170CF', leave: '#D4371C', radius: '8px', pill: '#FFFFFF', btn: '#EDEDED', btnOn: '#F8D9D2' }
-    : { stage: '#000000', bar: '#121212', line: '#2A2A2A', text: '#FFFFFF', muted: '#B5B5B5', tile: '#1F1F1F', self: '#101010', label: 'rgba(0,0,0,.6)', panel: '#1A1A1A', field: '#262626', ring: '#64B4FA', leave: '#D4371C', radius: '8px', pill: '#262626', btn: '#3A3A3A', btnOn: '#5A1F14' },
-  meet: { stage: '#202124', bar: '#202124', line: '#3C4043', text: '#E8EAED', muted: '#BDC1C6', tile: '#3C4043', self: '#151617', label: 'transparent', panel: '#FFFFFF', panelText: '#202124', field: '#F1F3F4', ring: '#8AB4F8', leave: '#EA4335', radius: '8px', btn: '#3C4043' }
-}[skin];
+/* ---------- colours: the stage, plus how each app draws its menus, panels and settings ---------- */
+let C;
+function palette() {
+  const light = hasLight && resolvedTheme(S) === 'light';
+  const P = {
+    teams: light
+      ? { stage: '#F0F0F0', bar: '#FFFFFF', line: '#E0E0E0', text: '#242424', muted: '#5C5C5C', tile: '#E6E6E6', self: '#D4D4D4', label: 'rgba(255,255,255,.88)', panel: '#FFFFFF', field: '#F5F5F5', ring: '#5B5FC7', leave: '#C4314B', radius: '6px', accent: '#5B5FC7', onAccent: '#FFFFFF', menu: '#FFFFFF', hover: '#F0F0F0', mRadius: '6px', dlg: 'side' }
+      : { stage: '#141414', bar: '#1F1F1F', line: '#333333', text: '#FFFFFF', muted: '#C8C8C8', tile: '#292929', self: '#101010', label: 'rgba(0,0,0,.6)', panel: '#1F1F1F', field: '#2B2B2B', ring: '#7F85F5', leave: '#C4314B', radius: '6px', accent: '#7F85F5', onAccent: '#101010', menu: '#292929', hover: '#3D3D3D', mRadius: '6px', dlg: 'side' },
+    custom: light
+      ? { stage: '#F3F4F6', bar: '#FFFFFF', line: '#E1E3E8', text: '#16171A', muted: '#555B66', tile: '#E6E8EC', self: '#D5D8DE', label: 'rgba(255,255,255,.88)', panel: '#FFFFFF', field: '#F3F4F6', ring: CA.color, leave: '#E03131', radius: '10px', pill: '#FFFFFF', btn: '#ECEEF1', btnOn: '#F8D9D2', share: CA.color, chip: '#ECEEF1', accent: CA.color, onAccent: '#FFFFFF', menu: '#FFFFFF', hover: '#F0F1F4', mRadius: '10px', dlg: 'modal', dBg: '#FFFFFF', dText: '#16171A', dNav: '#F3F4F6' }
+      : { stage: '#16171A', bar: '#1E1F23', line: '#2E3036', text: '#FFFFFF', muted: '#B8BCC6', tile: '#26282D', self: '#101114', label: 'rgba(0,0,0,.6)', panel: '#1E1F23', field: '#26282D', ring: CA.color, leave: '#E03131', radius: '10px', pill: '#26282D', btn: '#33363C', btnOn: '#5A1F14', share: CA.color, chip: '#2A2C31', accent: CA.color, onAccent: '#FFFFFF', menu: '#26282D', hover: '#33363C', mRadius: '10px', dlg: 'modal', dBg: '#1E1F23', dText: '#FFFFFF', dNav: '#16171A' },
+    zoom: { share: '#3DDC84', chip: '#2A2A2A', stage: '#1A1A1A', bar: '#1A1A1A', line: '#2E2E2E', text: '#FFFFFF', muted: '#BDBDBD', tile: '#242424', self: '#101010', label: 'rgba(0,0,0,.55)', panel: '#242424', field: '#1A1A1A', ring: '#3DDC84', leave: '#E02828', radius: '4px', accent: '#0E72ED', onAccent: '#FFFFFF', menu: '#2D2D2D', hover: '#3D3D3D', mRadius: '8px', dlg: 'modal', dBg: '#FFFFFF', dText: '#232333', dNav: '#F7F7FA' },
+    webex: light
+      ? { stage: '#F7F7F7', bar: '#FFFFFF', line: '#DEDEDE', text: '#121212', muted: '#545454', tile: '#E8E8E8', self: '#D4D4D4', label: 'rgba(255,255,255,.88)', panel: '#FFFFFF', field: '#F0F0F0', ring: '#1170CF', leave: '#D4371C', radius: '8px', pill: '#FFFFFF', btn: '#EDEDED', btnOn: '#F8D9D2', accent: '#1170CF', onAccent: '#FFFFFF', menu: '#FFFFFF', hover: '#EDEDED', mRadius: '12px', dlg: 'modal', dBg: '#FFFFFF', dText: '#121212', dNav: '#F7F7F7' }
+      : { stage: '#000000', bar: '#121212', line: '#2A2A2A', text: '#FFFFFF', muted: '#B5B5B5', tile: '#1F1F1F', self: '#101010', label: 'rgba(0,0,0,.6)', panel: '#1A1A1A', field: '#262626', ring: '#64B4FA', leave: '#D4371C', radius: '8px', pill: '#262626', btn: '#3A3A3A', btnOn: '#5A1F14', accent: '#64B4FA', onAccent: '#0A1A2A', menu: '#262626', hover: '#3A3A3A', mRadius: '12px', dlg: 'modal', dBg: '#1E1E1E', dText: '#FFFFFF', dNav: '#141414' },
+    meet: { stage: '#202124', bar: '#202124', line: '#3C4043', text: '#E8EAED', muted: '#BDC1C6', tile: '#3C4043', self: '#151617', label: 'transparent', panel: '#FFFFFF', panelText: '#202124', panelLine: '#DADCE0', field: '#F1F3F4', ring: '#8AB4F8', leave: '#EA4335', radius: '8px', btn: '#3C4043', accent: '#1A73E8', onAccent: '#FFFFFF', menu: '#2D2E31', hover: '#3C4043', mRadius: '4px', dlg: 'modal', dBg: '#FFFFFF', dText: '#202124', dNav: '#FFFFFF', navOn: '#E8F0FE', navOnText: '#1967D2' }
+  };
+  return P[skin];
+}
+/* Words each app uses for the same thing. */
+const WORDS = {
+  teams: { people: 'People', chat: 'Meeting chat', info: 'Meeting info', gallery: 'Gallery', speaker: 'Speaker', rec: 'Start recording', recStop: 'Stop recording', cc: 'Turn on live captions', ccOff: 'Turn off live captions', settings: 'Settings', muteAll: 'Mute all', host: 'Organiser' },
+  zoom: { people: 'Participants', chat: 'Chat', info: 'Meeting information', gallery: 'Gallery View', speaker: 'Speaker View', rec: 'Record', recStop: 'Stop recording', cc: 'Show captions', ccOff: 'Hide captions', settings: 'Settings', muteAll: 'Mute All', host: 'Host, me' },
+  webex: { people: 'Participants', chat: 'Chat', info: 'Meeting information', gallery: 'Grid', speaker: 'Focus', rec: 'Record', recStop: 'Stop recording', cc: 'Show captions', ccOff: 'Hide captions', settings: 'Settings', muteAll: 'Mute all', host: 'Host, me' },
+  meet: { people: 'People', chat: 'In-call messages', info: 'Meeting details', gallery: 'Tiled', speaker: 'Spotlight', rec: 'Start recording', recStop: 'Stop recording', cc: 'Turn on captions', ccOff: 'Turn off captions', settings: 'Settings', muteAll: 'Mute everyone', host: 'Meeting host' }
+};
+const W = WORDS[L === 'teams' || L === 'zoom' || L === 'webex' || L === 'meet' ? L : 'teams'];
 
-document.title = TOPIC_TITLE[S.topic] + ' | ' + SKIN[skin].say;
-document.body.style.background = C.stage;
+document.title = topicTitle(S) + ' | ' + SKIN[skin].say;
 
 const state = {
-  muted: false, camOn: !!S.cam, chatOpen: false, unread: 0, start: Date.now(), full: false,
-  people: S.names.slice(0, S.count).map((name, i) => ({ name: name.trim() || 'Guest ' + (i + 1), ...AVATAR[i % AVATAR.length], muted: i % 3 === 1, speaking: false }))
+  muted: false, camOn: !!S.cam, mirror: true, unread: 0, full: false,
+  start: Date.now() - S.timer * 60000,   /* the clock can start at 15, 30 or 60 minutes */
+  joined: Date.now(),                    /* chat pacing follows when you joined, not the clock */
+  panel: null, ended: null, view: 'gallery', hand: false, react: null, rec: false, cc: false, caption: null,
+  people: S.names.slice(0, S.count).map((name, i) => ({ name: name.trim() || 'Guest ' + (i + 1), ...AVATAR[i % AVATAR.length], muted: i % 3 === 1, speaking: false, hand: false, react: null }))
 };
 let stream = null;
 
-/* ---------- rendering ---------- */
+/* ---------- small helpers ---------- */
 const micIco = s => ico('mic', s || 20, state.muted ? ICONS.slash : '');
 const camIco = () => ico('cam', 20, state.camOn ? '' : '<path d="M3 4l18 16"/>');
 const fullIco = () => ico(state.full ? 'exitfull' : 'full', 20);
@@ -96,110 +205,154 @@ const canFull = !!(document.documentElement.requestFullscreen && document.fullsc
 const elapsed = () => { const t = Math.floor((Date.now() - state.start) / 1000); const m = Math.floor(t / 60), s = t % 60; return (m >= 60 ? Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0') : String(m).padStart(2, '0')) + ':' + String(s).padStart(2, '0'); };
 const clock = () => new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ME_AV = { bg: '#E8D7F5', fg: '#3B2353', solid: '#6D28D9' };
+const handIco = s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${ICONS.hand.replace('<path ', '<path stroke="currentColor" stroke-width="1" ')}</svg>`;
+const REACTIONS = ['\u{1F44D}', '❤️', '\u{1F602}', '\u{1F62E}', '\u{1F44F}', '\u{1F389}'];
+const REACT_NAMES = ['Like', 'Love', 'Laugh', 'Surprised', 'Applause', 'Celebrate'];
 
+let noticeTimer;
+function notice(text) {
+  const n = document.getElementById('notice');
+  n.textContent = text; n.style.top = L === 'teams' ? '76px' : '16px';
+  n.classList.add('show'); clearTimeout(noticeTimer); noticeTimer = setTimeout(() => n.classList.remove('show'), 3200);
+}
+
+/* ---------- tiles ---------- */
 function gridCols(n) {
-  if (matchMedia('(max-width:700px)').matches) return n <= 2 ? 1 : 2;
+  if (isNarrow()) return n <= 2 ? 1 : 2;
   return n <= 1 ? 1 : n <= 4 ? 2 : n <= 9 ? 3 : n <= 16 ? 4 : 5;
 }
-
-function tiles() {
-  const n = state.people.length + 1;
-  const avatar = (p, ini) => skin === 'meet'
+function avatar(p, ini) {
+  return skin === 'meet'
     ? `<span class="avatar" style="background:${p.solid};color:#fff" aria-hidden="true">${esc(ini[0])}</span>`
     : `<span class="avatar" style="background:${p.bg};color:${p.fg}" aria-hidden="true">${esc(ini)}</span>`;
-  const self = `<div class="tile" style="background:${state.camOn && stream ? C.self : C.tile};border-radius:${C.radius}">
-      ${state.camOn && stream ? '<video id="selfVideo" autoplay muted playsinline></video>' : avatar({ bg: '#E8D7F5', fg: '#3B2353', solid: '#6D28D9' }, initials(me))}
+}
+function selfTile() {
+  const video = state.camOn && stream;
+  return `<div class="tile" style="background:${video ? C.self : C.tile};border-radius:${C.radius}">
+      ${video ? `<video id="selfVideo" class="${state.mirror ? 'mirror' : ''}" autoplay muted playsinline></video>` : avatar(ME_AV, initials(me))}
+      ${state.hand ? `<span class="hand" title="Hand raised">${handIco(18)}</span>` : ''}
+      ${state.react ? `<span class="react" aria-hidden="true">${state.react}</span>` : ''}
       <span class="name" style="background:${C.label};color:${C.text}"><span class="n">${esc(me)} (You)</span><button data-mute aria-label="${state.muted ? 'Unmute meeting audio' : 'Mute meeting audio'}" aria-pressed="${state.muted}" style="color:${C.text}">${micIco(14)}</button></span></div>`;
-  const others = state.people.map((p, i) => {
-    const ring = p.speaking && !p.muted && !state.muted ? `outline:${skin === 'zoom' ? 3 : 2}px solid ${C.ring};outline-offset:-2px;` : 'outline:2px solid transparent;';
-    return `<div class="tile" style="background:${C.tile};border-radius:${C.radius};${ring}">${avatar(p, initials(p.name))}
+}
+function personTile(p, i) {
+  const ring = p.speaking && !p.muted && !state.muted ? `outline:${skin === 'zoom' ? 3 : 2}px solid ${C.ring};outline-offset:-2px;` : 'outline:2px solid transparent;';
+  return `<div class="tile" style="background:${C.tile};border-radius:${C.radius};${ring}">${avatar(p, initials(p.name))}
+      ${p.hand ? `<span class="hand" title="Hand raised">${handIco(18)}</span>` : ''}
+      ${p.react ? `<span class="react" aria-hidden="true">${p.react}</span>` : ''}
       <span class="name" style="background:${C.label};color:${C.text}"><span class="n">${esc(p.name)}</span><button data-p="${i}" aria-label="${p.muted ? 'Unmute' : 'Mute'} ${esc(p.name)}" aria-pressed="${p.muted}" style="color:${C.text}">${ico('mic', 14, p.muted ? ICONS.slash : '')}</button></span></div>`;
-  }).join('');
-  return `<div class="grid${n > 9 ? ' dense' : ''}" style="grid-template-columns:repeat(${gridCols(n)},minmax(0,1fr))">${self}${others}</div>`;
+}
+function overlays() {
+  return `${state.rec ? '<div class="rec"><i aria-hidden="true"></i>Recording</div>' : ''}
+    ${state.cc && state.caption ? `<div class="captions" aria-live="polite"><b>${esc(state.caption.name)}</b>${esc(state.caption.text)}</div>` : ''}`;
+}
+/* On a wide screen an open panel sits beside the tiles, the way the desktop apps do it, so the controls stay reachable. */
+const PANEL_GAP = { teams: [64, 0, 0], zoom: [44, 72, 0], webex: [52, 84, 0], meet: [16, 80, 16] };
+const sideRoom = () => state.panel && !isNarrow() ? 340 + PANEL_GAP[L][2] : 0;
+function placeSides() {
+  const [t, b, r] = isNarrow() ? [0, 0, 0] : PANEL_GAP[L];
+  document.querySelectorAll('.side').forEach(el => {
+    el.style.top = t + 'px'; el.style.bottom = b + 'px'; el.style.right = r + 'px';
+    el.style.borderRadius = r ? '8px' : '0'; el.style.boxShadow = isNarrow() ? '' : 'none';
+  });
+}
+function tiles() {
+  const n = state.people.length + 1;
+  if (state.view === 'speaker' && state.people.length) {
+    let si = state.people.findIndex(p => p.speaking); if (si < 0) si = 0;
+    const strip = selfTile() + state.people.map((p, i) => i === si ? '' : personTile(p, i)).join('');
+    return `<div class="stage" style="margin-right:${sideRoom()}px"><div class="speaker"><div class="main">${personTile(state.people[si], si)}</div><div class="strip">${strip}</div></div>${overlays()}</div>`;
+  }
+  return `<div class="stage" style="margin-right:${sideRoom()}px"><div class="grid${n > 9 ? ' dense' : ''}" style="grid-template-columns:repeat(${gridCols(n)},minmax(0,1fr))">${selfTile()}${state.people.map(personTile).join('')}</div>${overlays()}</div>`;
 }
 
-const settingsHref = 'index.html';
-const title = esc(TOPIC_TITLE[S.topic]);
+/* ---------- the four control layouts ---------- */
+const title = esc(topicTitle(S));
+const CHEVRON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+const ex = (name) => `aria-expanded="false" aria-haspopup="${name}"`;
 
 function render() {
+  if (state.ended) return;
   const room = document.getElementById('room');
-  room.style.background = C.stage; room.style.color = C.text;
+  room.style.background = C.stage; room.style.color = C.text; document.body.style.background = C.stage;
   const unread = state.unread ? state.unread : '';
+  const pp = state.panel === 'people', hp = state.hand, rp = state.rec;
   let html = '';
 
-  if (skin === 'teams') {
-    const b = (k, t, attr = '') => `<button class="ibtn lbl" ${attr} style="color:${C.text}">${k}<span>${t}</span></button>`;
+  if (L === 'teams') {
+    const b = (k, t, attr = '', on = false) => `<button class="ibtn lbl${on ? ' on' : ''}" ${attr} style="color:${on ? C.accent : C.text}">${k}<span>${t}</span></button>`;
     html = `<div style="height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px 0 16px;background:${C.bar};border-bottom:1px solid ${C.line}">
-      <div style="display:flex;align-items:center;gap:14px;min-width:0">${brand('teams', 24)}<span class="hide-sm" style="width:1px;height:20px;background:${C.line}"></span><span data-timer class="hide-xs" style="font-weight:600;font-variant-numeric:tabular-nums">${elapsed()}</span><span class="hide-sm" style="width:1px;height:20px;background:${C.line}"></span><span class="hide-sm" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</span></div>
+      <div style="display:flex;align-items:center;gap:14px;min-width:0">${brand(skin, 24)}<span class="hide-sm" style="width:1px;height:20px;background:${C.line}"></span><span data-timer class="hide-xs" style="font-weight:600;font-variant-numeric:tabular-nums">${elapsed()}</span><span class="hide-sm" style="width:1px;height:20px;background:${C.line}"></span><span class="hide-sm" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</span></div>
       <div style="display:flex;align-items:center;gap:2px">
-        ${b(ico('chat') + `<span class="badge">${unread}</span>`, 'Chat', 'data-chat aria-label="Chat"')}
-        <span class="hide-sm" style="display:flex">${b(ico('people'), 'People')}${b(ico('hand'), 'Raise')}${b(ico('smile'), 'React')}${b(ico('view'), 'View')}</span>
-        ${canFull ? '<span class="hide-xs" style="display:flex">' + b(fullIco(), 'Full screen', 'data-full aria-label="Full screen"') + '</span>' : ''}
-        <a class="ibtn lbl hide-sm" href="${settingsHref}" style="color:${C.text}">${ico('gear')}<span>Settings</span></a>
+        ${b(ico('chat') + `<span class="badge">${unread}</span>`, 'Chat', `data-chat aria-label="Chat" aria-pressed="${state.panel === 'chat'}"`, state.panel === 'chat')}
+        <span class="hide-sm" style="display:flex">${b(ico('people'), 'People', `data-people aria-pressed="${pp}"`, pp)}${b(handIco(20), hp ? 'Lower' : 'Raise', `data-hand aria-pressed="${hp}"`, hp)}${b(ico('smile'), 'React', `data-react ${ex('menu')}`)}${b(ico('view'), 'View', `data-view ${ex('menu')}`)}</span>
+        ${b(ico('more'), 'More', `data-more aria-label="More" ${ex('menu')}`)}
         <span class="hide-sm" style="width:1px;height:32px;margin:0 6px;background:${C.line}"></span>
-        ${b(camIco(), 'Camera', `data-cam aria-pressed="${!state.camOn}"`)}${b(micIco(), state.muted ? 'Unmute' : 'Mic', `data-mute aria-pressed="${state.muted}"`)}<span class="hide-sm" style="display:flex">${b(ico('share'), 'Share')}</span>
-        <a href="${settingsHref}" aria-label="Leave" style="margin-left:8px;height:36px;padding:0 12px;border-radius:6px;background:${C.leave};color:#fff;font-weight:600;display:inline-flex;align-items:center;gap:8px;text-decoration:none">${ico('phone', 18)}<span class="hide-sm">Leave</span></a>
+        ${b(camIco(), 'Camera', `data-cam aria-pressed="${!state.camOn}"`)}${b(micIco(), state.muted ? 'Unmute' : 'Mic', `data-mute aria-pressed="${state.muted}"`)}<span class="hide-sm" style="display:flex">${b(ico('share'), 'Share', 'data-share')}</span>
+        <span style="margin-left:8px;height:36px;display:inline-flex;border-radius:6px;overflow:hidden;background:${C.leave};color:#fff"><button class="ibtn" data-leave aria-label="Leave" style="height:36px;padding:0 10px 0 12px;gap:8px;color:#fff;font-weight:600">${ico('phone', 18)}<span class="hide-sm">Leave</span></button><span style="width:1px;margin:8px 0;background:rgba(255,255,255,.45)"></span><button class="ibtn" data-leavemenu ${ex('menu')} aria-label="Leave options" style="width:30px;height:36px;color:#fff">${CHEVRON}</button></span>
       </div></div>${tiles()}`;
   }
 
-  if (skin === 'zoom') {
+  if (L === 'zoom') {
     const b = (k, t, attr = '', col = C.text) => `<button class="ibtn lbl" ${attr} style="color:${col};width:84px">${k}<span style="color:${C.text}">${t}</span></button>`;
     html = `<div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px">
-      <span style="display:flex;align-items:center;gap:12px;min-width:0">${brand('zoom', 20)}<span class="hide-sm" style="font-size:12px;color:${C.muted};white-space:nowrap">${title}</span></span>
-      <span style="display:flex;gap:6px">${canFull ? `<button class="ibtn" data-full aria-label="Full screen" style="height:32px;padding:0 10px;gap:6px;border-radius:6px;background:#2A2A2A;color:${C.text};font-size:12px">${ico(state.full ? 'exitfull' : 'full', 14)}<span class="hide-sm">${state.full ? 'Exit full screen' : 'Full screen'}</span></button>` : ''}<a class="ibtn" href="${settingsHref}" style="height:32px;padding:0 10px;gap:6px;border-radius:6px;background:#2A2A2A;color:${C.text};font-size:12px">${ico('gear', 14)}<span class="hide-sm">Settings</span></a></span></div>
+      <span style="display:flex;align-items:center;gap:12px;min-width:0">${brand(skin, 20)}<button class="ibtn hide-sm" data-info aria-label="${W.info}" style="width:32px;height:32px;color:${C.muted}">${ico('info', 16)}</button><span class="hide-sm" style="font-size:12px;color:${C.muted};white-space:nowrap">${title}</span></span>
+      <span style="display:flex;gap:6px">${canFull ? `<button class="ibtn hide-xs" data-full aria-label="Full screen" style="height:32px;padding:0 10px;gap:6px;border-radius:6px;background:${C.chip};color:${C.text};font-size:12px">${ico(state.full ? 'exitfull' : 'full', 14)}<span class="hide-sm">${state.full ? 'Exit full screen' : 'Full screen'}</span></button>` : ''}<button class="ibtn" data-view ${ex('menu')} style="height:32px;padding:0 10px;gap:6px;border-radius:6px;background:${C.chip};color:${C.text};font-size:12px">${ico('view', 14)}<span class="hide-sm">View</span></button><button class="ibtn show-sm" data-leavemenu ${ex('menu')} style="height:32px;padding:0 14px;border-radius:6px;background:${C.leave};color:#fff;font-weight:600;font-size:13px">End</button></span></div>
       ${tiles()}
       <div style="height:72px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 8px;background:${C.bar};border-top:1px solid ${C.line}">
         <div style="display:flex">${b(micIco(), state.muted ? 'Unmute' : 'Mute', `data-mute aria-pressed="${state.muted}"`, state.muted ? '#E02828' : C.text)}${b(camIco(), state.camOn ? 'Stop Video' : 'Start Video', `data-cam aria-pressed="${!state.camOn}"`, state.camOn ? C.text : '#E02828')}</div>
-        <div style="display:flex">${b(ico('people'), 'Participants')}${b(ico('chat') + `<span class="badge" style="right:20px">${unread}</span>`, 'Chat', 'data-chat aria-label="Chat"')}${b(ico('share'), 'Share', '', '#3DDC84')}<span class="hide-sm" style="display:flex">${b(ico('rec'), 'Record')}${b(ico('smile'), 'Reactions')}${b(ico('more'), 'More')}</span></div>
-        <a href="${settingsHref}" style="height:34px;padding:0 18px;border-radius:8px;background:${C.leave};color:#fff;font-weight:600;display:inline-flex;align-items:center;text-decoration:none">End</a>
+        <div style="display:flex">${b(ico('people') + `<span class="badge" style="right:22px;background:#3D3D3D">${state.people.length + 1}</span>`, 'Participants', `data-people aria-pressed="${pp}"`)}<span class="hide-sm" style="display:flex">${b(ico('chat') + `<span class="badge" style="right:20px">${unread}</span>`, 'Chat', `data-chat aria-label="Chat" aria-pressed="${state.panel === 'chat'}"`)}</span>${b(ico('share'), 'Share', 'data-share', C.share)}<span class="hide-sm" style="display:flex">${b(ico('rec'), rp ? 'Stop' : 'Record', `data-rec aria-pressed="${rp}"`, rp ? '#E02828' : C.text)}${b(ico('smile'), 'Reactions', `data-react ${ex('menu')}`)}</span>${b(ico('more'), 'More', `data-more ${ex('menu')}`)}</div>
+        <button class="ibtn hide-sm" data-leavemenu ${ex('menu')} style="height:34px;padding:0 18px;border-radius:8px;background:${C.leave};color:#fff;font-weight:600">End</button>
       </div>`;
   }
 
-  if (skin === 'webex') {
+  if (L === 'webex') {
     const r = (k, attr = '', bg = C.btn, label = '') => `<button class="ibtn" ${attr} ${label ? `aria-label="${label}"` : ''} style="height:44px;min-width:44px;padding:0 14px;gap:8px;border-radius:22px;background:${bg};color:${C.text}">${k}</button>`;
     html = `<div style="height:52px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px 0 16px;background:${C.bar};border-bottom:1px solid ${C.line}">
-      <span style="display:flex;gap:12px;align-items:center;min-width:0">${brand('webex', 24)}<span style="width:1px;height:20px;background:${C.line}"></span><strong class="hide-sm" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</strong><span data-timer style="color:${C.muted};font-variant-numeric:tabular-nums">${elapsed()}</span></span>
-      <span style="display:flex;gap:4px"><span class="hide-sm" style="display:flex">${r(ico('view', 18) + '<span class="hide-sm" style="font-size:13px">Layout</span>', '', 'transparent', 'Layout')}</span>${canFull ? r(fullIco(), 'data-full', 'transparent', 'Full screen') : ''}<a class="ibtn" href="${settingsHref}" aria-label="Settings" style="width:44px;height:44px;border-radius:22px;color:${C.text}">${ico('gear', 18)}</a></span></div>
+      <span style="display:flex;gap:12px;align-items:center;min-width:0">${brand(skin, 24)}<span style="width:1px;height:20px;background:${C.line}"></span><button class="ibtn hide-sm" data-info style="gap:6px;color:${C.text};min-width:0"><strong style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</strong>${ico('info', 16)}</button><span data-timer style="color:${C.muted};font-variant-numeric:tabular-nums">${elapsed()}</span></span>
+      <span style="display:flex;gap:4px"><span class="hide-sm" style="display:flex">${r(ico('view', 18) + '<span style="font-size:13px">Layout</span>', `data-view ${ex('menu')}`, 'transparent')}</span>${canFull ? r(fullIco(), 'data-full', 'transparent', 'Full screen') : ''}</span></div>
       ${tiles()}
       <div style="height:84px;flex:none;position:relative;display:flex;align-items:center;justify-content:center;padding:0 12px">
         <div style="display:flex;gap:8px;padding:8px;border-radius:32px;background:${C.pill}">
           ${r(micIco() + `<span class="hide-sm" style="font-size:13px">${state.muted ? 'Unmute' : 'Mute'}</span>`, `data-mute aria-pressed="${state.muted}"`, state.muted ? C.btnOn : C.btn)}
           ${r(camIco() + `<span class="hide-sm" style="font-size:13px">${state.camOn ? 'Stop video' : 'Start video'}</span>`, `data-cam aria-pressed="${!state.camOn}"`)}
-          ${r(ico('share') + '<span class="hide-sm" style="font-size:13px">Share</span>', '', C.btn, 'Share')}
-          <span class="hide-sm" style="display:flex;gap:8px">${r(ico('rec'), '', C.btn, 'Record')}${r(ico('smile'), '', C.btn, 'Reactions')}</span>
-          ${r(ico('chat') + `<span class="badge" style="top:-2px;right:-2px">${unread}</span>`, 'data-chat', C.btn, 'Chat')}
-          <a href="${settingsHref}" aria-label="Leave meeting" class="ibtn" style="width:44px;height:44px;border-radius:22px;background:${C.leave};color:#fff">${ico('x')}</a>
+          ${r(ico('share') + '<span class="hide-sm" style="font-size:13px">Share</span>', 'data-share', C.btn, 'Share')}
+          <span class="hide-sm" style="display:flex;gap:8px">${r(ico('rec'), `data-rec aria-pressed="${rp}"`, rp ? C.btnOn : C.btn, rp ? 'Stop recording' : 'Record')}${r(ico('smile'), `data-react ${ex('menu')}`, C.btn, 'Reactions')}</span>
+          ${r(ico('more'), `data-more ${ex('menu')}`, C.btn, 'More options')}
+          <button data-leavemenu ${ex('menu')} aria-label="Leave meeting" class="ibtn" style="width:44px;height:44px;border-radius:22px;background:${C.leave};color:#fff">${ico('x')}</button>
         </div>
-        <span class="hide-sm" style="position:absolute;right:16px;display:flex;gap:6px">${r(ico('people'), '', 'transparent', 'Participants')}</span>
+        <span class="hide-sm" style="position:absolute;right:16px;display:flex;gap:6px">${r(ico('people'), `data-people aria-pressed="${pp}"`, pp ? C.btn : 'transparent', W.people)}${r(ico('chat') + `<span class="badge" style="top:-2px;right:-2px">${unread}</span>`, `data-chat aria-pressed="${state.panel === 'chat'}"`, state.panel === 'chat' ? C.btn : 'transparent', 'Chat')}</span>
       </div>`;
   }
 
-  if (skin === 'meet') {
-    const r = (k, attr = '', bg = C.btn, label = '') => `<button class="ibtn" ${attr} aria-label="${label}" style="width:48px;height:48px;border-radius:24px;background:${bg};color:${C.text}">${k}</button>`;
-    html = `<div class="show-sm" style="height:52px;flex:none;align-items:center;justify-content:space-between;padding:0 8px 0 16px">${brand('meet', 22)}<a class="ibtn" href="${settingsHref}" aria-label="Settings" style="width:44px;height:44px;color:${C.text}">${ico('gear')}</a></div>${tiles()}
+  if (L === 'meet') {
+    const r = (k, attr = '', bg = C.btn, label = '') => `<button class="ibtn" ${attr} aria-label="${label}" style="width:48px;height:48px;border-radius:24px;background:${bg};color:${bg === '#8AB4F8' ? '#202124' : C.text}">${k}</button>`;
+    html = `<div class="show-sm" style="height:52px;flex:none;align-items:center;justify-content:space-between;padding:0 8px 0 16px">${brand('meet', 22)}<button class="ibtn" data-info aria-label="${W.info}" style="width:44px;height:44px;color:${C.text}">${ico('info')}</button></div>${tiles()}
       <div style="height:80px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 20px">
         <span class="hide-sm" style="display:flex;align-items:center;gap:12px;font-size:15px;white-space:nowrap;min-width:0">${brand('meet', 24)}<span data-clock>${clock()}</span><span style="color:${C.muted}">|</span><span style="overflow:hidden;text-overflow:ellipsis">${title}</span></span>
         <span style="display:flex;gap:10px;margin:0 auto">
           ${r(micIco(), `data-mute aria-pressed="${state.muted}"`, state.muted ? '#EA4335' : C.btn, state.muted ? 'Unmute meeting audio' : 'Mute meeting audio')}
           ${r(camIco(), `data-cam aria-pressed="${!state.camOn}"`, state.camOn ? C.btn : '#EA4335', 'Camera')}
-          <span class="hide-sm" style="display:flex;gap:10px">${r(ico('cc'), '', C.btn, 'Captions')}${r(ico('hand'), '', C.btn, 'Raise hand')}${r(ico('share'), '', C.btn, 'Present')}</span>${canFull ? r(fullIco(), 'data-full', C.btn, 'Full screen') : ''}
-          <a href="${settingsHref}" aria-label="Leave call" class="ibtn" style="width:64px;height:48px;border-radius:24px;background:${C.leave};color:#fff">${ico('phone', 22)}</a>
+          <span class="hide-sm" style="display:flex;gap:10px">${r(ico('cc'), `data-cc aria-pressed="${state.cc}"`, state.cc ? '#8AB4F8' : C.btn, state.cc ? W.ccOff : W.cc)}${r(ico('smile'), `data-react ${ex('menu')}`, C.btn, 'Send a reaction')}${r(handIco(20), `data-hand aria-pressed="${hp}"`, hp ? '#8AB4F8' : C.btn, hp ? 'Lower hand' : 'Raise hand')}${r(ico('share'), 'data-share', C.btn, 'Share link')}</span>
+          ${r(ico('more'), `data-more ${ex('menu')}`, C.btn, 'More options')}
+          <button data-leavemenu aria-haspopup="dialog" aria-label="Leave call" class="ibtn" style="width:64px;height:48px;border-radius:24px;background:${C.leave};color:#fff">${ico('phone', 22)}</button>
         </span>
-        <span style="display:flex;gap:4px">${r(ico('chat') + `<span class="badge" style="top:2px;right:2px">${unread}</span>`, 'data-chat', 'transparent', 'Chat')}<a class="ibtn hide-sm" href="${settingsHref}" aria-label="Settings" style="width:48px;height:48px;border-radius:24px;color:${C.text}">${ico('gear')}</a></span>
+        <span style="display:flex;gap:4px"><span class="hide-sm" style="display:flex">${r(ico('info'), 'data-info', state.panel === 'info' ? '#3C4043' : 'transparent', W.info)}${r(ico('people'), `data-people aria-pressed="${pp}"`, pp ? '#3C4043' : 'transparent', W.people)}</span>${r(ico('chat') + `<span class="badge" style="top:2px;right:2px">${unread}</span>`, `data-chat aria-pressed="${state.panel === 'chat'}"`, state.panel === 'chat' ? '#3C4043' : 'transparent', 'Chat')}</span>
       </div>`;
   }
 
-  const focusKey = document.activeElement && document.activeElement.closest && document.activeElement.closest('#room') ? focusSignature(document.activeElement) : null;
+  const ae = document.activeElement;
+  const focusKey = ae && ae.closest && ae.closest('#room') ? focusSignature(ae) : null;
   room.innerHTML = html;
   const v = document.getElementById('selfVideo'); if (v && stream) v.srcObject = stream;
   if (focusKey) { const el = room.querySelector(focusKey); el && el.focus(); }
 }
+const ACTIONS = ['data-leave', 'data-leavemenu', 'data-mute', 'data-cam', 'data-full', 'data-chat', 'data-people', 'data-hand', 'data-react', 'data-view', 'data-more', 'data-share', 'data-rec', 'data-cc', 'data-info'];
 function focusSignature(el) {
-  for (const a of ['data-mute', 'data-cam', 'data-full', 'data-chat']) if (el.hasAttribute(a)) return `[${a}]`;
+  for (const a of ACTIONS) if (el.hasAttribute(a)) return `[${a}]`;
   if (el.dataset.p) return `[data-p="${el.dataset.p}"]`;
   return null;
 }
-/* Only the clock text changes each second; avoid full re-renders. */
 setInterval(() => {
   document.querySelectorAll('[data-timer]').forEach(e => e.textContent = elapsed());
   document.querySelectorAll('[data-clock]').forEach(e => e.textContent = clock());
@@ -209,41 +362,125 @@ setInterval(() => {
 async function startCam() {
   if (stream || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
   try { stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false }); }
-  catch (e) { stream = null; state.camOn = false; }
-  render();
+  catch (e) { stream = null; state.camOn = false; notice('Camera blocked. Allow it in your browser to show your video.'); }
+  render(); refreshPanels();
 }
 function stopCam() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }
+function setCam(on) { state.camOn = on; S.cam = on; saveSettings(S); if (on) startCam(); else stopCam(); render(); refreshPanels(); }
 
-/* ---------- who is "speaking" (until real per-speaker audio exists) ---------- */
+/* ---------- who is "speaking", and live captions ---------- */
+const SPOKEN = ['So the main thing I wanted to cover today is the timeline.', 'I think that makes sense, as long as we keep it simple.', 'Can everyone see the numbers on my side?', 'Let me pull that up real quick.', 'Good question, I’ll follow up after the call.', 'We’re on track, mostly.', 'Sorry, I was on mute. Can you hear me now?', 'Let’s park that and come back to it.'];
 function nextSpeaker() {
+  if (state.ended) return;
   const live = state.people.filter(p => !p.muted);
   state.people.forEach(p => p.speaking = false);
-  if (live.length) live[Math.floor(Math.random() * live.length)].speaking = true;
+  if (live.length) {
+    const p = live[Math.floor(Math.random() * live.length)]; p.speaking = true;
+    const pool = topicLines(S).concat(SPOKEN);
+    state.caption = { name: p.name, text: pool[Math.floor(Math.random() * pool.length)] };
+  } else state.caption = null;
   render();
   setTimeout(nextSpeaker, 3000 + Math.random() * 6000);
 }
 
-/* ---------- chat ---------- */
-const chatEl = document.getElementById('chat'), msgsEl = document.getElementById('msgs'), toastEl = document.getElementById('toast');
-chatEl.style.background = C.panel; chatEl.style.color = C.panelText || C.text;
-document.getElementById('chatInput').style.cssText += `;background:${C.field};border:1px solid ${C.line}`;
-document.getElementById('chatClose').innerHTML = ico('x');
-document.getElementById('chatSend').innerHTML = ico('send');
-toastEl.style.background = skin === 'meet' ? '#2D2E31' : C.panel; toastEl.style.color = skin === 'meet' ? '#E8EAED' : C.text;
-toastEl.style[skin === 'teams' ? 'top' : 'bottom'] = skin === 'teams' ? '76px' : '96px';
-toastEl.style.right = '16px';
+/* ---------- other people raise hands and react now and then ---------- */
+function crowdTick() {
+  if (state.ended) return;
+  if (state.people.length) {
+    const p = state.people[Math.floor(Math.random() * state.people.length)];
+    if (Math.random() < 0.7) { p.react = ['\u{1F44D}', '\u{1F44F}', '\u{1F602}', '❤️'][Math.floor(Math.random() * 4)]; setTimeout(() => { p.react = null; render(); }, 3600); }
+    else if (!p.hand) { p.hand = true; setTimeout(() => { p.hand = false; render(); refreshPanels(); }, 25000 / SPEED); }
+    render(); refreshPanels();
+  }
+  setTimeout(crowdTick, (75 + Math.random() * 105) * 1000 / SPEED);
+}
 
+/* ---------- side panels: chat, people, meeting info, settings (Teams style) ---------- */
+const panels = { chat: 'chat', people: 'people', info: 'info', settings: 'setSide' };
+function styleSides() {
+  const bg = C.panel, fg = C.panelText || C.text, line = C.panelLine || C.line;
+  document.querySelectorAll('.side').forEach(el => { el.style.background = bg; el.style.color = fg; el.style.borderLeft = '1px solid ' + line; });
+  document.querySelectorAll('.side [data-close]').forEach(b => { b.innerHTML = ico('x'); b.style.color = fg; });
+  const inp = document.getElementById('chatInput'); inp.style.background = C.field; inp.style.border = '1px solid ' + line; inp.style.color = fg;
+  document.getElementById('chatSend').innerHTML = ico('send'); document.getElementById('chatSend').style.color = fg;
+  placeSides();
+  document.getElementById('chatTitle').textContent = W.chat;
+  document.getElementById('peopleTitle').textContent = W.people;
+  document.getElementById('infoTitle').textContent = W.info;
+}
+function openPanel(name, focusSel) {
+  closeMenu();
+  if (state.panel === name) return closePanel();
+  Object.values(panels).forEach(id => document.getElementById(id).hidden = true);
+  state.panel = name;
+  if (name === 'chat') { state.unread = 0; document.getElementById('toast').classList.remove('show'); }
+  refreshPanels();
+  document.getElementById(panels[name]).hidden = false;
+  render();
+  const f = document.querySelector(focusSel || `#${panels[name]} [data-close]`); f && f.focus();
+}
+function closePanel() {
+  const was = state.panel; if (!was) return;
+  document.getElementById(panels[was]).hidden = true; state.panel = null; render();
+  const back = document.querySelector({ chat: '[data-chat]', people: '[data-people]', info: '[data-info]', settings: '[data-more]' }[was]) || document.querySelector('[data-more]');
+  back && back.focus();
+}
+document.querySelectorAll('.side [data-close]').forEach(b => b.addEventListener('click', closePanel));
+
+function peopleHtml() {
+  const fg = C.panelText || C.text, line = C.panelLine || C.line, acc = C.accent;
+  const row = (av, name, sub, hand, micBtn) => `<div class="prow"><span class="av" style="background:${av.bg};color:${av.fg}" aria-hidden="true">${esc(initials(name))}</span><span class="pn">${esc(name)}${sub ? `<small>${sub}</small>` : ''}</span>${hand ? `<span style="color:#C98A00" title="Hand raised">${handIco(18)}</span>` : ''}${micBtn}</div>`;
+  const mic = (attr, muted, label) => `<button ${attr} aria-pressed="${muted}" aria-label="${label}" style="color:${muted ? '#C4314B' : fg}">${ico('mic', 18, muted ? ICONS.slash : '')}</button>`;
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill-btn" data-share style="border:1px solid ${line};background:transparent;color:${fg}">${skin === 'meet' ? 'Add people' : 'Invite'}</button><button class="pill-btn" data-muteall style="border:0;background:${acc};color:${C.onAccent}">${W.muteAll}</button></div>
+    <h3>In this meeting (${state.people.length + 1})</h3>
+    ${row(ME_AV, me + ' (You)', W.host, state.hand, mic('data-mute', state.muted, state.muted ? 'Unmute meeting audio' : 'Mute meeting audio'))}
+    ${state.people.map((p, i) => row(p, p.name, p.speaking && !p.muted ? 'Speaking' : '', p.hand, mic(`data-p="${i}"`, p.muted, (p.muted ? 'Unmute ' : 'Mute ') + p.name))).join('')}`;
+}
+function infoHtml() {
+  const fg = C.panelText || C.text, line = C.panelLine || C.line;
+  return `<p style="margin:0;font-size:15px;font-weight:600">${title}</p>
+    <p style="margin:0;font-size:14px;opacity:.75">${esc(SKIN[skin].say)} · ${state.people.length + 1} people · started ${new Date(state.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
+    <p style="margin:0;font-size:14px">Running for <strong data-timer style="font-variant-numeric:tabular-nums">${elapsed()}</strong></p>
+    <h3>Share this site</h3>
+    <div style="display:flex;gap:8px;align-items:center"><input readonly value="${esc(SITE_URL)}" aria-label="Site link" style="flex:1;min-width:0;height:40px;padding:0 10px;border-radius:6px;border:1px solid ${line};background:${C.field};color:${fg}"><button class="pill-btn" data-share style="border:0;background:${C.accent};color:${C.onAccent}">Copy</button></div>
+    <p style="margin:0;font-size:12.5px;opacity:.7">This is a parody meeting for entertainment only. Nobody else can join.</p>`;
+}
+function refreshPanels() {
+  if (state.ended) return;
+  if (state.panel === 'people') document.getElementById('peopleBody').innerHTML = peopleHtml();
+  if (state.panel === 'info') document.getElementById('infoBody').innerHTML = infoHtml();
+  if (state.panel === 'settings') document.getElementById('setSideBody').innerHTML = settingsBody('all');
+  if (!document.getElementById('scrim').hidden) renderDialog();
+}
+document.getElementById('people').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if ('muteall' in b.dataset) { state.people.forEach(p => { p.muted = true; p.speaking = false; }); state.caption = null; notice('Everyone else is muted'); render(); refreshPanels(); }
+  else roomAction(b);
+});
+document.getElementById('info').addEventListener('click', e => { const b = e.target.closest('[data-share]'); if (b) shareSite(); });
+
+/* ---------- chat ---------- */
+const msgsEl = document.getElementById('msgs'), toastEl = document.getElementById('toast');
+function styleToast() {
+  toastEl.style.background = skin === 'meet' ? '#2D2E31' : C.panel; toastEl.style.color = skin === 'meet' ? '#E8EAED' : C.text;
+  toastEl.style.top = toastEl.style.bottom = '';
+  toastEl.style[L === 'teams' ? 'top' : 'bottom'] = L === 'teams' ? '76px' : '96px';
+  toastEl.style.right = '16px';
+}
 function addMsg(from, text, av) {
   const row = document.createElement('div'); row.className = 'msg';
-  row.innerHTML = `<span class="av" style="background:${av.bg};color:${av.fg}" aria-hidden="true">${esc(initials(from))}</span><div><div class="meta"><strong>${esc(from)}</strong> · ${clock()}</div><div class="text">${esc(text)}</div></div>`;
-  msgsEl.appendChild(row); msgsEl.scrollTop = msgsEl.scrollHeight;
+  row.innerHTML = `<span class="av" style="background:${av.bg};color:${av.fg}" aria-hidden="true">${esc(initials(from.replace(' (You)', '')))}</span><div><div class="meta"><strong>${esc(from)}</strong> · ${clock()}</div><div class="text">${esc(text)}</div></div>`;
+  msgsEl.appendChild(row);
+  const t = document.getElementById('typing'); t && msgsEl.appendChild(t);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
 }
 let toastTimer;
 function showToast(from, text, av) {
+  if (isNarrow() && state.panel) return;   /* a full-screen panel is open on a phone: the unread badge is enough */
   toastEl.innerHTML = `<span class="av" style="background:${av.bg};color:${av.fg}" aria-hidden="true">${esc(initials(from))}</span><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><strong>${esc(from)}</strong><span style="opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(text)}</span></span>`;
   toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 5000);
 }
-toastEl.addEventListener('click', () => openChat(true));
+toastEl.addEventListener('click', () => openPanel('chat', '#chatInput'));
 
 /* Each pool is shuffled and used up before any line repeats. */
 const pools = {};
@@ -252,74 +489,437 @@ function draw(key, lines) {
   if (!pools[key] || !pools[key].length) pools[key] = lines.slice().sort(() => Math.random() - 0.5);
   return pools[key].pop();
 }
-let lastSender = -1, chatCount = 0;
+let lastSender = -1, chatTimer = null;
 function pickLine() {
-  const mins = (Date.now() - state.start) / 60000 * (FAST ? 20 : 1);
+  const mins = (Date.now() - state.joined) / 60000 * SPEED;
   const phase = mins < 3 ? 'open' : mins > 30 ? 'close' : 'middle';
   const own = S.chat.own ? S.chat.ownText.split('\n').map(t => t.trim()).filter(Boolean) : [];
   const options = [];
   if (S.chat.generic) options.push(() => draw('g-' + phase, CHAT_GENERIC[phase]));
-  if (S.chat.topic && phase === 'middle') options.push(() => draw('t', CHAT_TOPIC[S.topic] || []));
+  if (S.chat.topic && phase === 'middle') options.push(() => draw('t', topicLines(S)));
   if (own.length && phase === 'middle') options.push(() => draw('o', own));
-  if (!options.length && S.chat.generic === false && phase !== 'middle') return null;
   if (!options.length) return null;
   return options[Math.floor(Math.random() * options.length)]();
 }
+const chatEnabled = () => S.chat.on && (S.chat.generic || S.chat.topic || S.chat.own);
 function chatTick() {
+  chatTimer = null;
+  if (!chatEnabled() || state.ended) return;
   if (state.people.length) {
     const line = pickLine();
     if (line) {
       let i; do { i = Math.floor(Math.random() * state.people.length); } while (state.people.length > 1 && i === lastSender);
-      lastSender = i; chatCount++;
-      const p = state.people[i];
-      addMsg(p.name, line, p);
-      if (!state.chatOpen) { state.unread++; showToast(p.name, line, p); render(); }
+      lastSender = i;
+      incoming(state.people[i], line);
     }
   }
   scheduleChat();
 }
 function scheduleChat(first) {
+  if (chatTimer || !chatEnabled()) return;
   const [lo, hi] = first ? [20, 45] : S.chat.freq === 'occasional' ? [120, 240] : [240, 360];
-  const secs = lo + Math.random() * (hi - lo);
-  setTimeout(chatTick, secs * 1000 / (FAST ? 20 : 1));
+  chatTimer = setTimeout(chatTick, (lo + Math.random() * (hi - lo)) * 1000 / SPEED);
 }
-const chatEnabled = S.chat.on && (S.chat.generic || S.chat.topic || S.chat.own);
-if (chatEnabled) scheduleChat(true);
+function incoming(p, line) {
+  if (state.ended) return;
+  addMsg(p.name, line, p);
+  if (state.panel !== 'chat') { state.unread++; showToast(p.name, line, p); render(); }
+}
 
-function openChat(focus) { state.chatOpen = true; state.unread = 0; chatEl.hidden = false; toastEl.classList.remove('show'); render(); if (focus) document.getElementById('chatInput').focus(); }
-function closeChat() { state.chatOpen = false; chatEl.hidden = true; render(); const b = document.querySelector('[data-chat]'); b && b.focus(); }
-document.getElementById('chatClose').addEventListener('click', closeChat);
+/* People answer what you type: a greeting, "can you hear me?", "can you see me?" and so on (rules in shared.js). */
+const firstName = me === 'You' ? '' : me.split(/\s+/)[0];
+function fill(line, other) {
+  let t = line.replace(/\{other\}/g, other);
+  if (firstName) return t.replace(/\{name\}/g, firstName);
+  return t.replace(/, \{name\},/g, ',').replace(/,? \{name\}/g, '').replace(/\{name\}/g, '');
+}
+const typing = new Set();
+function showTyping() {
+  let el = document.getElementById('typing');
+  if (!typing.size) { el && el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'typing'; el.className = 'meta'; el.style.cssText = 'font-size:12px;opacity:.7;font-style:italic'; el.setAttribute('aria-hidden', 'true'); }
+  const names = [...typing];
+  el.textContent = names.length > 1 ? `${names[0]} and ${names[1]} are typing…` : `${names[0]} is typing…`;
+  msgsEl.appendChild(el); msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+function replyTo(text) {
+  if (!state.people.length) return;
+  const rule = CHAT_REPLIES.find(r => r.pattern.test(text));
+  if (!rule || Math.random() > (rule.chance ?? 1)) return;
+  const pool = rule.when === 'mic' ? rule.lines[state.muted ? 'muted' : 'live']
+    : rule.when === 'cam' ? rule.lines[state.camOn && stream ? 'on' : 'off'] : rule.lines.filter(l => state.people.length > 1 || !l.includes('{other}'));
+  /* Shuffle, but let the person who spoke last wait their turn. */
+  const order = state.people.map((p, i) => i).sort(() => Math.random() - 0.5).sort((a, b) => (a === lastSender) - (b === lastSender));
+  const count = Math.min(rule.who || 1, order.length, rule.who > 1 && Math.random() < 0.5 ? 2 : 1);
+  const used = new Set();
+  for (let k = 0; k < count; k++) {
+    const p = state.people[order[k]];
+    const other = state.people[order[(k + 1) % order.length]].name.split(/\s+/)[0];
+    let line; do { line = pool[Math.floor(Math.random() * pool.length)]; } while (used.has(line) && used.size < pool.length);
+    used.add(line);
+    const start = 700 + k * 1600 + Math.random() * 900, len = 900 + Math.min(line.length * 45, 2200);
+    setTimeout(() => { if (state.ended) return; typing.add(p.name); showTyping(); }, start);
+    if (k === 0) lastSender = order[0];
+    setTimeout(() => { typing.delete(p.name); showTyping(); incoming(p, fill(line, other)); }, start + len);
+  }
+}
 document.getElementById('chatForm').addEventListener('submit', e => {
   e.preventDefault(); const inp = document.getElementById('chatInput'); const t = inp.value.trim(); if (!t) return;
-  addMsg(me + ' (You)', t, { bg: '#E8D7F5', fg: '#3B2353' }); inp.value = '';
+  addMsg(me + ' (You)', t, ME_AV); inp.value = '';
+  replyTo(t);
 });
 
-/* ---------- controls ---------- */
-function toggleMute() {
-  state.muted = !state.muted;
-  /* Hook for topic audio: when our own audio files exist, mute/unmute them here. */
-  render();
+/* ---------- popover menus (More, View, React), drawn the way each app draws them ---------- */
+const menuEl = document.getElementById('menu');
+let menuAnchor = null, menuItems = [];
+function placeMenu(anchor) {
+  menuEl.style.left = '0px'; menuEl.style.top = '0px';
+  const a = anchor.getBoundingClientRect(), m = menuEl.getBoundingClientRect();
+  let left = Math.min(Math.max(8, a.left + a.width / 2 - m.width / 2), innerWidth - m.width - 8);
+  let top = a.top > innerHeight / 2 ? a.top - m.height - 8 : a.bottom + 8;
+  menuEl.style.left = left + 'px'; menuEl.style.top = Math.max(8, top) + 'px';
 }
-document.getElementById('room').addEventListener('click', e => {
+function menuStyle() {
+  const fg = skin === 'meet' ? '#E8EAED' : (C.menu === '#FFFFFF' ? '#242424' : '#FFFFFF');
+  menuEl.style.background = C.menu; menuEl.style.color = fg; menuEl.style.borderRadius = C.mRadius;
+  menuEl.style.border = C.menu === '#FFFFFF' ? '1px solid #E0E0E0' : '0';
+  return fg;
+}
+function openMenu(anchor, items) {
+  if (menuAnchor === anchor && !menuEl.hidden) return closeMenu();
+  closeMenu(); toastEl.classList.remove('show');
+  const fg = menuStyle();
+  menuEl.className = 'menu'; menuEl.setAttribute('role', 'menu');
+  menuItems = items;
+  menuEl.innerHTML = items.map((it, i) => it.divider ? `<hr style="background:${C.menu === '#FFFFFF' ? '#E0E0E0' : 'rgba(255,255,255,.12)'}">`
+    : `<button role="${it.checked === undefined ? 'menuitem' : 'menuitemradio'}" ${it.checked === undefined ? '' : `aria-checked="${it.checked}"`} data-i="${i}" tabindex="-1" ${it.danger ? `class="danger" data-bg="${it.danger}" style="color:#fff;background:${it.danger}"` : `style="color:${fg}"`}>
+        ${it.checked !== undefined ? `<span class="check">${it.checked ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>' : ''}</span>` : (it.icon ? ico(it.icon, 18) : '')}
+        <span>${esc(it.label)}</span></button>`).join('');
+  menuEl.hidden = false; placeMenu(anchor);
+  menuAnchor = anchor; anchor.setAttribute('aria-expanded', 'true');
+  menuEl.querySelectorAll('button').forEach(b => { const base = b.dataset.bg || 'transparent'; b.onmouseenter = () => b.style.background = b.dataset.bg ? base : C.hover; b.onmouseleave = () => b.style.background = base; if (b.dataset.bg) { b.onmouseenter = () => b.style.filter = 'brightness(1.12)'; b.onmouseleave = () => b.style.filter = ''; } b.onfocus = b.onmouseenter; b.onblur = b.onmouseleave; });
+  const first = menuEl.querySelector('button'); first && first.focus();
+}
+function openReactions(anchor) {
+  if (menuAnchor === anchor && !menuEl.hidden) return closeMenu();
+  closeMenu(); menuStyle();
+  menuEl.className = 'menu reactions'; menuEl.setAttribute('role', 'menu'); menuItems = [];
+  menuEl.innerHTML = REACTIONS.map((r, i) => `<button role="menuitem" data-r="${i}" tabindex="-1" aria-label="${REACT_NAMES[i]}">${r}</button>`).join('')
+    + (L === 'teams' ? '' : '');
+  menuEl.hidden = false; placeMenu(anchor);
+  menuAnchor = anchor; anchor.setAttribute('aria-expanded', 'true');
+  menuEl.querySelectorAll('button').forEach(b => { b.onmouseenter = () => b.style.background = C.hover; b.onmouseleave = () => b.style.background = 'transparent'; b.onfocus = b.onmouseenter; b.onblur = b.onmouseleave; });
+  menuEl.querySelector('button').focus();
+}
+function closeMenu(refocus) {
+  if (menuEl.hidden) return;
+  menuEl.hidden = true;
+  if (menuAnchor) { menuAnchor.setAttribute('aria-expanded', 'false'); if (refocus && document.body.contains(menuAnchor)) menuAnchor.focus(); }
+  menuAnchor = null;
+}
+menuEl.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  if ('mute' in b.dataset) toggleMute();
-  else if ('cam' in b.dataset) { state.camOn = !state.camOn; if (state.camOn) startCam(); else stopCam(); render(); }
-  else if (b.dataset.p) { const p = state.people[+b.dataset.p]; p.muted = !p.muted; if (p.muted) p.speaking = false; render(); }
-  else if ('full' in b.dataset) { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); }
-  else if ('chat' in b.dataset) { state.chatOpen ? closeChat() : openChat(true); }
+  if (b.dataset.r !== undefined) { closeMenu(true); return react(REACTIONS[+b.dataset.r]); }
+  const it = menuItems[+b.dataset.i]; closeMenu(true); it && it.action();
 });
+menuEl.addEventListener('keydown', e => {
+  const items = [...menuEl.querySelectorAll('button')]; const i = items.indexOf(document.activeElement);
+  const next = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+  if (next) { e.preventDefault(); items[(i + next + items.length) % items.length].focus(); }
+  if (e.key === 'Home') { e.preventDefault(); items[0].focus(); }
+  if (e.key === 'End') { e.preventDefault(); items.at(-1).focus(); }
+  if (e.key === 'Tab') closeMenu();
+});
+document.addEventListener('pointerdown', e => { if (!menuEl.hidden && !menuEl.contains(e.target) && !(menuAnchor && menuAnchor.contains(e.target))) closeMenu(); });
+
+const viewItems = () => [
+  { label: W.gallery, checked: state.view === 'gallery', action: () => setView('gallery') },
+  { label: W.speaker, checked: state.view === 'speaker', action: () => setView('speaker') }
+];
+function moreItems() {
+  const narrow = isNarrow(), items = [];
+  if (narrow) {
+    items.push({ label: W.people, icon: 'people', action: () => openPanel('people') });
+    if (L === 'zoom') items.push({ label: W.chat + (state.unread ? ` (${state.unread})` : ''), icon: 'chat', action: () => openPanel('chat', '#chatInput') });
+    items.push({ label: state.hand ? 'Lower hand' : 'Raise hand', icon: 'hand', action: toggleHand });
+    items.push({ label: 'Reactions', icon: 'smile', action: () => openReactions(document.querySelector('[data-more]')) });
+    items.push({ label: 'Share this site', icon: 'share', action: shareSite });
+  }
+  items.push({ label: W.info, icon: 'info', action: () => openPanel('info') });
+  if (L !== 'zoom' && L !== 'webex' || narrow) items.push({ label: state.rec ? W.recStop : W.rec, icon: 'rec', action: toggleRec });
+  if (L !== 'meet' || narrow) items.push({ label: state.cc ? W.ccOff : W.cc, icon: 'cc', action: toggleCC });
+  if (L === 'meet' || narrow) items.push({ label: 'Switch to ' + ((v => / View$/.test(v) ? v : v.toLowerCase() + ' layout')(state.view === 'speaker' ? W.gallery : W.speaker)), icon: 'view', action: () => setView(state.view === 'speaker' ? 'gallery' : 'speaker') });
+  if (canFull && (L !== 'zoom' || narrow)) items.push({ label: state.full ? 'Exit full screen' : 'Full screen', icon: 'full', action: toggleFull });
+  items.push({ divider: true });
+  items.push({ label: W.settings, icon: 'gear', action: openSettings });
+  return items;
+}
+
+/* ---------- actions ---------- */
+function toggleMute() { state.muted = !state.muted; /* Hook for topic audio: mute or unmute our own clips here. */ render(); refreshPanels(); }
+function toggleHand() { state.hand = !state.hand; notice(state.hand ? 'Your hand is raised' : 'Your hand is lowered'); render(); refreshPanels(); }
+let reactTimer;
+function react(r) { state.react = r; render(); clearTimeout(reactTimer); reactTimer = setTimeout(() => { state.react = null; render(); }, 3600); }
+function setView(v) { state.view = v; render(); }
+function toggleRec() { state.rec = !state.rec; notice(state.rec ? 'Recording started (just for show, nothing is saved)' : 'Recording stopped'); render(); }
+function toggleCC() { state.cc = !state.cc; notice(state.cc ? 'Live captions are on' : 'Live captions are off'); render(); }
+function toggleFull() { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); }
+async function shareSite() {
+  const data = { title: 'Totally Real Meeting', text: 'A parody meeting simulator, just for fun.', url: SITE_URL };
+  if (navigator.share && location.protocol !== 'file:') { try { await navigator.share(data); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(SITE_URL); notice('Link copied. Paste it anywhere to share the site.'); }
+  catch (e) { openPanel('info'); notice('Copy the link from Meeting details'); }
+}
+
+function roomAction(b) {
+  const d = b.dataset;
+  if ('leave' in d) leaveCall('left');
+  else if ('leavemenu' in d) leaveOptions(b);
+  else if ('mute' in d) toggleMute();
+  else if ('cam' in d) setCam(!state.camOn);
+  else if (d.p) { const p = state.people[+d.p]; p.muted = !p.muted; if (p.muted) p.speaking = false; render(); refreshPanels(); }
+  else if ('full' in d) toggleFull();
+  else if ('chat' in d) openPanel('chat', '#chatInput');
+  else if ('people' in d) openPanel('people');
+  else if ('info' in d) openPanel('info');
+  else if ('hand' in d) toggleHand();
+  else if ('react' in d) openReactions(b);
+  else if ('view' in d) openMenu(b, viewItems());
+  else if ('more' in d) openMenu(b, moreItems());
+  else if ('share' in d) shareSite();
+  else if ('rec' in d) toggleRec();
+  else if ('cc' in d) toggleCC();
+}
+document.getElementById('room').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.ended ? endAction(b) : roomAction(b); });
+
+/* ---------- in-call settings, styled like each app's own settings ---------- */
+let dlgTab = L === 'meet' ? 'audio' : 'general';
+const TABS = L === 'meet'
+  ? [['audio', 'Audio', 'mic'], ['video', 'Video', 'cam'], ['general', 'General', 'gear'], ['chat', 'Chat', 'chat']]
+  : [['general', 'General', 'gear'], ['audio', 'Audio', 'mic'], ['video', 'Video', 'cam'], ['chat', 'Chat', 'chat']];
+function tog(key, on, label, sub) {
+  const acc = C.accent;
+  return `<div class="set"><span class="t" id="lab-${key}">${label}${sub ? `<small>${sub}</small>` : ''}</span><button class="tog" role="switch" aria-checked="${on}" aria-labelledby="lab-${key}" data-set="${key}" style="background:${on ? acc : '#8A8A8A'}"></button></div>`;
+}
+function radios(key, label, opts, cur) {
+  const acc = C.accent, fg = C.dlg === 'side' ? (C.panelText || C.text) : C.dText;
+  return `<div class="set" style="flex-direction:column;align-items:flex-start"><span class="t" id="lab-${key}">${label}</span><div class="radios" role="radiogroup" aria-labelledby="lab-${key}">${opts.map(([v, l]) => `<button role="radio" aria-checked="${cur === v}" data-radio="${key}" data-v="${v}" style="border:${cur === v ? `2px solid ${acc}` : '1px solid rgba(127,127,127,.5)'};background:transparent;color:${fg};font-weight:${cur === v ? 600 : 400}">${l}</button>`).join('')}</div></div>`;
+}
+function settingsBody(tab) {
+  const sec = {
+    general: (hasLight ? radios('theme', 'Theme', [['system', 'Match my device'], ['light', 'Light'], ['dark', 'Dark']], S.theme) : `<div class="set"><span class="t">Theme<small>This app look is dark only, like the original.</small></span></div>`)
+      + radios('view', 'Layout', [['gallery', W.gallery], ['speaker', W.speaker]], state.view)
+      + `<div class="linkrow"><button class="pill-btn" data-share style="border:0;background:${C.accent};color:${C.onAccent}">Share this site</button><a class="pill-btn" href="index.html" style="display:inline-flex;align-items:center;text-decoration:none;border:1px solid rgba(127,127,127,.5)">Change look, topic or people</a></div>`,
+    audio: tog('muted', state.muted, 'Mute meeting audio', 'Silences everyone in this call') + `<div class="set"><span class="t">Speaker<small>Default speaker</small></span></div>`,
+    video: tog('cam', state.camOn, 'Camera', 'Your video stays on this device and is never uploaded') + tog('mirror', state.mirror, 'Mirror my video', 'Only changes how you see yourself'),
+    chat: tog('chatOn', S.chat.on, 'Messages from others', 'A few words here and there, never a constant stream')
+      + radios('freq', 'How often', [['rare', 'Rare'], ['occasional', 'Occasional']], S.chat.freq)
+  };
+  if (tab === 'all') return [['audio', 'Audio settings'], ['video', 'Video settings'], ['general', 'Appearance and layout'], ['chat', 'Chat']].map(([k, h]) => `<h3>${h}</h3>${sec[k]}`).join('');
+  return sec[tab];
+}
+function renderDialog() {
+  const d = document.getElementById('dlg');
+  const nav = C.dNav, fg = C.dText;
+  d.style.background = C.dBg; d.style.color = fg; d.style.borderRadius = L === 'meet' ? '8px' : L === 'zoom' ? '10px' : '14px';
+  d.innerHTML = `<header style="border-bottom:1px solid rgba(127,127,127,.25)"><span id="dlgTitle">${W.settings}</span><button class="ibtn" data-dlgclose aria-label="Close settings" style="width:44px;height:44px;color:${fg}">${ico('x')}</button></header>
+    <div class="cols"><nav role="tablist" aria-label="Settings sections" style="background:${nav}">${TABS.map(([k, l, ic]) => {
+      const on = dlgTab === k;
+      const bg = on ? (C.navOn || (L === 'zoom' ? C.accent : 'rgba(127,127,127,.18)')) : 'transparent';
+      const col = on ? (C.navOnText || (L === 'zoom' ? '#FFFFFF' : fg)) : fg;
+      return `<button role="tab" aria-selected="${on}" data-tab="${k}" tabindex="${on ? 0 : -1}" style="background:${bg};color:${col};border-radius:${L === 'meet' ? '0 20px 20px 0' : '8px'};font-weight:${on ? 600 : 400}">${ico(ic, 18)}${l}</button>`;
+    }).join('')}</nav><div class="pane" role="tabpanel" aria-label="${dlgTab}">${settingsBody(dlgTab)}</div></div>`;
+}
+function openSettings() {
+  closeMenu();
+  if (C.dlg === 'side') return openPanel('settings');
+  renderDialog(); document.getElementById('scrim').hidden = false;
+  document.querySelector('#dlg [aria-selected="true"]').focus();
+}
+function closeSettings() { document.getElementById('scrim').hidden = true; const b = document.querySelector('[data-more]'); b && b.focus(); }
+function settingAction(e) {
+  const b = e.target.closest('button'); if (!b) return;
+  const d = b.dataset;
+  if ('dlgclose' in d) return closeSettings();
+  if (d.tab) { dlgTab = d.tab; renderDialog(); document.querySelector(`#dlg [data-tab="${d.tab}"]`).focus(); return; }
+  if ('share' in d) return shareSite();
+  if (d.set === 'muted') toggleMute();
+  if (d.set === 'cam') setCam(!state.camOn);
+  if (d.set === 'mirror') { state.mirror = !state.mirror; render(); }
+  if (d.set === 'chatOn') { S.chat.on = !S.chat.on; saveSettings(S); scheduleChat(true); }
+  if (d.radio === 'theme') { S.theme = d.v; saveSettings(S); applyLook(); }
+  if (d.radio === 'view') setView(d.v);
+  if (d.radio === 'freq') { S.chat.freq = d.v; saveSettings(S); }
+  refreshPanels();
+  const again = (e.currentTarget.id === 'scrim' ? document.getElementById('dlg') : e.currentTarget).querySelector(d.set ? `[data-set="${d.set}"]` : `[data-radio="${d.radio}"][data-v="${d.v}"]`);
+  again && again.focus();
+}
+document.getElementById('scrim').addEventListener('click', e => { if (e.target.id === 'scrim') return closeSettings(); settingAction(e); });
+document.getElementById('setSide').addEventListener('click', settingAction);
+document.getElementById('dlg').addEventListener('keydown', e => {
+  if (e.target.getAttribute('role') === 'tab' && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+    e.preventDefault(); const i = TABS.findIndex(t => t[0] === dlgTab); const n = TABS[(i + (e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1) + TABS.length) % TABS.length][0];
+    dlgTab = n; renderDialog(); document.querySelector(`#dlg [data-tab="${n}"]`).focus();
+  }
+  if (e.key === 'Tab') { const f = [...document.querySelectorAll('#dlg button, #dlg a')].filter(x => x.tabIndex !== -1); if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f.at(-1).focus(); } else if (!e.shiftKey && document.activeElement === f.at(-1)) { e.preventDefault(); f[0].focus(); } }
+});
+
+
+/* ---------- leaving and ending the call, the way each app does it ---------- */
+const LEAVE = {
+  teams: { leave: 'Leave', end: 'End meeting' },
+  zoom: { leave: 'Leave Meeting', end: 'End Meeting for All' },
+  webex: { leave: 'Leave meeting', end: 'End meeting for all' },
+  meet: { leave: 'Just leave the call', end: 'End the call for everyone' }
+}[W === WORDS.teams ? 'teams' : W === WORDS.zoom ? 'zoom' : W === WORDS.webex ? 'webex' : 'meet'];
+
+function leaveOptions(anchor) {
+  if (!anchor) return;
+  if (L === 'teams') return openMenu(anchor, [
+    { label: LEAVE.leave, icon: 'phone', action: () => leaveCall('left') },
+    { label: LEAVE.end, icon: 'x', action: () => confirmBox('End meeting for everyone?', 'Everyone will be removed from the meeting, and the chat will stay where it is.', [['Cancel', 'cancel'], ['End', 'end']]) }
+  ]);
+  if (L === 'meet') return confirmBox('Leave the call?', 'You are the host. You can leave on your own, or end the call for everyone.', [[LEAVE.leave, 'leave'], [LEAVE.end, 'end']]);
+  /* Zoom and Webex: a small popover with a red "for all" button above a plain leave button. */
+  const grey = L === 'zoom' ? '#3D3D3D' : (C.btn || '#3A3A3A');
+  openMenu(anchor, [
+    { label: LEAVE.end, danger: C.leave, action: () => leaveCall('ended') },
+    { label: LEAVE.leave, danger: grey, action: () => leaveCall('left') }
+  ]);
+  if (L === 'webex' && C.menu === '#FFFFFF') menuEl.querySelectorAll('.danger')[1].style.color = '#121212';
+}
+
+const shown = sel => [...document.querySelectorAll(sel)].find(e => e.offsetParent) || null;
+let confirmBack = null;
+function confirmBox(head, text, buttons) {
+  closeMenu();
+  confirmBack = shown('[data-leavemenu]');
+  const box = document.getElementById('cf');
+  const meet = L === 'meet', bg = meet ? '#FFFFFF' : C.menu, fg = meet ? '#202124' : (C.menu === '#FFFFFF' ? '#242424' : '#FFFFFF');
+  box.style.background = bg; box.style.color = fg; box.style.borderRadius = meet ? '8px' : C.mRadius;
+  box.innerHTML = `<h2 id="cfTitle">${esc(head)}</h2><p id="cfText">${esc(text)}</p><div class="acts">${buttons.map(([label, act], i) => {
+    const primary = i === buttons.length - 1;
+    const style = meet
+      ? (primary ? 'background:#1A73E8;color:#fff;border:0;border-radius:20px' : 'background:transparent;color:#1A73E8;border:0;border-radius:20px')
+      : (primary ? `background:${act === 'end' ? C.leave : C.accent};color:#fff;border:0;border-radius:4px` : `background:transparent;color:${fg};border:1px solid rgba(127,127,127,.6);border-radius:4px`);
+    return `<button class="pill-btn" data-cf="${act}" style="${style}">${esc(label)}</button>`;
+  }).join('')}</div>`;
+  document.getElementById('confirm').hidden = false;
+  box.querySelector('button').focus();
+}
+function closeConfirm() { document.getElementById('confirm').hidden = true; confirmBack && document.body.contains(confirmBack) && confirmBack.focus(); }
+document.getElementById('confirm').addEventListener('click', e => {
+  if (e.target.id === 'confirm') return closeConfirm();
+  const b = e.target.closest('[data-cf]'); if (!b) return;
+  if (b.dataset.cf === 'cancel') return closeConfirm();
+  document.getElementById('confirm').hidden = true;
+  leaveCall(b.dataset.cf === 'end' ? 'ended' : 'left');
+});
+document.getElementById('confirm').addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const f = [...document.querySelectorAll('#cf button')];
+  if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f.at(-1).focus(); }
+  else if (!e.shiftKey && document.activeElement === f.at(-1)) { e.preventDefault(); f[0].focus(); }
+});
+
+let countTimer = null;
+function leaveCall(how) {
+  if (state.ended) return;
+  closeMenu(); document.getElementById('confirm').hidden = true; document.getElementById('scrim').hidden = true;
+  Object.values(panels).forEach(id => document.getElementById(id).hidden = true); state.panel = null;
+  toastEl.classList.remove('show'); document.getElementById('notice').classList.remove('show');
+  clearTimeout(chatTimer); stopCam();
+  state.ended = { how, dur: elapsed() };
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  /* Hook for topic audio: stop our own clips here. */
+  const room = document.getElementById('room');
+  room.style.opacity = '0';
+  setTimeout(() => { drawEnd(); room.style.opacity = '1'; }, 240);
+}
+
+const STAR = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z"/></svg>';
+const THUMB = up => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${up ? '' : 'style="transform:rotate(180deg)"'}><path d="M7 11v9H4v-9zM7 11l4-8c1.6 0 2.5 1.2 2.2 2.7L12.6 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7"/></svg>`;
+function feedback(q, kind, color) {
+  const opts = kind === 'thumbs'
+    ? [['Good', THUMB(true)], ['Bad', THUMB(false)]]
+    : [1, 2, 3, 4, 5].map(n => [`${n} star${n > 1 ? 's' : ''}`, STAR]);
+  return `<div class="fb" data-fb><span>${q}</span><div class="opts">${opts.map(([l, svg], i) => `<button data-rate="${i + 1}" aria-label="${l}" style="color:${color}">${svg}</button>`).join('')}</div></div>`;
+}
+function drawEnd() {
+  const room = document.getElementById('room'), ended = state.ended.how === 'ended';
+  const dur = `Meeting length ${state.ended.dur}`;
+  let bg, fg, html;
+  if (L === 'teams') {
+    bg = C.stage; fg = C.text;
+    html = `<div style="height:64px;flex:none;display:flex;align-items:center;padding:0 16px;background:${C.bar};border-bottom:1px solid ${C.line}">${brand(skin, 24)}</div>
+      <div class="end"><h1 tabindex="-1">${ended ? 'You ended the meeting for everyone' : 'You left the meeting'}</h1><p class="meta">${esc(topicTitle(S))} · ${dur}</p>
+        <div class="acts"><button class="btn" data-rejoin style="border:0;border-radius:4px;background:${C.accent};color:${C.onAccent}">Rejoin</button><a class="btn" href="index.html" style="border:1px solid ${C.line};border-radius:4px;color:${fg}">Dismiss</a></div>
+        ${feedback('How was the call quality?', 'stars', C.muted)}</div>`;
+  } else if (L === 'zoom') {
+    bg = '#FFFFFF'; fg = '#232333';
+    html = `<div style="height:56px;flex:none;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #EDEDF4">${brand(skin, 24)}</div>
+      <div class="end"><h1 tabindex="-1">${ended ? 'You ended the meeting for all participants' : 'You have left the meeting'}</h1><p class="meta">${dur}</p>
+        ${feedback('How was the audio and video?', 'thumbs', '#6E7680')}
+        <div class="acts" style="margin-top:8px"><button class="btn" data-rejoin style="border:0;border-radius:8px;background:#0E72ED;color:#fff">Rejoin</button><a class="btn" href="index.html" style="border:1px solid #DFE3E8;border-radius:8px;color:#232333">Back to home</a></div></div>`;
+  } else if (L === 'webex') {
+    bg = C.stage; fg = C.text;
+    html = `<div style="height:52px;flex:none;display:flex;align-items:center;padding:0 16px;background:${C.bar};border-bottom:1px solid ${C.line}">${brand(skin, 24)}</div>
+      <div class="end"><h1 tabindex="-1">${ended ? 'You ended the meeting for everyone' : 'You’ve left the meeting'}</h1><p class="meta">${esc(topicTitle(S))} · ${dur}</p>
+        ${feedback('How would you rate your meeting experience?', 'stars', C.muted)}
+        <div class="acts" style="margin-top:8px"><button class="btn" data-rejoin style="border:0;border-radius:20px;background:${C.accent};color:${C.onAccent}">Rejoin</button><a class="btn" href="index.html" style="border:1px solid ${C.line};border-radius:20px;color:${fg}">Close</a></div></div>`;
+  } else {
+    bg = '#FFFFFF'; fg = '#202124';
+    const R = 18, LEN = 2 * Math.PI * R;
+    html = `<div class="count" aria-live="off"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="${R}" fill="none" stroke="#E8EAED" stroke-width="3"/><circle id="countRing" cx="22" cy="22" r="${R}" fill="none" stroke="#1A73E8" stroke-width="3" stroke-dasharray="${LEN}" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear"/></svg><span id="countNum" style="position:absolute;left:0;width:44px;text-align:center;font-size:13px">60</span><span class="hide-xs">Returning to home screen</span></div>
+      <div class="end" style="padding-top:72px"><h1 tabindex="-1" style="font-weight:400">${ended ? 'You ended the call for everyone' : 'You left the meeting'}</h1>
+        <div class="acts" style="margin-top:8px"><button class="btn" data-rejoin style="border:1px solid #DADCE0;border-radius:4px;background:#fff;color:#1A73E8">Rejoin</button><a class="btn" href="index.html" style="border:0;border-radius:4px;background:#1A73E8;color:#fff">Return to home screen</a></div>
+        ${feedback('How was the audio and video?', 'stars', '#5F6368')}
+        <div class="safe"><svg width="40" height="40" viewBox="0 0 24 24" fill="#1A73E8" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z" opacity=".18"/><path d="M10.5 15.5l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4z"/></svg><span><strong style="display:block;font-weight:500;margin-bottom:4px">Your meeting is safe</strong><span style="font-size:14px;color:#5F6368">Nobody else can join this call, mostly because it was never real.</span></span></div></div>`;
+  }
+  room.style.background = bg; room.style.color = fg; document.body.style.background = bg;
+  room.innerHTML = html;
+  room.querySelector('h1').focus();
+  if (L === 'meet') {
+    let left = 60; const ring = document.getElementById('countRing'), len = 2 * Math.PI * 18;
+    countTimer = setInterval(() => {
+      left--; document.getElementById('countNum').textContent = left;
+      ring.style.strokeDashoffset = len * (1 - left / 60);
+      if (left <= 0) { clearInterval(countTimer); location.href = 'index.html'; }
+    }, 1000);
+  }
+}
+function endAction(b) {
+  if ('rejoin' in b.dataset) return location.reload();
+  if (b.dataset.rate) { const f = b.closest('[data-fb]'); f.innerHTML = '<span>Thanks for your feedback.</span>'; f.setAttribute('role', 'status'); }
+}
+
+/* ---------- keyboard ---------- */
 document.addEventListener('fullscreenchange', () => { state.full = !!document.fullscreenElement; render(); });
 document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
-  if (e.key === 'Escape' && state.chatOpen) closeChat();
-  const shortcut = (skin === 'teams' && e.ctrlKey && e.shiftKey && k === 'm') || (skin === 'zoom' && e.altKey && k === 'a') || (skin === 'meet' && (e.ctrlKey || e.metaKey) && k === 'd') || (skin === 'webex' && e.ctrlKey && k === 'm');
+  if (state.ended) return;
+  if (e.key === 'Escape') {
+    if (!document.getElementById('confirm').hidden) return closeConfirm();
+    if (!menuEl.hidden) return closeMenu(true);
+    if (!document.getElementById('scrim').hidden) return closeSettings();
+    if (state.panel) return closePanel();
+  }
+  const shortcut = (L === 'teams' && e.ctrlKey && e.shiftKey && k === 'm') || (L === 'zoom' && e.altKey && k === 'a') || (L === 'meet' && (e.ctrlKey || e.metaKey) && k === 'd') || (L === 'webex' && e.ctrlKey && k === 'm');
   if (shortcut) { e.preventDefault(); toggleMute(); }
+  /* Leave shortcuts: Teams Ctrl+Shift+H hangs up, Zoom Alt+Q opens the end options. */
+  if (L === 'teams' && e.ctrlKey && e.shiftKey && k === 'h') { e.preventDefault(); leaveCall('left'); }
+  if (L === 'zoom' && e.altKey && k === 'q') { e.preventDefault(); leaveOptions(shown('[data-leavemenu]')); }
+  if ((L === 'teams' && e.ctrlKey && e.shiftKey && k === 'k') || (L === 'zoom' && e.altKey && k === 'y') || (L === 'meet' && (e.ctrlKey || e.metaKey) && e.altKey && k === 'h')) { e.preventDefault(); toggleHand(); }
 });
-addEventListener('resize', () => render());
+addEventListener('resize', () => { closeMenu(); placeSides(); render(); });
 
-render();
+/* ---------- start ---------- */
+function applyLook() { C = palette(); styleSides(); styleToast(); render(); refreshPanels(); }
+applyLook();
 if (state.camOn) startCam();
+scheduleChat(true);
 setTimeout(nextSpeaker, 1500);
+setTimeout(crowdTick, (40 + Math.random() * 40) * 1000 / SPEED);
 </script>
 </body>
 </html>

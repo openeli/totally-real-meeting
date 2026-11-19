@@ -51,6 +51,14 @@ textarea.input{height:auto;padding:10px 12px;resize:vertical}
 .chip{min-height:40px;padding:0 14px;border-radius:20px;border:1px solid var(--border);background:transparent;font-weight:500;cursor:pointer}
 .chip[aria-pressed="true"]{border:2px solid var(--accent);background:var(--soft);padding:0 13px}
 .seg{display:inline-flex;flex-wrap:wrap;gap:8px}
+.subpanel{flex-direction:column;gap:14px;padding:16px;border-radius:12px;background:var(--soft);border:1px solid var(--border)}
+.subpanel h3{margin:0;font-size:15px;font-weight:600}
+.fields{display:flex;flex-wrap:wrap;gap:12px}.fields .field:first-child{flex:1 1 200px}
+.field{display:flex;flex-direction:column;gap:6px}
+.swatch{width:40px;height:40px;border-radius:50%;border:2px solid var(--card);box-shadow:0 0 0 1px var(--border);cursor:pointer;padding:0;position:relative;display:inline-flex;align-items:center;justify-content:center}
+.swatch[aria-pressed="true"]{box-shadow:0 0 0 3px var(--accent)}
+.swatch.pick{background:conic-gradient(#E4572E,#F08C00,#2F9E44,#1C7ED6,#7048E8,#D6336C,#E4572E)}
+.swatch.pick input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 dl.sum{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:14px}
 dl.sum dt{color:var(--muted)}dl.sum dd{margin:0;font-weight:500}
 .cta{min-height:52px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:16px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;width:100%}
