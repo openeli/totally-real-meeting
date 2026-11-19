@@ -18,6 +18,7 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
   - **Before:** a pre-join screen with a camera preview and mic and camera toggles.
   - **During:** a connecting step, then people drop in one by one.
   - **After:** each app's own leave and end steps lead to an after-call screen with Rejoin and a quality rating.
+  - **Rejoin like it's real:** leave for five minutes and the meeting is five minutes further on when you come back, with the same people. If it ended while you were away, you see the host's "meeting ended" screen. A new meeting, or one that was ended for everyone, starts fresh.
 - **A meeting that runs about an hour, then ends.** It opens with small talk while people wait, works through four agenda items, then wraps up with a recap, action items and goodbyes. People leave one by one and the host ends the meeting, shown the way each app shows it (Zooм pops up "This meeting has been ended by host"). Prefer it to go on forever? Turn on **Meeting on a loop**.
 - **Jokes and side-tracks, if you want them.** Now and then someone talks on mute, a cat walks across a keyboard, or the meeting drifts onto lunch spots before the host pulls it back. One switch keeps the meeting strictly on topic instead.
 - **Live captions that flow.** Words appear one or two at a time as people speak. While someone talks, the text is lowercase and unpunctuated, now and then with a misheard word. When the sentence ends, it settles into its final form, the same way real captions behave.
@@ -32,7 +33,7 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
   - Record (just a red pill, nothing is saved), captions and meeting info
   - In-call settings
 - **Your real camera, if you want it.** Your webcam shows in your own tile and never leaves your device.
-- **Fits your situation.** The call clock can start at 00:00, 15 minutes, 30 minutes or 1 hour. Join late and you skip the opening, straight into the agenda. You can set the participant count (1 to 16), edit or shuffle their names, and turn chat on or off.
+- **Fits your situation.** The call clock can start at 00:00, 15 minutes, 30 minutes or 1 hour. Join late and you skip the opening and land partway through the agenda, with everyone already there. You can set the participant count (1 to 16), edit or shuffle their names, and turn chat on or off.
 - **Light and dark.** The setup page follows your device or your choice. So do the app looks that have a light mode in real life.
 - **Phones too.** Every look adapts to small screens, for example Zooм's End button moves to the top, like the mobile app.
 - **Private and simple.** It's a static site with no accounts, no analytics and no server. Everything runs in your browser.

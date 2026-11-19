@@ -169,6 +169,16 @@ saveSettings(S);
 const params = new URLSearchParams(location.search);
 const FAST = params.get('fast') === '1';   /* add &fast=1 to see chat, reactions and hands within seconds when demoing */
 const SPEED = FAST ? 20 : 1;
+/* Leave, then Rejoin: the meeting carried on without you, so you come back to where it is now.
+   A new meeting, or one that was ended for everyone, starts from the beginning. */
+const RESUME_KEY = 'trm-resume-v1', MEETING_ID = JSON.stringify(S);
+const RESUMED = (() => {
+  let r = null;
+  try { r = JSON.parse(sessionStorage.getItem(RESUME_KEY) || 'null'); sessionStorage.removeItem(RESUME_KEY); } catch (e) {}
+  const ok = params.get('resume') === '1' && r && r.id === MEETING_ID && Date.now() - r.leftAt < 12 * 3600000;
+  if (params.has('resume')) { const u = new URL(location.href); u.searchParams.delete('resume'); history.replaceState(null, '', u.href); }
+  return ok ? r : null;
+})();
 const skin = S.skin;
 const hasLight = skin === 'teams' || skin === 'webex' || skin === 'custom';
 const CA = S.customApp;
@@ -476,7 +486,13 @@ function makePlan() {
   plan = { items, endAt, agendaAt, wrapAt, byeAt, itemLen: Math.max(0.1, (LOOP && !ENDIN ? 13 : wrapAt - Math.max(agendaAt, now)) / Math.max(1, items.length)),
     itemsFrom: Math.max(agendaAt, now), stage: null, item: -1, lastDrift: now, lastJoke: now, askedYou: 0, departing: false };
   if (LOOP) plan.wrapAt = plan.byeAt = plan.endAt = Infinity;
-  if (now >= 3 && !ENDIN) plan.agendaAt = now;   /* joining a call already under way: skip the opening */
+  if (now >= 3 && !ENDIN) {   /* joining a call already under way: no opening, and you land partway into the agenda */
+    plan.agendaAt = plan.itemsFrom = 3;
+    if (!LOOP) plan.itemLen = (plan.wrapAt - 3) / Math.max(1, items.length);
+    const idx = Math.floor((now - 3) / plan.itemLen);
+    plan.item = LOOP ? idx % Math.max(1, items.length) : Math.min(items.length - 1, idx);
+    plan.stage = stage();   /* already in the middle of things, so no stage announcements on the way in */
+  }
 }
 function stage() {
   const m = clockMin();
@@ -543,7 +559,7 @@ function departNext() {
     return speak(h, pickOne(HOST_CLOSING), () => setTimeout(hostEnded, 1200));
   }
   const p = pickOne(others);
-  state.people.splice(state.people.indexOf(p), 1);
+  state.people.splice(state.people.indexOf(p), 1); p.left = true;
   if (L !== 'zoom') notice(L === 'meet' ? `${p.name} has left` : `${p.name} left the meeting`);
   render(); refreshPanels();
   setTimeout(departNext, (ENDIN ? 1200 : 3000) + Math.random() * (ENDIN ? 1500 : 7000));
@@ -1085,6 +1101,7 @@ function leaveCall(how) {
   toastEl.classList.remove('show'); document.getElementById('notice').classList.remove('show');
   clearTimeout(chatTimer); stopCam();
   state.ended = { how, dur: elapsed() };
+  if (how === 'left' && plan && state.phase === 'call') rememberMeeting();
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   /* Hook for topic audio: stop our own clips here. */
   const room = document.getElementById('room');
@@ -1092,6 +1109,17 @@ function leaveCall(how) {
   setTimeout(() => { drawEnd(); room.style.opacity = '1'; }, 240);
 }
 
+function rememberMeeting() {
+  const { endAt, agendaAt, wrapAt, byeAt, itemLen, itemsFrom, stage, item, lastDrift, lastJoke, askedYou, departing } = plan;
+  const num = v => v === Infinity ? null : v;   /* JSON has no Infinity: a meeting on a loop never ends */
+  const rec = {
+    id: MEETING_ID, leftAt: Date.now(), start: state.start, pools,
+    plan: { endAt: num(endAt), agendaAt, wrapAt: num(wrapAt), byeAt: num(byeAt), itemLen, itemsFrom, stage, item, lastDrift, lastJoke, askedYou, departing },
+    here: state.people.map(p => INVITED.indexOf(p)), muted: INVITED.map(p => p.muted),
+    arrived: INVITED.map(p => state.people.includes(p) || p.left === true)
+  };
+  try { sessionStorage.setItem(RESUME_KEY, JSON.stringify(rec)); } catch (e) {}
+}
 const STAR = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z"/></svg>';
 const THUMB = up => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${up ? '' : 'style="transform:rotate(180deg)"'}><path d="M7 11v9H4v-9zM7 11l4-8c1.6 0 2.5 1.2 2.2 2.7L12.6 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7"/></svg>`;
 function feedback(q, kind, color) {
@@ -1144,7 +1172,11 @@ function drawEnd() {
   }
 }
 function endAction(b) {
-  if ('rejoin' in b.dataset) { const u = new URL(location.href); u.searchParams.set('skip', '1'); return location.replace(u.href); }   /* rejoining skips the pre-join screen, like the real apps */
+  if ('rejoin' in b.dataset) {   /* rejoining skips the pre-join screen, like the real apps */
+    const u = new URL(location.href); u.searchParams.set('skip', '1');
+    if (state.ended.how === 'left') u.searchParams.set('resume', '1');
+    return location.replace(u.href);
+  }   /* rejoining skips the pre-join screen, like the real apps */
   if (b.dataset.rate) { const f = b.closest('[data-fb]'); f.innerHTML = '<span>Thanks for your feedback.</span>'; f.setAttribute('role', 'status'); }
 }
 
@@ -1228,9 +1260,10 @@ function lobbyAction(b) {
 function joinCall() {
   if (state.phase !== 'lobby') return;
   state.phase = 'connecting';
-  state.start = Date.now() - S.timer * 60000; state.joined = Date.now();
+  state.start = RESUMED ? RESUMED.start : Date.now() - S.timer * 60000; state.joined = Date.now();
   render();
   setTimeout(() => {
+    if (RESUMED) return resumeCall(RESUMED);
     state.phase = 'call';
     state.people.push(...INVITED.slice(0, ALREADY));
     render(); refreshPanels();
@@ -1240,6 +1273,39 @@ function joinCall() {
     setTimeout(nextSpeaker, 1500);
     setTimeout(crowdTick, (120 + Math.random() * 180) * 1000 / SPEED);
   }, 1600 + Math.random() * 900);
+}
+/* Back after leaving: the clock kept running, so the meeting is wherever it would be by now. */
+function resumeCall(r) {
+  makePlan();
+  const back = v => v === null ? Infinity : v;
+  Object.assign(plan, r.plan, { endAt: back(r.plan.endAt), wrapAt: back(r.plan.wrapAt), byeAt: back(r.plan.byeAt) });
+  Object.assign(pools, r.pools || {});
+  r.muted.forEach((m, i) => INVITED[i] && (INVITED[i].muted = m));
+  const now = clockMin(), away = (Date.now() - r.leftAt) / 60000;
+  if (now >= plan.endAt) {   /* it finished while you were away */
+    state.phase = 'call';
+    const t = Math.floor(plan.endAt * 60), m = Math.floor(t / 60);
+    state.ended = { how: 'host', dur: (m >= 60 ? Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0') : String(m).padStart(2, '0')) + ':' + String(t % 60).padStart(2, '0') };
+    stopCam(); return drawEnd();
+  }
+  let here = r.here.map(i => INVITED[i]).filter(Boolean);
+  const late = INVITED.filter((p, i) => !r.arrived[i]);
+  if (away > 1.5) { here.push(...late); late.length = 0; }   /* anyone still on the way has joined by now */
+  if (now >= plan.byeAt) {   /* people were already saying goodbye: some have gone */
+    const share = Math.max(0, (plan.endAt - now) / Math.max(0.1, plan.endAt - plan.byeAt));
+    const host = here.find(p => p === INVITED[0]);
+    here = here.filter(p => p !== host).sort(() => Math.random() - 0.5).slice(0, Math.round(share * (here.length - (host ? 1 : 0)))).concat(host ? [host] : []);
+    INVITED.forEach(p => { if (!here.includes(p)) p.left = true; });
+    plan.departing = true;
+  }
+  state.phase = 'call';
+  state.people.push(...INVITED.filter(p => here.includes(p)));
+  render(); refreshPanels();
+  late.forEach((p, k) => setTimeout(() => arrive(p), (3000 + k * 4000 + Math.random() * 4000) / Math.max(1, SPEED / 4)));
+  scheduleChat(true);
+  if (plan.departing) setTimeout(departNext, 2500);
+  else setTimeout(nextSpeaker, 1500);
+  setTimeout(crowdTick, (120 + Math.random() * 180) * 1000 / SPEED);
 }
 function arrive(p) {
   if (state.ended) return;
