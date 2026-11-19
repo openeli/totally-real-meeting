@@ -121,6 +121,39 @@ const CHAT_TOPIC = {
   'Town hall': ['Congrats to the team!', 'Will slides be shared?', 'Great update']
 };
 
+/* Replies to what you type in the meeting chat. The first rule whose pattern matches wins.
+   {name} is your first name and {other} is another person in the call.
+   A rule with "when" picks its lines by your mic or camera: "muted" or "live", "on" or "off".
+   "who" is how many people answer (a greeting can get two). "chance" below 1 means people sometimes stay quiet. */
+const CHAT_REPLIES = [
+  { pattern: /\b(can|could|do|does)\s+(you|u|everyone|anyone|any1|y'?all|you guys|you all)\s+hear\s+me\b|\bam i (audible|on mute|muted)\b|\bhear me (ok|okay|now)\b|\bis my (mic|audio|sound) (on|working|ok|okay)\b/i,
+    when: 'mic', lines: {
+      live: ['Yes, we can hear you.', 'Loud and clear, {name}.', 'Yep, you sound great.', 'Yes! All good.'],
+      muted: ['You’re on mute, {name}.', 'Nope, {name}, you’re muted.', 'We can’t hear you. Your mic is off.', 'You’re still on mute 🙂'] } },
+  { pattern: /\b(can|could|do|does)\s+(you|u|everyone|anyone|y'?all|you guys|you all)\s+see\s+me\b|\bsee my (video|camera|face)\b|\bis my (camera|video|cam) (on|working|ok|okay)\b/i,
+    when: 'cam', lines: {
+      on: ['Yeah, we see you.', 'Yep, looking good, {name}.', 'We can see you!'],
+      off: ['Nope, {name}, your camera is off.', 'Your video is off, we only see your initials.', 'Not yet, your camera looks off.'] } },
+  { pattern: /\b(can|could|do)\s+(you|u|everyone|anyone|y'?all)\s+see\s+my\s+screen\b|\b(am i|is it) sharing\b/i,
+    lines: ['Not yet, still loading on my end.', 'Nothing is shared yet.', 'I just see your tile, {name}.'] },
+  { pattern: /^\s*(hi+|hello+|hey+|hiya|howdy|yo|morning|good (morning|afternoon|evening)|greetings)\b/i, who: 2,
+    lines: ['Thank you for joining, {name}!', 'Hi {name}!', 'Hey {name}, welcome.', 'Hello!', 'Glad you could make it, {name}.', 'Hi! 👋'] },
+  { pattern: /\b(sorry|apologies)\b.*\blate\b|\brunning late\b|\bjust joined\b/i,
+    lines: ['No worries, we just started.', 'All good, {name}.', 'You didn’t miss much!'] },
+  { pattern: /\b(bye|goodbye|see (you|ya)|gotta (go|run)|have to (go|drop|run)|dropping off|signing off)\b/i, who: 2,
+    lines: ['Bye {name}!', 'Thanks, {name}. See you next time.', 'Take care!', 'Have a good one!'] },
+  { pattern: /\b(thanks|thank you|thx|ty|cheers)\b/i,
+    lines: ['Of course!', 'Anytime, {name}.', 'Thank you too!', 'Happy to help.'] },
+  { pattern: /\b(lag+(ing|gy)?|frozen|froze|freezing|cutting out|breaking up|robot(ic)?)\b/i,
+    lines: ['You froze for a second there.', 'It’s fine on my end.', 'Might be the Wi-Fi.', 'Same here, it’s choppy.'] },
+  { pattern: /\b(lol|haha+|lmao|😂|🤣)\b|😂|🤣/i, chance: 0.6,
+    lines: ['😂', 'haha', 'lol', 'Right?!'] },
+  { pattern: /\?\s*$/, chance: 0.7,
+    lines: ['Good question.', 'Let me get back to you on that.', 'I think so?', 'Not sure, {other} might know.', 'Let’s take that offline.', '{other}, can you take that one?'] },
+  { pattern: /.*/, chance: 0.3,
+    lines: ['👍', '+1', 'Agreed', 'Makes sense', 'Noted, {name}.'] }
+];
+
 const DEFAULTS = {
   name: 'Eli', cam: true, count: 5, names: NAME_POOL.slice(), spare: SPARE_NAMES.slice(),
   skin: 'teams', topic: 'Finance', theme: 'system',
