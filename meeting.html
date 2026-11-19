@@ -110,6 +110,21 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[r
 .safe{display:flex;gap:16px;align-items:center;text-align:left;max-width:420px;margin-top:20px;padding:16px 20px;border:1px solid #DADCE0;border-radius:8px}
 .count{position:absolute;top:16px;left:16px;display:flex;align-items:center;gap:12px;font-size:14px}
 .count svg{transform:rotate(-90deg)}
+.lobby{flex:1;min-height:0;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.pre{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.pre video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pre video.mirror{transform:scaleX(-1)}
+.pre .off{display:flex;flex-direction:column;align-items:center;gap:12px;font-size:14px}
+.prebtns{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;gap:14px;z-index:1}
+.lob-h{margin:0;font-weight:600;font-size:22px}
+.lob-sub{margin:0;font-size:14px;opacity:.75}
+.joinbtn{border:0;cursor:pointer;font-weight:600;font-size:15px;min-height:40px;padding:0 24px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.swrow{display:flex;align-items:center;gap:10px;font-size:14px}
+.connecting{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:14px;padding:22px 28px;border-radius:10px;background:rgba(0,0,0,.72);color:#fff;font-size:15px}
+.spin{width:30px;height:30px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.meetlob{display:grid;grid-template-columns:minmax(0,740px) minmax(260px,320px);gap:48px;align-items:center;width:100%;max-width:1120px}
+@media (max-width:860px){.meetlob{grid-template-columns:1fr;gap:24px}}
 @media (max-width:420px){.hide-xs{display:none!important}}
 @media (min-width:701px){.show-sm{display:none!important}}
 @media (max-width:700px){.show-sm{display:flex}.grid{gap:6px;padding:8px}.avatar{width:64px;height:64px;font-size:22px}.name{font-size:12px}.lbl{width:46px!important}.lbl span{display:none}.hide-sm{display:none!important}#toast{left:16px;right:16px!important}
@@ -193,9 +208,14 @@ const state = {
   start: Date.now() - S.timer * 60000,   /* the clock can start at 15, 30 or 60 minutes */
   joined: Date.now(),                    /* chat pacing follows when you joined, not the clock */
   panel: null, ended: null, view: 'gallery', hand: false, react: null, rec: false, cc: false, caption: null,
-  people: S.names.slice(0, S.count).map((name, i) => ({ name: name.trim() || 'Guest ' + (i + 1), ...AVATAR[i % AVATAR.length], muted: i % 3 === 1, speaking: false, hand: false, react: null }))
+  phase: 'lobby',   /* lobby, connecting, call; then ended */
+  people: []
+
 };
 let stream = null;
+/* Everyone invited. Some are already in the call when you join, the rest drop in over the first minute. */
+const INVITED = S.names.slice(0, S.count).map((name, i) => ({ name: name.trim() || 'Guest ' + (i + 1), ...AVATAR[i % AVATAR.length], muted: i % 3 === 1, speaking: false, hand: false, react: null }));
+const ALREADY = S.timer > 0 ? INVITED.length : Math.ceil(INVITED.length / 2);
 
 /* ---------- small helpers ---------- */
 const micIco = s => ico('mic', s || 20, state.muted ? ICONS.slash : '');
@@ -243,7 +263,7 @@ function personTile(p, i) {
       <span class="name" style="background:${C.label};color:${C.text}"><span class="n">${esc(p.name)}</span><button data-p="${i}" aria-label="${p.muted ? 'Unmute' : 'Mute'} ${esc(p.name)}" aria-pressed="${p.muted}" style="color:${C.text}">${ico('mic', 14, p.muted ? ICONS.slash : '')}</button></span></div>`;
 }
 function overlays() {
-  return `${state.rec ? '<div class="rec"><i aria-hidden="true"></i>Recording</div>' : ''}
+  return `${state.phase === 'connecting' ? `<div class="connecting" role="status"><span class="spin" aria-hidden="true"></span>${L === 'meet' ? 'Joining…' : 'Connecting…'}</div>` : ''}${state.rec ? '<div class="rec"><i aria-hidden="true"></i>Recording</div>' : ''}
     ${state.cc && state.caption ? `<div class="captions" aria-live="polite"><b>${esc(state.caption.name)}</b>${esc(state.caption.text)}</div>` : ''}`;
 }
 /* On a wide screen an open panel sits beside the tiles, the way the desktop apps do it, so the controls stay reachable. */
@@ -273,6 +293,7 @@ const ex = (name) => `aria-expanded="false" aria-haspopup="${name}"`;
 
 function render() {
   if (state.ended) return;
+  if (state.phase === 'lobby') return drawLobby();
   const room = document.getElementById('room');
   room.style.background = C.stage; room.style.color = C.text; document.body.style.background = C.stage;
   const unread = state.unread ? state.unread : '';
@@ -690,7 +711,7 @@ function roomAction(b) {
   else if ('rec' in d) toggleRec();
   else if ('cc' in d) toggleCC();
 }
-document.getElementById('room').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.ended ? endAction(b) : roomAction(b); });
+document.getElementById('room').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.ended ? endAction(b) : state.phase === 'lobby' ? lobbyAction(b) : roomAction(b); });
 
 /* ---------- in-call settings, styled like each app's own settings ---------- */
 let dlgTab = L === 'meet' ? 'audio' : 'general';
@@ -889,15 +910,114 @@ function drawEnd() {
   }
 }
 function endAction(b) {
-  if ('rejoin' in b.dataset) return location.reload();
+  if ('rejoin' in b.dataset) { const u = new URL(location.href); u.searchParams.set('skip', '1'); return location.replace(u.href); }   /* rejoining skips the pre-join screen, like the real apps */
   if (b.dataset.rate) { const f = b.closest('[data-fb]'); f.innerHTML = '<span>Thanks for your feedback.</span>'; f.setAttribute('role', 'status'); }
+}
+
+
+/* ---------- pre-join screen, drawn the way each app asks you to check your camera and mic ---------- */
+function preview(radius, bg, extra = '') {
+  const video = state.camOn && stream;
+  return `<div class="pre" style="background:${bg};border-radius:${radius}">${video ? `<video id="preVideo" class="${state.mirror ? 'mirror' : ''}" autoplay muted playsinline></video>`
+    : `<div class="off" style="color:#E8EAED">${avatar(ME_AV, initials(me))}<span>${state.camOn ? 'Starting your camera…' : 'Your camera is off'}</span></div>`}${extra}</div>`;
+}
+const sw = (attr, on, label) => `<span class="swrow">${label}<button class="tog" role="switch" aria-checked="${on}" aria-label="${label}" ${attr} style="background:${on ? C.accent : '#8A8A8A'}"></button></span>`;
+function drawLobby() {
+  const room = document.getElementById('room');
+  const micOn = !state.muted, camOn = state.camOn;
+  const here = INVITED.slice(0, ALREADY);
+  let bg = C.stage, fg = C.text, html;
+  if (L === 'teams') {
+    html = `<div style="height:56px;flex:none;display:flex;align-items:center;padding:0 16px;background:${C.bar};border-bottom:1px solid ${C.line}">${brand(skin, 24)}</div>
+      <div class="lobby"><div style="width:100%;max-width:680px;display:flex;flex-direction:column;gap:14px">
+        <h1 class="lob-h">${title}</h1><p class="lob-sub">Choose your video and audio options</p>
+        <div style="background:${C.panel};border:1px solid ${C.line};border-radius:8px;overflow:hidden">
+          ${preview('0', C.self)}
+          <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:14px 16px">
+            <span style="display:flex;align-items:center;gap:6px">${camIco()}${sw('data-precam', camOn, 'Camera')}</span>
+            <span style="display:flex;align-items:center;gap:6px">${micIco()}${sw('data-premic', micOn, 'Mic')}</span>
+            <span style="flex:1"></span>
+            <a href="index.html" style="font-size:14px;font-weight:600;text-decoration:none;padding:0 8px">Cancel</a>
+            <button class="joinbtn" data-join style="border-radius:4px;background:${C.accent};color:${C.onAccent}">Join now</button>
+          </div></div>
+        <p class="lob-sub">Computer audio · ${here.length ? `${esc(here[0].name)}${here.length > 1 ? ` and ${here.length - 1} other${here.length > 2 ? 's' : ''}` : ''} in this meeting` : 'Nobody else is here yet'}</p>
+      </div></div>`;
+  } else if (L === 'zoom') {
+    bg = '#FFFFFF'; fg = '#232333';
+    const round = (attr, on, icon, label) => `<button class="ibtn" ${attr} aria-pressed="${!on}" aria-label="${label}" style="width:48px;height:48px;border-radius:24px;background:${on ? 'rgba(60,60,60,.85)' : '#E02828'};color:#fff">${icon}</button>`;
+    html = `<div style="height:56px;flex:none;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #EDEDF4">${brand(skin, 24)}</div>
+      <div class="lobby"><div style="width:100%;max-width:620px;display:flex;flex-direction:column;gap:16px">
+        <h1 class="lob-h" style="text-align:center">${title}</h1>
+        ${preview('12px', '#1A1A1A', `<div class="prebtns">${round('data-premic', micOn, micIco(), micOn ? 'Mute' : 'Unmute')}${round('data-precam', camOn, camIco(), camOn ? 'Stop Video' : 'Start Video')}</div>`)}
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#6E7680">Your Name<input readonly value="${esc(me)}" style="height:42px;padding:0 12px;border:1px solid #DFE3E8;border-radius:8px;font-size:15px;color:#232333;background:#fff"></label>
+        <button class="joinbtn" data-join style="border-radius:10px;background:${skin === 'custom' ? C.accent : '#0E72ED'};color:#fff;min-height:44px">Join</button>
+        <a href="index.html" style="align-self:center;font-size:14px;color:${skin === 'custom' ? C.accent : '#0E72ED'};text-decoration:none">Cancel</a>
+      </div></div>`;
+  } else if (L === 'webex') {
+    const pill = (attr, on, icon, label) => `<button class="ibtn" ${attr} aria-pressed="${!on}" style="height:44px;padding:0 16px;gap:8px;border-radius:22px;background:${on ? C.btn : C.btnOn};color:${C.text};font-size:14px">${icon}${label}</button>`;
+    html = `<div style="height:52px;flex:none;display:flex;align-items:center;padding:0 16px;background:${C.bar};border-bottom:1px solid ${C.line}">${brand(skin, 24)}</div>
+      <div class="lobby"><div style="width:100%;max-width:680px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+        <h1 class="lob-h">${title}</h1><p class="lob-sub">${here.length ? `${here.length + ' ' + (here.length > 1 ? 'people are' : 'person is')} in the meeting` : 'The meeting has started'}</p>
+        ${preview('12px', C.self)}
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">${pill('data-premic', micOn, micIco(), micOn ? 'Mute' : 'Unmute')}${pill('data-precam', camOn, camIco(), camOn ? 'Stop video' : 'Start video')}
+          <button class="joinbtn" data-join style="border-radius:22px;background:#1D805F;color:#fff;min-height:44px">Join meeting</button></div>
+        <a href="index.html" style="font-size:14px;color:${C.muted};text-decoration:none">Cancel</a>
+      </div></div>`;
+  } else {
+    bg = '#FFFFFF'; fg = '#202124';
+    const round = (attr, on, icon, label) => `<button class="ibtn" ${attr} aria-pressed="${!on}" aria-label="${label}" style="width:56px;height:56px;border-radius:28px;background:${on ? 'transparent' : '#EA4335'};border:${on ? '1px solid rgba(255,255,255,.8)' : '0'};color:#fff">${icon}</button>`;
+    const faces = here.slice(0, 3).map(p => `<span class="av" style="width:28px;height:28px;margin-right:-6px;border:2px solid #fff;background:${p.solid};color:#fff">${esc(initials(p.name)[0])}</span>`).join('');
+    const who = !here.length ? 'No one else is here' : here.length === 1 ? `${esc(here[0].name)} is in this call` : here.length === 2 ? `${esc(here[0].name)} and ${esc(here[1].name)} are in this call` : `${esc(here[0].name)} and ${here.length - 1} more are in this call`;
+    html = `<div style="height:64px;flex:none;display:flex;align-items:center;padding:0 24px">${brand(skin, 24)}</div>
+      <div class="lobby"><div class="meetlob">
+        <div>${preview('8px', '#202124', `<span style="position:absolute;top:14px;left:16px;color:#fff;font-size:14px;z-index:1">${esc(me)}</span><div class="prebtns">${round('data-premic', micOn, micIco(), micOn ? 'Turn off microphone' : 'Turn on microphone')}${round('data-precam', camOn, camIco(), camOn ? 'Turn off camera' : 'Turn on camera')}</div>`)}</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+          <h1 style="margin:0;font-size:28px;font-weight:400">Ready to join?</h1>
+          <span style="display:flex;align-items:center;gap:12px;font-size:14px;color:#5F6368">${faces ? `<span style="display:flex">${faces}</span>` : ''}${who}</span>
+          <button class="joinbtn" data-join style="border-radius:24px;background:#1A73E8;color:#fff;min-height:48px;padding:0 32px">Join now</button>
+          <a href="index.html" style="font-size:14px;color:#1A73E8;text-decoration:none">Cancel</a>
+        </div></div></div>`;
+  }
+  room.style.background = bg; room.style.color = fg; document.body.style.background = bg;
+  const ae = document.activeElement, key = ae && ae.closest && ae.closest('#room') ? ['data-join', 'data-premic', 'data-precam'].find(a => ae.hasAttribute(a)) : null;
+  room.innerHTML = html;
+  const v = document.getElementById('preVideo'); if (v && stream) v.srcObject = stream;
+  const f = key ? room.querySelector(`[${key}]`) : null; f && f.focus();
+}
+function lobbyAction(b) {
+  if ('join' in b.dataset) return joinCall();
+  if ('premic' in b.dataset) { state.muted = !state.muted; render(); }
+  if ('precam' in b.dataset) setCam(!state.camOn);
+}
+
+/* ---------- joining: a moment of connecting, then people already in the call, then late arrivals ---------- */
+function joinCall() {
+  if (state.phase !== 'lobby') return;
+  state.phase = 'connecting';
+  state.start = Date.now() - S.timer * 60000; state.joined = Date.now();
+  render();
+  setTimeout(() => {
+    state.phase = 'call';
+    state.people.push(...INVITED.slice(0, ALREADY));
+    render(); refreshPanels();
+    INVITED.slice(ALREADY).forEach((p, k) => setTimeout(() => arrive(p), (4000 + k * 5000 + Math.random() * 6000) / Math.max(1, SPEED / 4)));
+    scheduleChat(true);
+    setTimeout(nextSpeaker, 1500);
+    setTimeout(crowdTick, (40 + Math.random() * 40) * 1000 / SPEED);
+  }, 1600 + Math.random() * 900);
+}
+function arrive(p) {
+  if (state.ended) return;
+  state.people.push(p);
+  notice(L === 'meet' ? `${p.name} joined` : `${p.name} joined the meeting`);
+  render(); refreshPanels();
 }
 
 /* ---------- keyboard ---------- */
 document.addEventListener('fullscreenchange', () => { state.full = !!document.fullscreenElement; render(); });
 document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
-  if (state.ended) return;
+  if (state.ended || state.phase === 'lobby') return;
   if (e.key === 'Escape') {
     if (!document.getElementById('confirm').hidden) return closeConfirm();
     if (!menuEl.hidden) return closeMenu(true);
@@ -917,9 +1037,7 @@ addEventListener('resize', () => { closeMenu(); placeSides(); render(); });
 function applyLook() { C = palette(); styleSides(); styleToast(); render(); refreshPanels(); }
 applyLook();
 if (state.camOn) startCam();
-scheduleChat(true);
-setTimeout(nextSpeaker, 1500);
-setTimeout(crowdTick, (40 + Math.random() * 40) * 1000 / SPEED);
+if (params.get('skip') === '1') joinCall();   /* add &skip=1 to go straight into the call */
 </script>
 </body>
 </html>

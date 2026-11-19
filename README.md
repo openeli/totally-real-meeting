@@ -15,6 +15,7 @@ A static parody meeting site. No build step and no server.
 - **Custom app look:** pick the fifth card, then set the app name, logo letter, brand colour, logo shape and layout (controls on top, bottom bar, or floating pill).
 
 ## In the call
+- **Joining:** each look starts with its own pre-join screen (camera preview, mic and camera toggles, Join). Then a short connecting step; about half the people are already there and the rest drop in with a "joined" notice. With a 15, 30 or 60 minute timer, everyone is already there.
 - **Menus:** People (mute anyone, Mute all), Raise hand, Reactions, View (gallery or speaker), More, Record (just a red pill, nothing is saved), Captions, Meeting info.
 - **Share:** shares the site link (or copies it).
 - **Settings:** opens inside the call, drawn like each app: a side pane in Teamş, a light dialog in Zooм, a dialog in Webbex and a white dialog with pill tabs in Meeţ.
@@ -22,7 +23,7 @@ A static parody meeting site. No build step and no server.
 - **Chat replies:** people answer what you type. "Hello" gets a welcome, "can you hear me?" checks your mic, "can you see me?" checks your camera. Edit or add rules in `CHAT_REPLIES` in `shared.js`.
 
 ## Try it
-Open `index.html` in a browser. To see chat messages within seconds instead of minutes, add `&fast=1` to the end of the meeting page address.
+Open `index.html` in a browser. To see chat messages within seconds instead of minutes, add `&fast=1` to the end of the meeting page address. Add `&skip=1` to go straight past the pre-join screen.
 
 ## Publish (GitHub Pages)
 Settings → Pages → Source: "Deploy from a branch", branch `main`, folder `/ (root)`. The site appears at https://openeli.github.io/totally-real-meeting/ a minute or two later and updates on every merge to `main`. Free GitHub accounts need the repository to be public for Pages.
