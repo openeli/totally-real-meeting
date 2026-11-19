@@ -11,6 +11,7 @@ A static parody meeting site. No build step and no server.
 
 ## Custom options
 - **Custom topic:** pick "Custom (make your own)" in the topic list, then type a meeting title and the lines people say in chat.
+- **Sound:** no audio for now (the default), so what people say shows as live captions from the start. Captions come from `SPOKEN_TOPIC` (about 14 lines per topic) and `SPOKEN_GENERIC` in `shared.js`. One person holds the floor for a few lines, with short pauses and the odd "mm-hmm" (`BACKCHANNEL`).
 - **Call timer:** in the Topic and timer card, start the meeting clock at 00:00 (default), 15 min, 30 min or 1 hour.
 - **Custom app look:** pick the fifth card, then set the app name, logo letter, brand colour, logo shape and layout (controls on top, bottom bar, or floating pill).
 
@@ -32,5 +33,4 @@ Settings → Pages → Source: "Deploy from a branch", branch `main`, folder `/ 
 GitHub Pages can't receive form posts. Create a free form at formspree.io, then paste its URL into `FEEDBACK_ENDPOINT` in `shared.js`.
 
 ## Not built yet
-- Topic audio (our own clips). The mute buttons already have a hook for it in `meeting.html` (`toggleMute`).
-- Captions.
+- Topic audio (our own clips). The "With audio" option in Sound is shown as coming soon, and the mute buttons already have a hook for it in `meeting.html` (`toggleMute`).

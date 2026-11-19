@@ -129,7 +129,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[r
 @media (min-width:701px){.show-sm{display:none!important}}
 @media (max-width:700px){.show-sm{display:flex}.grid{gap:6px;padding:8px}.avatar{width:64px;height:64px;font-size:22px}.name{font-size:12px}.lbl{width:46px!important}.lbl span{display:none}.hide-sm{display:none!important}#toast{left:16px;right:16px!important}
   .speaker{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 110px;padding:8px;gap:6px}.speaker .strip{flex-direction:row}.speaker .strip .tile{width:140px;height:100%}.speaker .main .avatar{width:96px;height:96px;font-size:34px}
-  .dialog{height:calc(100dvh - 32px)}.dialog .cols{flex-direction:column}.dialog nav{width:auto;flex-direction:row;overflow-x:auto;padding:4px 8px}.dialog nav button{flex:none}.dialog .pane{padding:8px 16px 20px}.captions{font-size:15px}}
+  .dialog{height:calc(100dvh - 32px)}.dialog .cols{flex-direction:column}.dialog nav{width:auto;flex-direction:row;overflow-x:auto;padding:4px 8px}.dialog nav button{flex:none}.dialog .pane{padding:8px 16px 20px}.captions{left:8px;right:8px;bottom:8px;transform:none;max-width:none;font-size:15px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -207,7 +207,7 @@ const state = {
   muted: false, camOn: !!S.cam, mirror: true, unread: 0, full: false,
   start: Date.now() - S.timer * 60000,   /* the clock can start at 15, 30 or 60 minutes */
   joined: Date.now(),                    /* chat pacing follows when you joined, not the clock */
-  panel: null, ended: null, view: 'gallery', hand: false, react: null, rec: false, cc: false, caption: null,
+  panel: null, ended: null, view: 'gallery', hand: false, react: null, rec: false, cc: !S.audio, caption: null,   /* with no audio, captions start on */
   phase: 'lobby',   /* lobby, connecting, call; then ended */
   people: []
 
@@ -390,30 +390,66 @@ function stopCam() { if (stream) { stream.getTracks().forEach(t => t.stop()); st
 function setCam(on) { state.camOn = on; S.cam = on; saveSettings(S); if (on) startCam(); else stopCam(); render(); refreshPanels(); }
 
 /* ---------- who is "speaking", and live captions ---------- */
-const SPOKEN = ['So the main thing I wanted to cover today is the timeline.', 'I think that makes sense, as long as we keep it simple.', 'Can everyone see the numbers on my side?', 'Let me pull that up real quick.', 'Good question, I’ll follow up after the call.', 'We’re on track, mostly.', 'Sorry, I was on mute. Can you hear me now?', 'Let’s park that and come back to it.'];
+/* One person holds the floor for a few sentences, others chip in now and then, and there are short pauses between turns. */
+const sayFor = text => Math.max(2600, text.split(/\s+/).length * 380);   /* about two and a half words a second */
+let turn = null, nextUp = null;
 function nextSpeaker() {
   if (state.ended) return;
   const live = state.people.filter(p => !p.muted);
   state.people.forEach(p => p.speaking = false);
-  if (live.length) {
-    const p = live[Math.floor(Math.random() * live.length)]; p.speaking = true;
-    const pool = topicLines(S).concat(SPOKEN);
-    state.caption = { name: p.name, text: pool[Math.floor(Math.random() * pool.length)] };
-  } else state.caption = null;
+  if (!live.length) { state.caption = null; turn = null; render(); return setTimeout(nextSpeaker, 4000); }
+  if (!turn || turn.left <= 0 || !live.includes(turn.p)) {
+    /* Someone who raised a hand gets to talk next; otherwise the floor usually stays with a few regulars. */
+    const fresh = turn && live.length > 1 && Math.random() < 0.85 ? live.filter(x => x !== turn.p) : live;
+    const p = nextUp && live.includes(nextUp) ? nextUp : fresh[Math.floor(Math.pow(Math.random(), 1.6) * fresh.length)];
+    nextUp = null;
+    if (turn && turn.p !== p && Math.random() < 0.3) {
+      /* a brief "mm-hmm" from someone else before the next person starts */
+      const others = live.filter(x => x !== p && x !== turn.p);
+      if (!others.length) { turn = { p, left: 2 + Math.floor(Math.random() * 4) }; return setTimeout(nextSpeaker, 800); }
+      const q = others[Math.floor(Math.random() * others.length)];
+      q.speaking = true; state.caption = { name: q.name, text: draw('bc', BACKCHANNEL) }; render();
+      turn = { p, left: 2 + Math.floor(Math.random() * 4) };
+      return setTimeout(nextSpeaker, 1400 + Math.random() * 800);
+    }
+    turn = { p, left: 2 + Math.floor(Math.random() * 4) };
+    if (state.caption) { state.caption = null; render(); return setTimeout(nextSpeaker, 600 + Math.random() * 1600); }
+  }
+  turn.p.speaking = true; turn.left--;
+  /* mostly the topic, with the odd everyday line ("Can everyone see my screen?") */
+  const topical = spokenLines(S);
+  const text = topical.length && Math.random() < 0.75 ? draw('spoken', topical) : draw('everyday', SPOKEN_GENERIC);
+  state.caption = { name: turn.p.name, text };
   render();
-  setTimeout(nextSpeaker, 3000 + Math.random() * 6000);
+  setTimeout(nextSpeaker, sayFor(text) + Math.random() * 700);
 }
 
-/* ---------- other people raise hands and react now and then ---------- */
+/* ---------- other people raise hands and react, rarely and at random ---------- */
+const CROWD_REACTS = ['\u{1F44D}', '\u{1F44D}', '\u{1F44F}', '\u{1F602}', '❤️', '\u{1F389}'];
+function crowdReact(p, r) {
+  if (state.ended || p.react) return;
+  p.react = r; render();
+  setTimeout(() => { p.react = null; render(); }, 3600);
+}
 function crowdTick() {
   if (state.ended) return;
-  if (state.people.length) {
-    const p = state.people[Math.floor(Math.random() * state.people.length)];
-    if (Math.random() < 0.7) { p.react = ['\u{1F44D}', '\u{1F44F}', '\u{1F602}', '❤️'][Math.floor(Math.random() * 4)]; setTimeout(() => { p.react = null; render(); }, 3600); }
-    else if (!p.hand) { p.hand = true; setTimeout(() => { p.hand = false; render(); refreshPanels(); }, 25000 / SPEED); }
-    render(); refreshPanels();
+  const others = state.people.filter(p => !p.speaking);
+  if (others.length) {
+    const p = others[Math.floor(Math.random() * others.length)];
+    if (Math.random() < 0.8 || state.people.some(x => x.hand)) {
+      const r = CROWD_REACTS[Math.floor(Math.random() * CROWD_REACTS.length)];
+      crowdReact(p, r);
+      /* reactions often come in small clusters, like after good news */
+      if (Math.random() < 0.35) others.filter(x => x !== p).sort(() => Math.random() - 0.5).slice(0, 1 + Math.floor(Math.random() * 2))
+        .forEach(x => setTimeout(() => crowdReact(x, Math.random() < 0.7 ? r : CROWD_REACTS[0]), (1000 + Math.random() * 3500) / Math.min(SPEED, 4)));
+    } else {
+      p.hand = true; render(); refreshPanels();
+      setTimeout(() => { p.hand = false; nextUp = p; if (turn) turn.left = 0; render(); refreshPanels(); }, (40 + Math.random() * 80) * 1000 / SPEED);
+    }
   }
-  setTimeout(crowdTick, (75 + Math.random() * 105) * 1000 / SPEED);
+  /* anywhere from about a minute and a half to nine minutes until the next one */
+  const mins = Math.min(9, Math.max(1.5, -Math.log(1 - Math.random()) * 4));
+  setTimeout(crowdTick, mins * 60000 / SPEED);
 }
 
 /* ---------- side panels: chat, people, meeting info, settings (Teams style) ---------- */
@@ -579,7 +615,8 @@ function replyTo(text) {
     const other = state.people[order[(k + 1) % order.length]].name.split(/\s+/)[0];
     let line; do { line = pool[Math.floor(Math.random() * pool.length)]; } while (used.has(line) && used.size < pool.length);
     used.add(line);
-    const start = 700 + k * 1600 + Math.random() * 900, len = 900 + Math.min(line.length * 45, 2200);
+    /* people read your message, think, then type at a normal speed; a second reply comes a little later */
+    const start = 2500 + Math.random() * 5500 + k * (6000 + Math.random() * 6000), len = Math.min(1800 + line.length * 120, 9000);
     setTimeout(() => { if (state.ended) return; typing.add(p.name); showTyping(); }, start);
     if (k === 0) lastSender = order[0];
     setTimeout(() => { typing.delete(p.name); showTyping(); incoming(p, fill(line, other)); }, start + len);
@@ -1004,7 +1041,7 @@ function joinCall() {
     INVITED.slice(ALREADY).forEach((p, k) => setTimeout(() => arrive(p), (4000 + k * 5000 + Math.random() * 6000) / Math.max(1, SPEED / 4)));
     scheduleChat(true);
     setTimeout(nextSpeaker, 1500);
-    setTimeout(crowdTick, (40 + Math.random() * 40) * 1000 / SPEED);
+    setTimeout(crowdTick, (120 + Math.random() * 180) * 1000 / SPEED);
   }, 1600 + Math.random() * 900);
 }
 function arrive(p) {
