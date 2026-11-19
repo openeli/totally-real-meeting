@@ -34,7 +34,8 @@
 <section class="card" aria-labelledby="h-you">
 <h2 id="h-you">1. You</h2>
 <label class="f" for="myName">Your name</label>
-<input class="input" id="myName" type="text" autocomplete="given-name" maxlength="40">
+<input class="input" id="myName" type="text" autocomplete="name" maxlength="40" placeholder="Guest">
+<p class="hint">Shown on your tile. People in the chat call you by your first name. Leave it as Guest to stay anonymous.</p>
 <button class="switch" type="button" id="camSwitch" aria-pressed="true"><span class="track"><span class="knob"></span></span><span>Show my camera in my tile <span class="hint" style="display:inline">(stays on your device, never uploaded)</span></span></button>
 </section>
 
@@ -229,7 +230,7 @@ function renderChat() {
 function summary() {
   $('sumBrand').innerHTML = brand(S.skin, 30);
   $('sumTopic').textContent = topicTitle(S);
-  $('sumPeople').textContent = (S.name || 'You') + ' + ' + S.count + (S.count === 1 ? ' other' : ' others');
+  $('sumPeople').textContent = ((S.name || '').trim() || 'Guest') + ' + ' + S.count + (S.count === 1 ? ' other' : ' others');
   const srcs = ['generic', 'topic', 'own'].filter(k => S.chat[k]).length;
   $('sumChat').textContent = !S.chat.on || !srcs ? 'Off' : (S.chat.freq === 'rare' ? 'On, rare' : 'On, occasional');
   $('sumTimer').textContent = TIMER_STARTS.find(t => t.min === S.timer).short;

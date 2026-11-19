@@ -155,7 +155,7 @@ const CHAT_REPLIES = [
 ];
 
 const DEFAULTS = {
-  name: 'Eli', cam: true, count: 5, names: NAME_POOL.slice(), spare: SPARE_NAMES.slice(),
+  name: 'Guest', cam: true, count: 5, names: NAME_POOL.slice(), spare: SPARE_NAMES.slice(),
   skin: 'teams', topic: 'Finance', theme: 'system',
   timer: 0,   /* minutes the call has already been running when you join: 0, 15, 30 or 60 */
   customTopic: { title: 'Weekly team sync', lines: 'Can we circle back on this?\nGood progress this week\nWho\u2019s taking the action item?' },
