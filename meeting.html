@@ -267,6 +267,11 @@ let stream = null;
 const INVITED = SAMPLE
   ? sampleCastFor(S).map((c, i) => ({ name: c.name, media: c.media, kind: c.kind, ...AVATAR[i % AVATAR.length], muted: c.kind === 'quiet', speaking: false, hand: false, react: null }))
   : S.names.slice(0, S.count).map((name, i) => ({ name: name.trim() || 'Guest ' + (i + 1), ...AVATAR[i % AVATAR.length], muted: i % 3 === 1, speaking: false, hand: false, react: null }));
+/* The wildcard (setup page): one participant with a personality from WILDCARDS in talk.js. Never the host if anyone else
+   is invited, and never on mute at the start, so you actually hear from them. */
+const WILD_KIND = !SAMPLE && WILDCARDS[S.wildcard] || null;
+const WILD = WILD_KIND && (INVITED[2] || INVITED[1] || INVITED[0]) || null;
+if (WILD) WILD.muted = false;
 const HOST_NAME = INVITED.length ? INVITED[0].name : 'The organiser';
 const ALREADY = S.timer > 0 || SAMPLE ? INVITED.length : Math.ceil(INVITED.length / 2);
 
@@ -546,7 +551,7 @@ function makePlan() {
   let agendaAt = 3, wrapAt = endAt - 6, byeAt = endAt - 1.6;
   if (ENDIN) { const span = ENDIN / 60; endAt = now + span; agendaAt = now + span * 0.12; wrapAt = now + span * 0.7; byeAt = now + span * 0.86; }
   plan = { items, endAt, agendaAt, wrapAt, byeAt, itemLen: Math.max(0.1, (LOOP && !ENDIN ? 13 : wrapAt - Math.max(agendaAt, now)) / Math.max(1, items.length)),
-    itemsFrom: Math.max(agendaAt, now), stage: null, item: -1, lastDrift: now, lastJoke: now, askedYou: 0, departing: false };
+    itemsFrom: Math.max(agendaAt, now), stage: null, item: -1, lastDrift: now, lastJoke: now, lastWild: now, lastWildLine: now, askedYou: 0, departing: false };
   /* On a loop the talk goes on, but the chat goes quiet once a normal meeting would have ended: after that, people only answer you. */
   plan.chatUntil = LOOP ? endAt : Infinity;
   if (LOOP) plan.wrapAt = plan.byeAt = plan.endAt = Infinity;
@@ -565,20 +570,22 @@ function stage() {
   if (m < plan.agendaAt) return 'intro';
   return 'agenda';
 }
-/* Queue a scripted exchange. H is the host; A, B and C are three different other people. */
+/* Queue a scripted exchange. H is the host; A, B and C are three different other people; W is the wildcard. */
 /* Returns false when there aren't enough different people for the exchange, so nobody answers their own question. */
 function enqueue(lines) {
   const host = HOST(), live = state.people.filter(p => !p.muted);
-  const others = live.filter(p => p !== host).sort(() => Math.random() - 0.5);
-  const roles = [...new Set(lines.map(l => l[0]).filter(r => r !== 'pause' && r !== 'H'))];
+  const wild = lines.some(l => l[0] === 'W');
+  if (wild && (!WILD || !live.includes(WILD) || WILD === host)) return false;
+  const others = live.filter(p => p !== host && !(wild && p === WILD)).sort(() => Math.random() - 0.5);
+  const roles = [...new Set(lines.map(l => l[0]).filter(r => r !== 'pause' && r !== 'H' && r !== 'W'))];
   if (roles.length > others.length || (lines.some(l => l[0] === 'H') && !host)) return false;
   if (lines.some(l => /\{you\}/.test(l[1])) && !firstName) return false;
-  const cast = { H: host }; roles.forEach((r, i) => cast[r] = others[i]);
+  const cast = { H: host, W: WILD }; roles.forEach((r, i) => cast[r] = others[i]);
   const first = p => p ? p.name.split(/\s+/)[0] : '';
   lines.forEach(([who, text]) => {
     if (who === 'pause') return queue.push({ pause: text });
     const p = cast[who];
-    const named = text.replace(/\{([HABC])\}/g, (m, r) => first(cast[r]) || 'everyone');
+    const named = text.replace(/\{([HABCW])\}/g, (m, r) => first(cast[r]) || 'everyone');
     queue.push({ p, text: fillSlots(named, { other: otherName(p), you: firstName }) });
   });
   return true;
@@ -604,6 +611,7 @@ function onStage(st) {
     hostSays('Action items, then.');
     (ACTION_ITEMS[S.topic] || ACTIONS_GENERIC).forEach(t => hostSays(t));
     WRAP_END.forEach(t => hostSays(t));
+    if (WILD_KIND) enqueue(WILD_KIND.wrap);
     const others = state.people.filter(p => p !== HOST() && !p.muted).sort(() => Math.random() - 0.5).slice(0, 2 + Math.floor(Math.random() * 2));
     others.forEach(p => queue.push({ p, text: draw('wrapr', WRAP_REPLIES) }));
   }
@@ -670,13 +678,16 @@ function nextSpeaker() {
     /* light moments, side-tracks and the odd question for you, only now and then */
     if (st === 'agenda' && DRIFT && m - plan.lastJoke > (ENDIN ? 0.2 : 6) && Math.random() < 0.08) { plan.lastJoke = m; if (enqueueFrom('joke', JOKES)) return nextSpeaker(); }
     if (st === 'agenda' && DRIFT && m - plan.lastDrift > (ENDIN ? 0.3 : 12) && Math.random() < 0.06) { plan.lastDrift = m; if (enqueueFrom('side', SIDE_TRACKS)) return nextSpeaker(); }
+    if (st === 'agenda' && WILD && m - plan.lastWild > (ENDIN ? 0.15 : 4) && Math.random() < 0.12) { plan.lastWild = m; if (enqueue(draw('wildx', WILD_KIND.exchanges))) return nextSpeaker(); }
     if (st === 'agenda' && firstName && plan.askedYou < 2 && m - plan.itemsFrom > (ENDIN ? 0.2 : 8) && Math.random() < 0.02) { plan.askedYou++; if (enqueue(pickOne(ASK_YOU))) return nextSpeaker(); }
     if (st === 'agenda' && Math.random() < 0.05) { turn = null; return quiet(7000 + Math.random() * 11000, nextSpeaker); }   /* a quiet moment: someone is looking for a file */
     /* Someone who raised a hand gets to talk next; otherwise the floor usually stays with a few regulars. */
     const fresh = prev && live.length > 1 && Math.random() < 0.85 ? live.filter(x => x !== prev) : live;
-    const p = nextUp && live.includes(nextUp) ? nextUp : fresh[Math.floor(Math.pow(Math.random(), 1.6) * fresh.length)];
+    const grab = st === 'agenda' && WILD && prev !== WILD && live.includes(WILD) && Math.random() < WILD_KIND.floor;   /* the wildcard jumps in */
+    const p = nextUp && live.includes(nextUp) ? nextUp : grab ? WILD : fresh[Math.floor(Math.pow(Math.random(), 1.6) * fresh.length)];
     nextUp = null;
-    turn = { p, left: 2 + Math.floor(Math.random() * 4), fresh: !!prev && prev !== p };
+    const [lo, hi] = p === WILD ? WILD_KIND.turn : [2, 5];
+    turn = { p, left: lo + Math.floor(Math.random() * (hi - lo + 1)), fresh: !!prev && prev !== p };
     if (prev && prev !== p && Math.random() < 0.3) {
       const others = live.filter(x => x !== p && x !== prev);
       if (others.length) return speak(pickOne(others), draw('bc', BACKCHANNEL), () => setTimeout(nextSpeaker, 500 + Math.random() * 700));
@@ -693,6 +704,13 @@ function sayLine() {
   const r = Math.random();
   let text;
   if (stage() === 'wrap') text = pickOne(['Sounds good.', 'Works for me.', 'I can take that.', 'I’ll send that over after the call.', 'Yep, on it.']);
+  else if (turn.p === WILD && clockMin() - plan.lastWildLine > (ENDIN ? 0.05 : 0.8) && r < 0.7) {
+    /* the wildcard's own line, about once a minute; now and then someone answers it and the floor moves on */
+    plan.lastWildLine = clockMin();
+    text = draw('wild', WILD_KIND.lines);
+    const others = state.people.filter(p => p !== WILD && !p.muted);
+    if (others.length && Math.random() < 0.35) { queue.push({ p: pickOne(others), text: draw('wildr', WILD_KIND.replies).replace(/\{W\}/g, WILD.name.split(/\s+/)[0]) }); turn.left = 0; }
+  }
   else if (turn.fresh && r < 0.22) text = draw('reply', REPLY_LINES);
   else if (item && item.lines.length && r < 0.8) text = draw('item' + plan.item, item.lines);
   else text = draw('everyday', MEETING_LINES);
@@ -841,7 +859,8 @@ function chatTick() {
   chatTimer = null;
   if (!chatEnabled() || state.ended) return;
   if (plan && clockMin() >= plan.chatUntil) return;   /* a meeting on a loop: no more chatter, only replies to you */
-  if (state.people.length) {
+  if (WILD && state.people.includes(WILD) && plan && stage() === 'agenda' && Math.random() < 0.3) incoming(WILD, draw('wildc', WILD_KIND.chat));
+  else if (state.people.length) {
     const line = pickLine();
     if (line) {
       let i; do { i = Math.floor(Math.random() * state.people.length); } while (state.people.length > 1 && i === lastSender);

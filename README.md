@@ -23,6 +23,8 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
 - **Jokes and side-tracks, if you want them.** Now and then someone talks on mute, a cat walks across a keyboard, or the meeting drifts onto lunch spots before the host pulls it back. One switch keeps the meeting strictly on topic instead.
 - **Live captions that flow.** Words appear one or two at a time as people speak. While someone talks, the text is lowercase and unpunctuated, now and then with a misheard word. When the sentence ends, it settles into its final form, the same way real captions behave.
 - **Conversations that fit the topic.** Ten ready-made topics, from Budget review to Town hall, each come with their own meeting title, agenda, captions, action items and chat lines. You can also write your own topic.
+- **Scenarios for a laugh.** Five more topics play it for comedy: Absurd corporate training, Completely pointless brainstorming, Corporate disaster meeting, IT outage and Monday morning status meeting.
+- **A wildcard in the room.** Optionally give one participant a personality: the talker who never lets go of the floor, the know-it-all with a correction for everything, or the confused manager who is lost but supportive. They speak up more, have their own lines and little scenes, and type in the chat in character.
 - **A chat that answers you.** Say "hello" and someone welcomes you by your first name ("better late than never" if you joined late, "welcome back" after a Rejoin). Ask "can you hear me?" and the reply depends on whether your mic is muted. "Can you see me?" depends on your camera. People pause, show "is typing…", then reply.
 - **People who act like people.**
   - One person talks for a while before passing the floor on, and someone chips in with an "mm-hmm".
@@ -77,6 +79,7 @@ No build step and no server: open `index.html` in a browser.
 - `index.html`: the setup page with every setting, the "Have an idea?" popup and the short disclaimer.
 - `meeting.html`: the meeting room. It draws the chosen look and runs the call.
 - `disclaimer.html`: the full disclaimer.
+- `404.html`: the "meeting doesn't exist" page GitHub Pages shows for any broken link, with a Return to lobby button.
 - `shared.js`: settings, parody logos, names, topics and chat lines.
 - `talk.js`: what people say out loud (the captions): small talk, the agenda for each topic, jokes, side-tracks and the wrap-up.
 - `site.css`: styles for the setup and disclaimer pages.
@@ -85,7 +88,8 @@ No build step and no server: open `index.html` in a browser.
 
 ### Add or change content
 All in `shared.js` unless noted:
-- `TOPICS` and `TOPIC_TITLE`: topics and their meeting titles.
+- `TOPICS` and `TOPIC_TITLE`: topics and their meeting titles. The setup page lists them alphabetically, so the order here doesn't matter.
+- In `talk.js`: `WILDCARDS` holds the three personalities (their lines, replies, little scenes with the role `W`, wrap-up moment and chat lines). The wildcard is always the third participant (or the second, if there are only two).
 - In `talk.js`: `AGENDA` holds each topic's four agenda items and their lines, `ACTION_ITEMS` the closing to-dos, `MEETING_LINES` and `REPLY_LINES` the everyday talk, `BACKCHANNEL` the short "mm-hmm" lines, `JOKES` and `SIDE_TRACKS` the light moments, and `WRAP_START`, `RECAP`, `WRAP_END` and `GOODBYES` the ending. Multi-person exchanges use the roles `H` (host) and `A`, `B`, `C` (three different people).
 - `CHAT_GENERIC` and `CHAT_TOPIC`: chat messages, by meeting phase and by topic.
 - `CHAT_REPLIES`: rules for answering what the visitor types.
