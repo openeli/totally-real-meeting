@@ -319,7 +319,7 @@ function personTile(p, i) {
   const talking = p.speaking && !p.muted && (SAMPLE || !state.muted);
   const ring = talking && skin !== 'meet' ? `outline:${skin === 'zoom' ? 3 : 2}px solid ${C.ring};outline-offset:-2px;` : 'outline:2px solid transparent;';
   /* a filmed person: an empty slot that their (always playing) video is moved into after each render */
-  const face = SAMPLE && p.kind === 'video' ? `<span class="vslot" data-vs="${p.media}"></span>` : avatar(p, initials(p.name), p.name);
+  const face = SAMPLE && p.kind === 'video' && !p.camOff ? `<span class="vslot" data-vs="${p.media}"></span>` : avatar(p, initials(p.name), p.name);
   return `<div class="tile" style="background:${C.tile};border-radius:${C.radius};${ring}">${face}
       ${p.hand ? `<span class="hand" title="Hand raised">${handIco(18)}</span>` : ''}
       ${p.react ? `<span class="react" aria-hidden="true">${p.react}</span>` : ''}
@@ -1461,6 +1461,10 @@ function sampleTick() {
     } else if (off > 0.45 && !m.seeking && now - (m._seekAt || 0) > 2000) { m._seekAt = now; m.currentTime = t; }
   });
   if (needTap && Date.now() - tapNoticeAt > 8000) { tapNoticeAt = Date.now(); notice('Click anywhere to turn on the meeting sound'); }
+  INVITED.forEach(p => {   /* a camera goes off for a moment when its person walks or leans out of frame */
+    const off = !!(TL.camOff && TL.camOff[p.media] || []).find(([a, b]) => t >= a && t < b);
+    if (!!p.camOff !== off) { p.camOff = off; changed = true; }
+  });
   INVITED.forEach(p => {
     const s = TL.speaking[p.media];
     const sp = !!s && state.people.includes(p) && !p.muted && s.some(([a, b]) => t >= a && t <= b);
