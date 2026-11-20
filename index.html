@@ -65,17 +65,23 @@
 <button class="chip" type="button" data-audio="short" aria-pressed="false">With audio and video: 15 min (preview)</button>
 <button class="chip" type="button" data-audio="hour" aria-pressed="false">With audio and video: full hour (preview)</button>
 </div>
+<span class="f" id="l-comedy" style="margin-top:6px">Or the comedy meeting, Mandatory Fun (about 13 min)</span>
+<div class="seg" role="group" aria-labelledby="l-comedy">
+<button class="chip" type="button" data-audio="humortxt" aria-pressed="false">No audio, captions on</button>
+<button class="chip" type="button" data-audio="humor" aria-pressed="false">AI voices</button>
+<button class="chip" type="button" data-audio="humorvid" aria-pressed="false">AI voices and video</button>
+</div>
 <p class="hint" id="audioHint"></p></div>
 <div class="field" id="topicPick"><label class="f" for="topic">What the meeting is about</label>
 <select class="input" id="topic"></select>
 <p class="hint">Each topic comes with its own meeting title and conversation.</p></div>
 <div class="field" id="sampleTopic" hidden><span class="f">What the meeting is about</span>
 <div class="preset" role="status"><strong id="sampleTopicName"></strong><span id="sampleTopicMeta"></span>
-<span class="tag">Preselected for this audio and video meeting</span></div></div>
+<span class="tag" id="sampleTopicTag">Preselected for this audio and video meeting</span></div></div>
 <div class="field"><span class="f" id="l-timer">Call timer starts at</span>
 <div class="seg" role="group" aria-labelledby="l-timer" id="timerPick"></div>
 <p class="hint">Join a call that has already been going for a while. The meeting clock starts from here.</p>
-<p class="locked" hidden>Set by the audio and video meeting, and so are the two switches below.</p></div>
+<p class="locked" hidden>Set by the meeting you picked above, and so are the two switches below.</p></div>
 <div class="field" style="gap:10px">
 <button class="switch" type="button" id="loopSwitch" aria-pressed="false"><span class="track"><span class="knob"></span></span><span>Meeting on a loop <span class="hint" style="display:inline">(off: it runs start to finish, about an hour, then the host ends it)</span></span></button>
 <button class="switch" type="button" id="driftSwitch" aria-pressed="true"><span class="track"><span class="knob"></span></span><span>Small talk, jokes and side-tracks <span class="hint" style="display:inline">(now and then, like a real meeting)</span></span></button>
@@ -223,57 +229,70 @@ function updateCustomApp(patch) {
   S.customApp = setCustomApp({ ...S.customApp, ...patch });
   renderApps(); renderCustomApp(); save();
 }
-/* An audio and video meeting (audio on) has its own title, people and start time: show those, locked. */
-const sampleStart = () => S.sample === 'short' ? 15 : 0;
+/* A prepared meeting (an audio and video one, or the comedy) has its own title, people and start time: show those, locked. */
+const sampleStart = () => activeSample(S) === 'short' ? 15 : 0;
 function renderTimer() {
-  const cur = S.audio ? sampleStart() : S.timer;
-  $('timerPick').innerHTML = TIMER_STARTS.map(t => `<button class="chip" type="button" data-timer="${t.min}" aria-pressed="${cur === t.min}"${S.audio ? ' disabled' : ''}>${t.label}</button>`).join('');
+  const cur = activeSample(S) ? sampleStart() : S.timer;
+  $('timerPick').innerHTML = TIMER_STARTS.map(t => `<button class="chip" type="button" data-timer="${t.min}" aria-pressed="${cur === t.min}"${activeSample(S) ? ' disabled' : ''}>${t.label}</button>`).join('');
 }
 function renderTopic() {
-  $('topic').innerHTML = S.audio ? `<option selected>${SAMPLES[S.sample].title}</option>`
+  $('topic').innerHTML = activeSample(S) ? `<option selected>${SAMPLES[activeSample(S)].title}</option>`
     : TOPICS.map(t => `<option value="${t}"${t === S.topic ? ' selected' : ''}>${t}</option>`).join('')
       + `<option value="${CUSTOM_TOPIC}"${S.topic === CUSTOM_TOPIC ? ' selected' : ''}>Custom (make your own)</option>`;
-  $('topic').disabled = S.audio;
+  $('topic').disabled = !!activeSample(S);
 }
 const SAMPLE_TOPIC = {
   short: ['Team connect: icebreaker questions', 'Six people on camera, with sound · about 15 minutes · you join at 15:00, partway through'],
-  hour: ['Team connect hour: icebreaker questions', 'Six people on camera, with sound · about an hour · from the start']
+  hour: ['Team connect hour: icebreaker questions', 'Six people on camera, with sound · about an hour · from the start'],
+  humortxt: ['Mandatory Fun: Quarterly Vibe Check', 'Comedy · about 13 minutes · no sound, the jokes show as captions'],
+  humor: ['Mandatory Fun: Quarterly Vibe Check', 'Comedy · about 13 minutes · five computer voices, cameras off'],
+  humorvid: ['Mandatory Fun: Quarterly Vibe Check', 'Comedy · about 13 minutes · five computer voices, four colleagues on camera who only listen']
 };
 const AUDIO_HINT = {
   off: 'The meeting is silent, so what people say shows as live captions. You can turn captions off during the call.',
   short: 'Six coworkers answer icebreaker questions on camera, and every voice you hear comes from them. Your own participants join with their cameras off and only chat; the first one hosts and types the questions. Captions start off. The topic and start time come with this meeting, so they are filled in below and locked.',
-  hour: 'Six coworkers take turns answering the host’s icebreaker questions on camera, and colleagues with their cameras off speak with computer voices. Cameras go on and off the way they do in real calls. Captions start off. The topic, people and start time come with this meeting, so they are filled in below and locked.'
+  hour: 'Six coworkers take turns answering the host’s icebreaker questions on camera, and colleagues with their cameras off speak with computer voices. Cameras go on and off the way they do in real calls. Captions start off. The topic, people and start time come with this meeting, so they are filled in below and locked.',
+  humortxt: 'A team “fun” meeting that goes wrong in small ways: a morale survey, a wellness minute, an escape room offsite and a manager who keeps talking to his desk lamp. Nothing plays out loud, so every line shows as a caption. Your own participants join muted and only chat.',
+  humor: 'A team “fun” meeting that goes wrong in small ways, with five characters speaking in computer voices and their cameras off. Captions start off. Your own participants join muted and only chat.',
+  humorvid: 'The same comedy with computer voices, plus four colleagues on camera who stay muted and just listen, the way half of any call does. Their cameras go off now and then. Captions start off. Your own participants join muted and only chat.'
 };
-const audioKey = () => S.audio ? S.sample : 'off';
+const audioKey = () => activeSample(S) || 'off';
 function renderAudio() {
   document.querySelectorAll('[data-audio]').forEach(b => b.setAttribute('aria-pressed', b.dataset.audio === audioKey()));
   $('audioHint').textContent = AUDIO_HINT[audioKey()];
   renderTopic(); renderCustomTopic(); renderTimer(); renderPeople();
-  $('topicPick').hidden = S.audio; $('sampleTopic').hidden = !S.audio;
-  if (S.audio) { $('sampleTopicName').textContent = SAMPLE_TOPIC[S.sample][0]; $('sampleTopicMeta').textContent = SAMPLE_TOPIC[S.sample][1]; }
-  ['loopSwitch', 'driftSwitch'].forEach(id => { $(id).disabled = S.audio; });
-  $('loopSwitch').setAttribute('aria-pressed', !S.audio && S.length === 'loop');
-  $('driftSwitch').setAttribute('aria-pressed', S.audio || S.drift !== 'none');
-  document.querySelectorAll('.locked').forEach(el => { el.hidden = !S.audio; });
+  const k = activeSample(S);
+  $('topicPick').hidden = !!k; $('sampleTopic').hidden = !k;
+  if (k) {
+    $('sampleTopicName').textContent = SAMPLE_TOPIC[k][0]; $('sampleTopicMeta').textContent = SAMPLE_TOPIC[k][1];
+    $('sampleTopicTag').textContent = SAMPLES[k].tl === 'humor' ? 'Preselected for the comedy meeting' : 'Preselected for this audio and video meeting';
+  }
+  ['loopSwitch', 'driftSwitch'].forEach(id => { $(id).disabled = !!k; });
+  $('loopSwitch').setAttribute('aria-pressed', !k && S.length === 'loop');
+  $('driftSwitch').setAttribute('aria-pressed', !!k || S.drift !== 'none');
+  document.querySelectorAll('.locked').forEach(el => { el.hidden = !k; });
 }
-function renderCustomTopic() { $('customTopic').style.display = !S.audio && S.topic === CUSTOM_TOPIC ? 'flex' : 'none'; }
+function renderCustomTopic() { $('customTopic').style.display = !activeSample(S) && S.topic === CUSTOM_TOPIC ? 'flex' : 'none'; }
 
 /* With an audio and video meeting the filmed people are fixed. The short one adds your own names, camera off and chat only. */
-const ownNames = () => !S.audio || !!SAMPLES[S.sample].ownNames;
+const ownNames = () => !activeSample(S) || !!SAMPLES[activeSample(S)].ownNames;
 function renderPeople() {
-  const fixed = S.audio ? SAMPLES[S.sample].cast.map(c => c.name) : [];
+  const k = activeSample(S);
+  const fixed = k ? SAMPLES[k].cast.map(c => c.name) : [];
   const mine = ownNames() ? S.names.slice(0, S.count) : [];
   $('count').textContent = ownNames() ? S.count : fixed.length;
   $('dec').disabled = $('inc').disabled = !ownNames();
   const row = (n, i, k, edit) => {
     const a = AVATAR[k % AVATAR.length];
     return `<div class="person"><span class="dot" style="background:${a.bg};color:${a.fg}" aria-hidden="true">${initials(n)}</span>
-      <input class="input" type="text" value="${n.replace(/"/g, '&quot;')}"${edit ? ` data-i="${i}"` : ' readonly'} aria-label="${edit ? 'Participant ' + (i + 1) + ' name' : n + ', on camera, fixed'}" maxlength="40">
+      <input class="input" type="text" value="${n.replace(/"/g, '&quot;')}"${edit ? ` data-i="${i}"` : ' readonly'} aria-label="${edit ? 'Participant ' + (i + 1) + ' name' : n + ', fixed'}" maxlength="40">
       ${edit ? `<button class="sq ghost" type="button" data-shuffle="${i}" aria-label="Shuffle name for participant ${i + 1}">${ico('shuffle', 18)}</button>` : ''}</div>`;
   };
   $('people').innerHTML = fixed.map((n, k) => row(n, -1, k + 1, false)).join('') + mine.map((n, i) => row(n, i, i + fixed.length + 1, true)).join('');
-  $('peopleLock').textContent = !S.audio ? '' : ownNames()
-    ? 'The six people on camera are fixed. Your names after them join with their cameras off, stay muted and only use the chat. The first one hosts and types the questions.'
+  $('peopleLock').textContent = !k ? '' : k === 'humorvid'
+    ? 'The five comedy characters and the four colleagues on camera, who only listen, are fixed. Your names after them join with their cameras off, stay muted and only use the chat.'
+    : SAMPLES[k].tl === 'humor' ? 'The five comedy characters are fixed. Your names after them join with their cameras off, stay muted and only use the chat.'
+    : ownNames() ? 'The six people on camera are fixed. Your names after them join with their cameras off, stay muted and only use the chat. The first one hosts and types the questions.'
     : 'The full-hour meeting has its own cast, so these names are fixed. Pick “No audio” or “15 min” to use your own.';
 }
 
@@ -288,13 +307,15 @@ function renderChat() {
 
 function summary() {
   $('sumBrand').innerHTML = brand(S.skin, 30);
-  $('sumTopic').textContent = S.audio ? SAMPLE_TOPIC[S.sample][0] : topicTitle(S);
-  const others = S.audio ? sampleCastFor(S).length : S.count;
+  const k = activeSample(S);
+  $('sumTopic').textContent = k ? SAMPLE_TOPIC[k][0] : topicTitle(S);
+  const others = k ? sampleCastFor(S).length : S.count;
   $('sumPeople').textContent = ((S.name || '').trim() || 'Guest') + ' + ' + others + (others === 1 ? ' other' : ' others');
   const srcs = ['generic', 'topic', 'own'].filter(k => S.chat[k]).length;
   $('sumChat').textContent = !S.chat.on || !srcs ? 'Off' : (S.chat.freq === 'rare' ? 'On, rare' : 'On, occasional');
-  $('sumSound').textContent = S.audio ? 'Audio and video, captions off' : 'Captions, no audio';
-  $('sumTimer').textContent = S.audio ? (S.sample === 'short' ? 'From 15:00' : 'From 00:00') : TIMER_STARTS.find(t => t.min === S.timer).short;
+  $('sumSound').textContent = { short: 'Audio and video, captions off', hour: 'Audio and video, captions off', humortxt: 'Comedy, captions, no audio',
+    humor: 'Comedy, AI voices, captions off', humorvid: 'Comedy, AI voices and video, captions off' }[k] || 'Captions, no audio';
+  $('sumTimer').textContent = k ? (k === 'short' ? 'From 15:00' : 'From 00:00') : TIMER_STARTS.find(t => t.min === S.timer).short;
   $('sumLength').textContent = S.length === 'loop' ? 'On a loop' : 'Start to finish';
   $('sumTheme').textContent = { system: 'Match my device', light: 'Light', dark: 'Dark' }[S.theme];
   $('join').href = settingsUrl('meeting.html', S);
@@ -317,7 +338,12 @@ $('loopSwitch').addEventListener('click', () => { S.length = S.length === 'loop'
 $('driftSwitch').addEventListener('click', () => { S.drift = S.drift === 'none' ? 'some' : 'none'; $('driftSwitch').setAttribute('aria-pressed', S.drift !== 'none'); save(); });
 $('camSwitch').addEventListener('click', () => { S.cam = !S.cam; $('camSwitch').setAttribute('aria-pressed', S.cam); save(); });
 $('apps').addEventListener('click', e => { const b = e.target.closest('[data-skin]'); if (!b) return; S.skin = b.dataset.skin; renderApps(); renderCustomApp(); save(); });
-document.querySelectorAll('[data-audio]').forEach(b => b.addEventListener('click', () => { S.audio = b.dataset.audio !== 'off'; if (S.audio) S.sample = b.dataset.audio; renderAudio(); save(); b.focus(); }));
+document.querySelectorAll('[data-audio]').forEach(b => b.addEventListener('click', () => {
+  const v = b.dataset.audio;
+  if (v === 'off') { S.audio = false; if (S.sample === 'humortxt') S.sample = 'short'; }
+  else { S.audio = v !== 'humortxt'; S.sample = v; }
+  renderAudio(); save(); b.focus();
+}));
 $('topic').addEventListener('change', e => { S.topic = e.target.value; renderCustomTopic(); save(); if (S.topic === CUSTOM_TOPIC) $('ctTitle').focus(); });
 $('timerPick').addEventListener('click', e => { const b = e.target.closest('[data-timer]'); if (!b) return; S.timer = +b.dataset.timer; renderTimer(); save(); $('timerPick').querySelector(`[data-timer="${S.timer}"]`).focus(); });
 $('ctTitle').addEventListener('input', e => { S.customTopic.title = e.target.value; save(); });

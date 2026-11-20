@@ -65,9 +65,17 @@ Pick one on the setup page:
 - **With audio and video: 15 min (preview)**: you join a “team connect” that has been going for 15 minutes, partway through someone’s answer, and it runs about 15 more minutes with sound and captions off. Six coworkers (three pairs) answer questions on camera. The host types the questions in the chat and the camera-off colleagues only chat, so every voice comes from the people on camera.
 - **With audio and video: full hour (preview)**: the whole “team connect hour”, about 58 minutes. The host and two colleagues speak with computer voices between the answers. Cameras switch on and off as they would in a real call, and backgrounds are blurred.
 
-Both audio and video meetings have their own title, people and start time, so the setup page fills those in and locks them.
+Or pick the comedy, **Mandatory Fun: Quarterly Vibe Check** (about 13 minutes). It is a team “fun” meeting where small things keep going wrong: a morale survey, a wellness minute, an escape room offsite, and a manager who talks to his desk lamp. The jokes are original. It plays three ways:
 
-The on-camera people are real volunteers from the [Seamless Interaction dataset](https://ai.meta.com/research/seamless-interaction/) by Meta, used under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/), so the site stays non-commercial. The clips were cropped, trimmed and reordered, and their backgrounds blurred. The computer voices come from the [Kokoro](https://github.com/hexgrad/kokoro) text-to-speech model (Apache 2.0).
+- **No audio, captions on**: silent, with every line as a caption.
+- **AI voices**: five characters speak with computer voices, cameras off.
+- **AI voices and video**: the same, plus four filmed coworkers on camera who stay muted and only listen. Their backgrounds are blurred more heavily, and their cameras go off now and then.
+
+In every mode your own participant names join muted with their cameras off and only use the chat.
+
+These prepared meetings have their own title, people and start time, so the setup page fills those in and locks them.
+
+The on-camera people are real volunteers from the [Seamless Interaction dataset](https://ai.meta.com/research/seamless-interaction/) by Meta, used under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/), so the site stays non-commercial. The clips were cropped, trimmed and reordered, and their backgrounds blurred. The computer voices (in the full hour and the comedy) come from the [Kokoro](https://github.com/hexgrad/kokoro) text-to-speech model (Apache 2.0).
 
 ## For developers
 
