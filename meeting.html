@@ -536,6 +536,8 @@ function makePlan() {
   if (ENDIN) { const span = ENDIN / 60; endAt = now + span; agendaAt = now + span * 0.12; wrapAt = now + span * 0.7; byeAt = now + span * 0.86; }
   plan = { items, endAt, agendaAt, wrapAt, byeAt, itemLen: Math.max(0.1, (LOOP && !ENDIN ? 13 : wrapAt - Math.max(agendaAt, now)) / Math.max(1, items.length)),
     itemsFrom: Math.max(agendaAt, now), stage: null, item: -1, lastDrift: now, lastJoke: now, askedYou: 0, departing: false };
+  /* On a loop the talk goes on, but the chat goes quiet once a normal meeting would have ended: after that, people only answer you. */
+  plan.chatUntil = LOOP ? endAt : Infinity;
   if (LOOP) plan.wrapAt = plan.byeAt = plan.endAt = Infinity;
   if (now >= 3 && !ENDIN) {   /* joining a call already under way: no opening, and you land partway into the agenda */
     plan.agendaAt = plan.itemsFrom = 3;
@@ -827,6 +829,7 @@ const chatEnabled = () => S.chat.on && (S.chat.generic || S.chat.topic || S.chat
 function chatTick() {
   chatTimer = null;
   if (!chatEnabled() || state.ended) return;
+  if (plan && clockMin() >= plan.chatUntil) return;   /* a meeting on a loop: no more chatter, only replies to you */
   if (state.people.length) {
     const line = pickLine();
     if (line) {
@@ -870,6 +873,7 @@ function replyTo(text) {
   const rule = CHAT_REPLIES.find(r => r.pattern.test(text));
   if (!rule || Math.random() > (rule.chance ?? 1)) return;
   const pool = rule.when === 'mic' ? rule.lines[state.muted ? 'muted' : 'live']
+    : rule.when === 'late' ? rule.lines[RESUMED ? 'back' : state.lateJoin ? 'late' : 'early']
     : rule.when === 'cam' ? rule.lines[state.camOn && stream ? 'on' : 'off'] : rule.lines.filter(l => state.people.length > 1 || !l.includes('{other}'));
   /* Shuffle, but let the person who spoke last wait their turn. */
   const order = state.people.map((p, i) => i).sort(() => Math.random() - 0.5).sort((a, b) => (a === lastSender) - (b === lastSender));
@@ -1164,11 +1168,11 @@ function leaveCall(how) {
 }
 
 function rememberMeeting() {
-  const { endAt, agendaAt, wrapAt, byeAt, itemLen, itemsFrom, stage, item, lastDrift, lastJoke, askedYou, departing } = plan;
+  const { endAt, agendaAt, wrapAt, byeAt, itemLen, itemsFrom, stage, item, lastDrift, lastJoke, askedYou, departing, chatUntil } = plan;
   const num = v => v === Infinity ? null : v;   /* JSON has no Infinity: a meeting on a loop never ends */
   const rec = {
     id: MEETING_ID, leftAt: Date.now(), start: state.start, pools,
-    plan: { endAt: num(endAt), agendaAt, wrapAt: num(wrapAt), byeAt: num(byeAt), itemLen, itemsFrom, stage, item, lastDrift, lastJoke, askedYou, departing },
+    plan: { endAt: num(endAt), agendaAt, wrapAt: num(wrapAt), byeAt: num(byeAt), itemLen, itemsFrom, stage, item, lastDrift, lastJoke, askedYou, departing, chatUntil: num(chatUntil) },
     here: state.people.map(p => INVITED.indexOf(p)), muted: INVITED.map(p => p.muted),
     arrived: INVITED.map(p => state.people.includes(p) || p.left === true)
   };
@@ -1333,6 +1337,7 @@ function joinCall() {
   if (state.phase !== 'lobby') return;
   state.phase = 'connecting';
   state.start = RESUMED ? RESUMED.start : Date.now() - S.timer * 60000; state.joined = Date.now();
+  state.lateJoin = clockMin() >= 5;   /* the meeting was well under way when you came in */
   render();
   setTimeout(() => {
     if (RESUMED) return resumeCall(RESUMED);
@@ -1350,7 +1355,7 @@ function joinCall() {
 function resumeCall(r) {
   makePlan();
   const back = v => v === null ? Infinity : v;
-  Object.assign(plan, r.plan, { endAt: back(r.plan.endAt), wrapAt: back(r.plan.wrapAt), byeAt: back(r.plan.byeAt) });
+  Object.assign(plan, r.plan, { endAt: back(r.plan.endAt), wrapAt: back(r.plan.wrapAt), byeAt: back(r.plan.byeAt), chatUntil: back(r.plan.chatUntil ?? null) });
   Object.assign(pools, r.pools || {});
   r.muted.forEach((m, i) => INVITED[i] && (INVITED[i].muted = m));
   const now = clockMin(), away = (Date.now() - r.leftAt) / 60000;
