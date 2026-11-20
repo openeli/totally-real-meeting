@@ -77,11 +77,15 @@ LOGO.custom = s => {
 /* Visible parody name is hidden from screen readers; they hear the plain description instead. */
 const brand = (id, size = 22) => `<span class="brand">${LOGO[id](size)}<span class="wm" aria-hidden="true" style="font-size:${Math.round(size * 0.72)}px">${escHtml(SKIN[id].name)}</span><span class="sr">${escHtml(SKIN[id].say)}</span></span>`;
 
-const TOPICS = ['Budget review', 'Customer success', 'Engineering standup', 'Finance', 'HR', 'Leadership', 'Marketing', 'Product roadmap', 'Sales', 'Town hall'];
+const TOPICS = ['Budget review', 'Customer success', 'Engineering standup', 'Finance', 'HR', 'Leadership', 'Marketing', 'Product roadmap', 'Sales', 'Town hall',
+  /* scenarios: the funny ones */
+  'Absurd corporate training', 'Completely pointless brainstorming', 'Corporate disaster meeting', 'IT outage', 'Monday morning status meeting'];
 const TOPIC_TITLE = {
   'Budget review': 'Budget review: next quarter', 'Customer success': 'Customer success weekly', 'Engineering standup': 'Engineering standup',
   'Finance': 'Finance: Q3 numbers', 'HR': 'HR: policy update', 'Leadership': 'Leadership sync', 'Marketing': 'Marketing campaign review',
-  'Product roadmap': 'Product roadmap planning', 'Sales': 'Sales pipeline review', 'Town hall': 'All-hands town hall'
+  'Product roadmap': 'Product roadmap planning', 'Sales': 'Sales pipeline review', 'Town hall': 'All-hands town hall',
+  'Absurd corporate training': 'Mandatory training: email etiquette (module 7 of 12)', 'Completely pointless brainstorming': 'Brainstorm: blue-sky ideas',
+  'Corporate disaster meeting': 'URGENT: launch damage control', 'IT outage': 'P1 incident bridge: all systems down', 'Monday morning status meeting': 'Monday morning status'
 };
 
 /* 'Custom' lets the visitor write their own meeting title and conversation lines. */
@@ -181,7 +185,12 @@ const CHAT_TOPIC = {
   'Marketing': ['Love the new creative', 'What was the click rate?', 'Let’s A/B test that'],
   'Product roadmap': ['Is that in Q1 or Q2?', 'Customers keep asking for this', 'Let’s scope it'],
   'Sales': ['That deal is close', 'Pipeline looks healthy', 'Great call yesterday'],
-  'Town hall': ['Congrats to the team!', 'Will slides be shared?', 'Great update']
+  'Town hall': ['Congrats to the team!', 'Will slides be shared?', 'Great update'],
+  'Absurd corporate training': ['Is this on the quiz?', 'My fruit is a grape. Small, but part of a bunch', 'Do we get a certificate for the icebreaker too?'],
+  'Completely pointless brainstorming': ['Writing this down: toast?', 'Is the cat idea still alive?', 'Can we get more dots?'],
+  'Corporate disaster meeting': ['The banana has its own fan account now', 'Legal says please stop typing “oops” in here too', 'My mum saw it. She’s very proud'],
+  'IT outage': ['Is it just me or is everything down?', 'Status page says green, so we’re fine?', 'Did someone kick the router again'],
+  'Monday morning status meeting': ['Need. Coffee.', 'Is it Friday yet?', 'Green-ish here too']
 };
 
 /* Replies to what you type in the meeting chat. The first rule whose pattern matches wins.
@@ -231,6 +240,7 @@ const DEFAULTS = {
   timer: 0,   /* minutes the call has already been running when you join: 0, 15, 30 or 60 */
   length: 'full',   /* 'full': the meeting runs start to finish (about an hour) and ends; 'loop': it keeps going */
   drift: 'some',    /* 'some': small talk, jokes and side-tracks now and then; 'none': stays on topic */
+  wildcard: 'none', /* one participant with a personality (WILDCARDS in talk.js): 'none', 'talker', 'knowitall' or 'confused' */
   customTopic: { title: 'Weekly team sync', lines: 'Can we circle back on this?\nGood progress this week\nWho\u2019s taking the action item?' },
   customApp: { name: 'MeetSpace', color: '#E4572E', letter: 'M', shape: 'square', layout: 'bottom' },
   chat: { on: true, generic: true, topic: true, own: false, freq: 'rare', ownText: 'Can everyone see my screen?\nSorry, my internet dropped for a sec\nLet’s take that offline' }
@@ -239,6 +249,7 @@ const DEFAULTS = {
 const FEEDBACK_ENDPOINT = '';
 
 const TIMER_STARTS = [{ min: 0, label: 'Just started (00:00)', short: 'From 00:00' }, { min: 15, label: '15 min', short: 'From 15:00' }, { min: 30, label: '30 min', short: 'From 30:00' }, { min: 60, label: '1 hour', short: 'From 1:00:00' }];
+const WILDCARD_KINDS = ['none', 'talker', 'knowitall', 'confused'];
 const STORE_KEY = 'trm-settings-v1';
 function loadSettings() {
   let s = null;
@@ -254,6 +265,7 @@ function loadSettings() {
   out.timer = TIMER_STARTS.some(t => t.min === +out.timer) ? +out.timer : 0;
   if (out.length !== 'loop') out.length = 'full';
   if (out.drift !== 'none') out.drift = 'some';
+  if (!WILDCARD_KINDS.includes(out.wildcard)) out.wildcard = 'none';
   out.audio = out.audio === true;
   if (!SAMPLE_KEYS.includes(out.sample)) out.sample = 'short';
   if (out.sample === 'humortxt' && out.audio) out.sample = 'short';

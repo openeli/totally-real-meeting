@@ -75,6 +75,9 @@
 <div class="field" id="topicPick"><label class="f" for="topic">What the meeting is about</label>
 <select class="input" id="topic"></select>
 <p class="hint">Each topic comes with its own meeting title and conversation.</p></div>
+<div class="field" id="wildPick"><label class="f" for="wildcard">Wildcard</label>
+<select class="input" id="wildcard"><option value="none">None</option><option value="talker">The talker</option><option value="knowitall">The know-it-all</option><option value="confused">The confused manager</option></select>
+<p class="hint" id="wildHint"></p></div>
 <div class="field" id="sampleTopic" hidden><span class="f">What the meeting is about</span>
 <div class="preset" role="status"><strong id="sampleTopicName"></strong><span id="sampleTopicMeta"></span>
 <span class="tag" id="sampleTopicTag">Preselected for this audio and video meeting</span></div></div>
@@ -237,7 +240,7 @@ function renderTimer() {
 }
 function renderTopic() {
   $('topic').innerHTML = activeSample(S) ? `<option selected>${SAMPLES[activeSample(S)].title}</option>`
-    : TOPICS.map(t => `<option value="${t}"${t === S.topic ? ' selected' : ''}>${t}</option>`).join('')
+    : [...TOPICS].sort((a, b) => a.localeCompare(b)).map(t => `<option value="${t}"${t === S.topic ? ' selected' : ''}>${t}</option>`).join('')
       + `<option value="${CUSTOM_TOPIC}"${S.topic === CUSTOM_TOPIC ? ' selected' : ''}>Custom (make your own)</option>`;
   $('topic').disabled = !!activeSample(S);
 }
@@ -260,7 +263,7 @@ const audioKey = () => activeSample(S) || 'off';
 function renderAudio() {
   document.querySelectorAll('[data-audio]').forEach(b => b.setAttribute('aria-pressed', b.dataset.audio === audioKey()));
   $('audioHint').textContent = AUDIO_HINT[audioKey()];
-  renderTopic(); renderCustomTopic(); renderTimer(); renderPeople();
+  renderTopic(); renderCustomTopic(); renderWildcard(); renderTimer(); renderPeople();
   const k = activeSample(S);
   $('topicPick').hidden = !!k; $('sampleTopic').hidden = !k;
   if (k) {
@@ -271,6 +274,19 @@ function renderAudio() {
   $('loopSwitch').setAttribute('aria-pressed', !k && S.length === 'loop');
   $('driftSwitch').setAttribute('aria-pressed', !!k || S.drift !== 'none');
   document.querySelectorAll('.locked').forEach(el => { el.hidden = !k; });
+}
+/* The wildcard goes to the third participant (or the second, or the only one), matching meeting.html. */
+const WILD_HINT = {
+  none: 'Optional. Give one participant a personality.',
+  talker: '{name} grabs the floor and rarely lets go.',
+  knowitall: '{name} corrects everyone, usually with a decimal point.',
+  confused: '{name} is senior, well-meaning and completely lost.'
+};
+function renderWildcard() {
+  $('wildPick').hidden = !!activeSample(S);
+  $('wildcard').value = S.wildcard;
+  const n = S.names.slice(0, S.count), who = ((n[2] || n[1] || n[0] || '').trim() || 'One participant').split(/\s+/)[0];
+  $('wildHint').textContent = WILD_HINT[S.wildcard].replace('{name}', who);
 }
 function renderCustomTopic() { $('customTopic').style.display = !activeSample(S) && S.topic === CUSTOM_TOPIC ? 'flex' : 'none'; }
 
@@ -318,6 +334,7 @@ function summary() {
   $('sumTimer').textContent = k ? (k === 'short' ? 'From 15:00' : 'From 00:00') : TIMER_STARTS.find(t => t.min === S.timer).short;
   $('sumLength').textContent = S.length === 'loop' ? 'On a loop' : 'Start to finish';
   $('sumTheme').textContent = { system: 'Match my device', light: 'Light', dark: 'Dark' }[S.theme];
+  renderWildcard();   /* its hint names the participant, so it follows name edits */
   $('join').href = settingsUrl('meeting.html', S);
 }
 
@@ -344,6 +361,7 @@ document.querySelectorAll('[data-audio]').forEach(b => b.addEventListener('click
   else { S.audio = v !== 'humortxt'; S.sample = v; }
   renderAudio(); save(); b.focus();
 }));
+$('wildcard').addEventListener('change', e => { S.wildcard = e.target.value; renderWildcard(); save(); });
 $('topic').addEventListener('change', e => { S.topic = e.target.value; renderCustomTopic(); save(); if (S.topic === CUSTOM_TOPIC) $('ctTitle').focus(); });
 $('timerPick').addEventListener('click', e => { const b = e.target.closest('[data-timer]'); if (!b) return; S.timer = +b.dataset.timer; renderTimer(); save(); $('timerPick').querySelector(`[data-timer="${S.timer}"]`).focus(); });
 $('ctTitle').addEventListener('input', e => { S.customTopic.title = e.target.value; save(); });
