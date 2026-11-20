@@ -59,7 +59,12 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
 
 ## Sound
 
-The meeting is silent for now, so what people say appears as live captions from the first second. You can turn captions off during the call. An option with real audio is planned.
+Pick one on the setup page:
+
+- **No audio, captions on** (default): the meeting is silent and what people say appears as live captions. You can turn captions off during the call.
+- **With audio: real people (preview)**: a “team connect hour” of about 58 minutes, with sound and captions off. Six coworkers (three pairs) take turns answering the host’s icebreaker questions on camera, and the colleagues with their cameras off speak with computer voices. Cameras switch on and off as they would in a real call, and backgrounds are blurred. This meeting has its own title and people for now.
+
+The on-camera people are real volunteers from the [Seamless Interaction dataset](https://ai.meta.com/research/seamless-interaction/) by Meta, used under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/), so the site stays non-commercial. The clips were cropped, trimmed and reordered, and their backgrounds blurred. The computer voices come from the [Kokoro](https://github.com/hexgrad/kokoro) text-to-speech model (Apache 2.0).
 
 ## For developers
 
@@ -72,6 +77,7 @@ No build step and no server: open `index.html` in a browser.
 - `shared.js`: settings, parody logos, names, topics and chat lines.
 - `talk.js`: what people say out loud (the captions): small talk, the agenda for each topic, jokes, side-tracks and the wrap-up.
 - `site.css`: styles for the setup and disclaimer pages.
+- `sample/`: the real-video meeting: one video per on-camera person, one voice track per camera-off person (all as long as the meeting, so they stay in sync), and `timeline.js` with who talks when, caption word timings, cameras on and off, and when people join and leave. `tools/sample/` has the scripts that build it. Add `&at=SECONDS` to the meeting URL to jump in partway.
 - `docs/`: screenshots for this page.
 
 ### Add or change content
