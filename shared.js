@@ -141,10 +141,15 @@ const CHAT_REPLIES = [
       off: ['Nope, {name}, your camera is off.', 'Your video is off, we only see your initials.', 'Not yet, your camera looks off.'] } },
   { pattern: /\b(can|could|do)\s+(you|u|everyone|anyone|y'?all)\s+see\s+my\s+screen\b|\b(am i|is it) sharing\b/i,
     lines: ['Not yet, still loading on my end.', 'Nothing is shared yet.', 'I just see your tile, {name}.'] },
-  { pattern: /^\s*(hi+|hello+|hey+|hiya|howdy|yo|morning|good (morning|afternoon|evening)|greetings)\b/i, who: 2,
-    lines: ['Thank you for joining, {name}!', 'Hi {name}!', 'Hey {name}, welcome.', 'Hello!', 'Glad you could make it, {name}.', 'Hi! 👋'] },
-  { pattern: /\b(sorry|apologies)\b.*\blate\b|\brunning late\b|\bjust joined\b/i,
-    lines: ['No worries, we just started.', 'All good, {name}.', 'You didn’t miss much!'] },
+  /* Greetings depend on when you came in: on time, late, or back after leaving. */
+  { pattern: /^\s*(hi+|hello+|hey+|hiya|howdy|yo|morning|good (morning|afternoon|evening)|greetings)\b/i, who: 2, when: 'late', lines: {
+      early: ['Thank you for joining, {name}!', 'Hi {name}!', 'Hey {name}, welcome.', 'Hello!', 'Glad you could make it, {name}.', 'Hi! 👋'],
+      late: ['Hi {name}, thank you for joining. Better late than never!', 'Hey {name}! Better late than never 😄', 'Hi {name}, glad you made it.', 'Welcome, {name}. I’ll send you the notes after.', 'Hi! We’ll catch you up later.'],
+      back: ['Welcome back, {name}!', 'Hey, you’re back!', 'Welcome back. You didn’t miss much.', 'Oh hi again, {name}.'] } },
+  { pattern: /\b(sorry|apologies)\b.*\blate\b|\brunning late\b|\bjust joined\b/i, when: 'late', lines: {
+      early: ['No worries, we just started.', 'All good, {name}.', 'You didn’t miss much!'],
+      late: ['No worries, {name}. Better late than never.', 'All good, I’ll send you the notes.', 'No problem, we’ll catch you up after.'],
+      back: ['No worries, welcome back.', 'All good, {name}.'] } },
   { pattern: /\b(bye|goodbye|see (you|ya)|gotta (go|run)|have to (go|drop|run)|dropping off|signing off)\b/i, who: 2,
     lines: ['Bye {name}!', 'Thanks, {name}. See you next time.', 'Take care!', 'Have a good one!'] },
   { pattern: /\b(thanks|thank you|thx|ty|cheers)\b/i,
