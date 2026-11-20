@@ -69,6 +69,9 @@
 <div class="field" id="topicPick"><label class="f" for="topic">What the meeting is about</label>
 <select class="input" id="topic"></select>
 <p class="hint">Each topic comes with its own meeting title and conversation.</p></div>
+<div class="field" id="wildPick"><label class="f" for="wildcard">Wildcard</label>
+<select class="input" id="wildcard"><option value="none">None</option><option value="talker">The talker</option><option value="knowitall">The know-it-all</option><option value="confused">The confused manager</option></select>
+<p class="hint" id="wildHint"></p></div>
 <div class="field" id="sampleTopic" hidden><span class="f">What the meeting is about</span>
 <div class="preset" role="status"><strong id="sampleTopicName"></strong><span id="sampleTopicMeta"></span>
 <span class="tag">Preselected for this audio and video meeting</span></div></div>
@@ -231,7 +234,7 @@ function renderTimer() {
 }
 function renderTopic() {
   $('topic').innerHTML = S.audio ? `<option selected>${SAMPLES[S.sample].title}</option>`
-    : TOPICS.map(t => `<option value="${t}"${t === S.topic ? ' selected' : ''}>${t}</option>`).join('')
+    : [...TOPICS].sort((a, b) => a.localeCompare(b)).map(t => `<option value="${t}"${t === S.topic ? ' selected' : ''}>${t}</option>`).join('')
       + `<option value="${CUSTOM_TOPIC}"${S.topic === CUSTOM_TOPIC ? ' selected' : ''}>Custom (make your own)</option>`;
   $('topic').disabled = S.audio;
 }
@@ -248,13 +251,26 @@ const audioKey = () => S.audio ? S.sample : 'off';
 function renderAudio() {
   document.querySelectorAll('[data-audio]').forEach(b => b.setAttribute('aria-pressed', b.dataset.audio === audioKey()));
   $('audioHint').textContent = AUDIO_HINT[audioKey()];
-  renderTopic(); renderCustomTopic(); renderTimer(); renderPeople();
+  renderTopic(); renderCustomTopic(); renderWildcard(); renderTimer(); renderPeople();
   $('topicPick').hidden = S.audio; $('sampleTopic').hidden = !S.audio;
   if (S.audio) { $('sampleTopicName').textContent = SAMPLE_TOPIC[S.sample][0]; $('sampleTopicMeta').textContent = SAMPLE_TOPIC[S.sample][1]; }
   ['loopSwitch', 'driftSwitch'].forEach(id => { $(id).disabled = S.audio; });
   $('loopSwitch').setAttribute('aria-pressed', !S.audio && S.length === 'loop');
   $('driftSwitch').setAttribute('aria-pressed', S.audio || S.drift !== 'none');
   document.querySelectorAll('.locked').forEach(el => { el.hidden = !S.audio; });
+}
+/* The wildcard goes to the third participant (or the second, or the only one), matching meeting.html. */
+const WILD_HINT = {
+  none: 'Optional. Give one participant a personality.',
+  talker: '{name} grabs the floor and rarely lets go.',
+  knowitall: '{name} corrects everyone, usually with a decimal point.',
+  confused: '{name} is senior, well-meaning and completely lost.'
+};
+function renderWildcard() {
+  $('wildPick').hidden = S.audio;
+  $('wildcard').value = S.wildcard;
+  const n = S.names.slice(0, S.count), who = ((n[2] || n[1] || n[0] || '').trim() || 'One participant').split(/\s+/)[0];
+  $('wildHint').textContent = WILD_HINT[S.wildcard].replace('{name}', who);
 }
 function renderCustomTopic() { $('customTopic').style.display = !S.audio && S.topic === CUSTOM_TOPIC ? 'flex' : 'none'; }
 
@@ -297,6 +313,7 @@ function summary() {
   $('sumTimer').textContent = S.audio ? (S.sample === 'short' ? 'From 15:00' : 'From 00:00') : TIMER_STARTS.find(t => t.min === S.timer).short;
   $('sumLength').textContent = S.length === 'loop' ? 'On a loop' : 'Start to finish';
   $('sumTheme').textContent = { system: 'Match my device', light: 'Light', dark: 'Dark' }[S.theme];
+  renderWildcard();   /* its hint names the participant, so it follows name edits */
   $('join').href = settingsUrl('meeting.html', S);
 }
 
@@ -318,6 +335,7 @@ $('driftSwitch').addEventListener('click', () => { S.drift = S.drift === 'none' 
 $('camSwitch').addEventListener('click', () => { S.cam = !S.cam; $('camSwitch').setAttribute('aria-pressed', S.cam); save(); });
 $('apps').addEventListener('click', e => { const b = e.target.closest('[data-skin]'); if (!b) return; S.skin = b.dataset.skin; renderApps(); renderCustomApp(); save(); });
 document.querySelectorAll('[data-audio]').forEach(b => b.addEventListener('click', () => { S.audio = b.dataset.audio !== 'off'; if (S.audio) S.sample = b.dataset.audio; renderAudio(); save(); b.focus(); }));
+$('wildcard').addEventListener('change', e => { S.wildcard = e.target.value; renderWildcard(); save(); });
 $('topic').addEventListener('change', e => { S.topic = e.target.value; renderCustomTopic(); save(); if (S.topic === CUSTOM_TOPIC) $('ctTitle').focus(); });
 $('timerPick').addEventListener('click', e => { const b = e.target.closest('[data-timer]'); if (!b) return; S.timer = +b.dataset.timer; renderTimer(); save(); $('timerPick').querySelector(`[data-timer="${S.timer}"]`).focus(); });
 $('ctTitle').addEventListener('input', e => { S.customTopic.title = e.target.value; save(); });

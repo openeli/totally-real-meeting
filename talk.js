@@ -178,3 +178,151 @@ function fillSlots(line, names) {
     .replace(/\{k\}/g, () => pick(['twenty', 'thirty-five', 'forty', 'sixty', 'eighty', 'a hundred and twenty']))
     .replace(/\{day\}/g, () => pick(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']));
 }
+
+/* ---------- Scenarios: the funny topics ----------
+   Same shape as AGENDA and ACTION_ITEMS above: four agenda items of eight lines each, then three action items. */
+Object.assign(AGENDA, {
+  'Absurd corporate training': [
+    { item: 'the icebreaker', lines: ['Before we start, a quick icebreaker. Everyone share your favourite spreadsheet.', 'Mine is the expense template. It has a lot of personality.', 'Please rename yourself to your name plus a fruit that represents your work style.', 'I’ll go first. I’m a pineapple: tough outside, collaborative inside.', 'There are no wrong answers, except the ones on the quiz.', 'Attendance is tracked by how often you nod, so please nod.', 'This session counts for two of your nine mandatory learning hours.', 'Let’s keep cameras on so the trust can flow.'] },
+    { item: 'the reply-all module', lines: ['Module one is reply all. Let’s look at slide fourteen.', 'Reply all is a powerful tool. Like a fire extinguisher, or a leaf blower.', 'Before you reply all, ask yourself three questions. I’ll read all forty.', 'Last year one reply all reached eleven thousand people and a printer in Belgium.', 'The correct response to “please stop replying all” is not to reply all.', 'Now a role play. I’m an email. {other}, you’re a manager on holiday.', 'Note the subject line. It says “quick question”. It is never quick.', 'Let’s take a short pause so everyone can reflect on their inbox.'] },
+    { item: 'the group exercise', lines: ['Now we split into breakout rooms of one.', 'Your task is to design a meeting that could have been an email.', 'Then turn that email back into a meeting. Then back again.', 'You have four minutes, which is plenty if nobody unmutes.', 'Please nominate a spokesperson, ideally whoever forgot to mute.', 'Group three built a flowchart. Love that. It just loops back to itself.', 'I’m hearing a lot of energy, mostly from someone’s washing machine.', 'Remember, collaboration is just talking, but in a spreadsheet.'] },
+    { item: 'the quiz and certificates', lines: ['Let’s finish with the quiz. It’s twelve questions and none of them are fair.', 'Question one: what is the ideal font for an apology?', 'The answer is Calibri, eleven point, with a sincere tone.', 'Question two: true or false, “per my last email” is a greeting.', 'False. It is a threat, but a polite one.', 'You need eighty percent to pass, or a hundred to be insufferable.', 'Certificates arrive by email, which feels right.', 'Please fill in the feedback survey about this training, which is also training.'] }
+  ],
+  'Completely pointless brainstorming': [
+    { item: 'the ground rules', lines: ['Okay, ground rules. There are no bad ideas.', 'Well, there are, but we write them down anyway.', 'We’re thinking big today. Blue sky. Maybe purple sky.', 'Nobody say “budget”. Budget is for Tuesday.', 'I’ve opened a virtual whiteboard. It already has eleven sticky notes from last time.', 'None of them are legible, but the energy is there.', 'If you have an idea, shout it. If you have half an idea, shout louder.', 'Let’s timebox this to forty-five minutes. Ninety, tops.'] },
+    { item: 'wild ideas', lines: ['What if the app could also make toast?', 'What if we did what we already do, but called it a journey?', 'Hear me out: a podcast about our spreadsheets.', 'What if every button was the same button?', 'Love it. Let’s park it next to the other parked ideas.', 'What if we asked customers what they want? Kidding. Unless?', 'What if the logo was slightly bigger? Or the same size, but bolder.', 'I’m writing “disrupt” on a sticky note and seeing where it goes.'] },
+    { item: 'clustering the sticky notes', lines: ['Let’s cluster these into themes.', 'This cluster is “things”. That one is “other things”.', 'Somebody drew a cat. I’m putting it under innovation.', 'Can we merge “synergy” and “cross-pollination”? They’re basically cousins.', 'Three people wrote “AI” and nothing else.', 'Let’s vote with dots. Everyone gets three.', 'Okay, the winner is the cat.', 'I think the cat speaks to something deeper in the brand.'] },
+    { item: 'next steps', lines: ['Great energy, everyone. Really great.', 'Next step is a follow-up session to narrow this one down.', 'Let’s not commit to anything yet. Let’s stay in the creative space.', 'I’ll photograph the whiteboard, even though it’s digital.', 'I’ll set up a channel for the ideas, so they can be ignored in one place.', 'We should test the toast idea with a small group of toasters.', 'Honestly, this is the most creative we’ve been since the last time.', 'Let’s pick it up again next quarter with fresh eyes.'] }
+  ],
+  'Corporate disaster meeting': [
+    { item: 'what happened', lines: ['Thanks for jumping on at short notice. So, the launch went out last night.', 'Technically it went out. Spiritually, it did not.', 'At about two in the morning, the website started showing our test page.', 'The test page said “banana banana do not ship”.', 'It was up for six hours and has fourteen thousand likes.', 'Someone also emailed every customer with “Dear {FIRST_NAME}”.', 'And the press release went to a cooking magazine, who loved it.', 'So, mixed results.'] },
+    { item: 'damage control', lines: ['Comms has drafted a statement. The first draft was just “oops”.', 'The second draft is longer, but it still basically says oops.', 'Legal would like us to stop putting “oops” in writing.', 'Can we call it a “planned surprise”?', 'Our competitor posted a picture of a banana. Honestly, well played.', 'We have {num} journalists asking for comment and one asking for the banana.', 'The CEO wants to “own the narrative”, which I think means a video.', 'Let’s keep this meeting confidential. It is being recorded, though.'] },
+    { item: 'whose fault it was', lines: ['Let’s be clear, this is a blameless review.', 'That said, who pressed the button?', 'The button was pressed by a script, which was written by a person.', 'That person is on holiday, and their out-of-office just says “good luck”.', 'The checklist had a step that said “don’t ship the test page”.', 'It was step forty-one, right after “get coffee”.', 'I think we all learned something, mostly about bananas.', 'No one is getting fired. Probably. Today.'] },
+    { item: 'the recovery plan', lines: ['Okay, the fix has been live since eight this morning.', 'The holding page now says “everything is fine”, which feels like a lot.', 'We’re sending an apology, and we’re testing the name field first.', 'Marketing wants to lean into it. A banana-themed launch week.', 'I hate that I like that.', 'Let’s add a second checklist that checks the first one.', 'Retro on {day}, and nobody is allowed to bring fruit.', 'Okay. Deep breath, everyone. We’ve survived worse. I think.'] }
+  ],
+  'IT outage': [
+    { item: 'the status', lines: ['Okay, quick status. Everything is down.', 'Not everything. The coffee machine is up, which is honestly suspicious.', 'Email is down, chat is down, and the status page is down, so it says all green.', 'We noticed when the CEO asked why the internet was “grey”.', 'It started around nine fifteen, right after the scheduled “minor update”.', 'Customers can still log in. They just can’t do anything after that.', 'We’re treating this as a priority one incident.', 'Please don’t ask for an ETA. The ETA is also down.'] },
+    { item: 'troubleshooting', lines: ['Have we tried turning it off and on again?', 'We turned it off. It is now very off.', 'The server room is making a noise I can only describe as disappointed.', 'I’m looking at the logs. The last line just says “uh oh”.', 'Can someone check the cable? The big one. The one that’s unplugged.', 'Good news, the backup worked. Bad news, it backed up the problem.', 'I’m on the phone with the vendor. The hold music is very calming.', 'They’ve put me through to someone who also asked if I tried restarting.'] },
+    { item: 'keeping people updated', lines: ['We need to update the business every thirty minutes.', 'The update is the same as last time, with a newer timestamp.', 'How do we tell everyone email is down? Do we send an email?', 'Someone suggested a fax. We’re keeping that option open.', 'Sales is asking if they can still hit their numbers. I don’t know, can they?', 'Please stop pinging me on the chat that is down.', 'The CEO wants a one-pager, ideally on paper.', 'I’ll pin an update to the office noticeboard. With a pen.'] },
+    { item: 'the fix', lines: ['Okay, I think we found it. Someone renamed the server to “final-final-2”.', 'Everything else was still looking for “final-final”.', 'We’re renaming it back now. Fingers crossed.', 'Email is back. And yes, all six thousand messages are arriving at once.', 'Chat is back too. It’s mostly people asking if chat is back.', 'Root cause review on {day}. Please bring snacks, not opinions.', 'From now on, no minor updates before lunch.', 'Thanks, everyone. Great teamwork. Please go and drink some water.'] }
+  ],
+  'Monday morning status meeting': [
+    { item: 'the weekend', lines: ['Morning, everyone. How was the weekend? Briefly. Very briefly.', 'Mine was great, but it already feels like a distant memory.', 'I spent it assembling a bookshelf. The bookshelf won.', 'I did absolutely nothing, and I’d like to do it again.', 'Who else hasn’t had coffee yet? Okay, that’s most of us.', 'I’m on my first coffee and my second email.', 'Let’s get through this quickly so we can all get back to recovering.', 'Okay, statuses. Let’s go round the room.'] },
+    { item: 'status updates', lines: ['Mine is green. Well, green-ish. Let’s say olive.', 'Mine is on track, as long as nobody looks at it closely.', 'I’m still waiting on {other}, who is waiting on me, so we’re in a loop.', 'Same as last week. And the week before. It’s very stable.', 'Mine moved from “in progress” to “in progress, with feelings”.', 'I made great progress on Friday afternoon, and I can’t remember any of it.', 'It’s ninety percent done. The other ninety percent is next week.', 'Can I skip? I just woke up and have nothing to report.'] },
+    { item: 'the week ahead', lines: ['This week we have three deadlines and a public holiday that isn’t ours.', 'Thursday is packed. So is Wednesday. Tuesday is just scary.', 'Please update your tickets. Some still say “starting soon” from March.', 'I’m out on {day} for a dentist appointment, which I’m oddly looking forward to.', 'Let’s keep Friday afternoon free for “focus time”.', 'There’s a lunch and learn on {day}. The lunch is real, the learning is optional.', 'If anyone needs me, I’m in back-to-back calls until next Monday.', 'Let’s check in again on Wednesday. Same time, same faces.'] },
+    { item: 'any other business', lines: ['Any other business?', 'The fridge needs clearing out. Someone’s yoghurt has started its own project.', 'The car park is closed again, so good luck.', 'Reminder that timesheets are due today. Yes, last week’s too.', 'Someone left a very nice cake in the kitchen. Nobody knows who. Nobody asks.', 'That’s all from me. Short and sweet.', 'Great. Let’s make it a good week, everyone.', 'Or at least a week.'] }
+  ]
+});
+Object.assign(ACTION_ITEMS, {
+  'Absurd corporate training': ['Everyone finishes modules eight to twelve by {day}.', '{other} prints the certificates, scans them, and emails the scans.', 'Please send your fruit to HR so they can add it to your profile.'],
+  'Completely pointless brainstorming': ['{other} turns the whiteboard into a deck nobody will open.', 'We book a follow-up brainstorm to choose the next brainstorm.', 'The cat goes to legal for a trademark search.'],
+  'Corporate disaster meeting': ['{other} tests the apology email on themselves first.', 'Comms finalises the statement, without the word “oops”.', 'We add a checklist for the checklist by {day}.'],
+  'IT outage': ['{other} owns the root cause review on {day}.', 'Nobody renames a server without a change ticket. Ever.', 'We test the status page during an actual outage.'],
+  'Monday morning status meeting': ['Everyone updates their tickets by {day}.', '{other} clears out the fridge before the yoghurt files for independence.', 'Timesheets go in today, both weeks.']
+});
+
+/* ---------- Wildcards: one participant with a personality ----------
+   The setup page picks one (or none). That person takes the floor more often, and when they talk, many of their lines come
+   from "lines" (about one a minute, so they don't wear thin). Sometimes another person answers with one of "replies".
+   "exchanges" are short scenes where W is the wildcard (H, A, B, C work as above); one plays now and then.
+   "wrap" plays once during the wrap-up. "chat" lines are typed in the meeting chat by the wildcard. "turn" is how many lines
+   they say before letting go of the floor, and "floor" is how likely they are to grab it when someone else finishes. */
+const WILDCARDS = {
+  talker: {
+    label: 'The talker', turn: [4, 8], floor: 0.3,
+    lines: ['Can I jump in? This reminds me of something at my last company, and bear with me, it does connect.',
+      'So, two things. Well, three. Let me start with the second one, because it explains the first.',
+      'I won’t take long. The short version, and I’ll give you the long one in a second, is that it depends.',
+      'I was thinking about this on my run this morning, which, side note, I’ve started running again.',
+      'Just to add some colour here, and then I promise I’ll hand it back.',
+      'And that’s really my point. Well, half of it. The other half is more of a feeling.',
+      'Sorry, one more thing, and then I’m done. Probably.',
+      'Let me zoom out for a second. Actually, let me zoom out further.',
+      'If I could just paint a picture. Imagine a whiteboard. Now imagine a bigger whiteboard.',
+      'I’ve got a few thoughts, and I’ve numbered them, so this will be efficient.',
+      'Point four is really an extension of point two, so stay with me.',
+      'I know I mentioned this last week, but it’s worth repeating, slightly louder.',
+      'Where was I? Oh, right. The beginning.',
+      'Which brings me, in a roundabout way, to my cousin’s wedding.',
+      'Okay, so, a bit of background first, and this is important background.',
+      'I’ll keep it to a minute. A long minute, but a minute.',
+      'Funny story, actually, and it’s relevant, I promise.',
+      'Not to hog the mic, but nobody else was saying anything, so.',
+      'This is a bit of a tangent, but tangents are where the good stuff lives.',
+      'Let me finish this thought, because I’ve lost it twice already.',
+      'I’m going to say one more sentence, and it has a few commas in it.'],
+    replies: ['Thanks, {W}. Let’s give someone else a turn.', 'Great, thank you. Anyone else?', 'Okay. I think we got it, {W}.', '[laughter] Thanks, {W}.'],
+    exchanges: [
+      [['W', 'Can I just add one quick thing?'], ['H', 'Of course. Quickly.'], ['W', 'So this goes back to about twenty nineteen.'], ['A', '[laughter]'], ['H', 'Maybe the short version, {W}.']],
+      [['W', 'Sorry, I know I’ve been talking a lot.'], ['B', 'No, no, it’s fine.'], ['W', 'Great, because I had another thought.']],
+      [['A', 'I think we’re aligned, so let’s move on to'], ['W', 'Before we do, one small thing. Four small things, really.'], ['H', 'Let’s take two of them.']],
+      [['H', 'We’re a little behind, so let’s keep answers short.'], ['W', 'Totally agree. Short answers. Which, funnily enough, is something I have a lot to say about.'], ['B', '[laughter]']]
+    ],
+    wrap: [['W', 'Just before we go, one last thought. Very quick.'], ['H', 'Let’s save that one for next week, {W}.'], ['W', 'Next week, then. I’ll prepare slides.']],
+    chat: ['Adding to what I said, I’ll type the rest here', 'Long thought incoming, sorry in advance', 'Forgot one more point. Saving it for the next item', 'Happy to talk this through after the call. For about an hour']
+  },
+  knowitall: {
+    label: 'The know-it-all', turn: [2, 4], floor: 0.2,
+    lines: ['Actually, technically, that’s not quite right. But go on.',
+      'I read a study on exactly this. Well, the summary.',
+      'For the record, I flagged this six months ago. There’s an email.',
+      'Not to be that person, but it’s “fewer”, not “less”.',
+      'I actually wrote the original version of that process, so I can explain it.',
+      'In my experience, and I have a lot of experience, this never works the first time.',
+      'To be fair, I did predict this. I said “this might happen”, and here we are.',
+      'There’s a framework for this. It has a four-letter acronym, and I know all four letters.',
+      'Small correction to the slide: it’s eleven point four percent, not eleven.',
+      'Funnily enough, I was just explaining this to my dentist.',
+      'If you think about it from first principles, which I always do, the answer is obvious.',
+      'Interesting. That’s almost exactly what I was about to say, only less clearly.',
+      'I’d push back slightly. Not because you’re wrong, but because I’m usually right.',
+      'Quick clarification, for accuracy.',
+      'I think you’ll find the official term is “workstream”.',
+      'That’s a common mistake, honestly. I made it once, at university.',
+      'I’ll send everyone a link to the article. It’s only forty pages.',
+      'Correct me if I’m wrong, which I’m not, but that was in last year’s plan.',
+      'You’re close. You’re very close.',
+      'Historically speaking, this goes back to the Romans.'],
+    replies: ['Thank you, {W}.', 'Right. Of course.', 'Noted, {W}.', '[laughter]', 'Okay. Moving on.'],
+    exchanges: [
+      [['A', 'I think the number was around twelve.'], ['W', 'Twelve point three, actually.'], ['A', 'Right. Twelve point three.'], ['B', '[laughter]']],
+      [['H', 'Does anyone know who set this up originally?'], ['W', 'I did. Well, I suggested it. Well, I was in the meeting.']],
+      [['B', 'I might be wrong, but'], ['W', 'You are, slightly. Keep going though, it’s a good start.'], ['C', 'Wow.']],
+      [['A', 'Has anyone used the new tool yet?'], ['W', 'I was in the beta. And the beta before the beta.'], ['A', 'Of course you were.']]
+    ],
+    wrap: [['W', 'For the notes, I raised most of these action items last month.'], ['H', 'Noted. Thank you, {W}.']],
+    chat: ['Actually, the source for that is in the appendix', 'Correction: it was Tuesday, not Wednesday', 'For context, I’ve been saying this since last year', 'Pro tip: Ctrl+Shift+V pastes without formatting. You’re welcome']
+  },
+  confused: {
+    label: 'The confused manager', turn: [1, 1], floor: 0.15,
+    lines: ['Sorry, which slide are we on?',
+      'Quick question. Is this the meeting about the thing, or the other thing?',
+      'Can someone remind me what the acronym stands for? The one everyone keeps saying.',
+      'I love this. What is it?',
+      'Hang on, I joined from my phone and all I can see is someone’s ceiling.',
+      'I think I agree. Can you say it again, but slower?',
+      'Is this the same project as last quarter, or did we rename it again?',
+      'Sorry, I was in another meeting about this meeting. Where are we?',
+      'Let’s make sure we loop in whoever owns this. Who owns this?',
+      'Great work, everyone. Really great. I’ll read it properly later.',
+      'Wait, is someone sharing? I just see a lot of rectangles.',
+      'Did we decide something? It feels like we decided something.',
+      'Sorry, my screen says this meeting started tomorrow.',
+      'Sorry, I’m in the car. Are we talking about the budget?',
+      'Who is that speaking? Oh, it’s me. Sorry.',
+      'I’ve written “synergy” in my notes. Is that right?',
+      'Can we put that in a deck? I understand things better in a deck.',
+      'I thought this was a lunch meeting.',
+      'When you say “the cloud”, do we own it?',
+      'Is this a decision for me? Because I’ll need a minute. Or a week.'],
+    replies: ['Same item as a minute ago, {W}.', 'I’ll catch you up after the call, {W}.', 'It’s all in the notes.', 'Yes. Well, sort of.', '[laughter]'],
+    exchanges: [
+      [['W', 'Sorry, is my camera on?'], ['A', 'It is, yes.'], ['W', 'Good. And is it pointing at me?'], ['B', 'Mostly at the ceiling.']],
+      [['W', 'Can we go back to the previous slide?'], ['H', 'Which one?'], ['W', 'The one before the one I didn’t understand.']],
+      [['W', 'So when is the deadline again?'], ['H', 'Friday.'], ['W', 'This Friday?'], ['H', 'Last Friday.'], ['C', '[laughter]']],
+      [['W', 'I’ll be honest, I’ve been on mute this whole time, and also not listening.'], ['A', '[laughter]'], ['H', 'Appreciated. Quick summary: we’re on track.'], ['W', 'Love that for us.']]
+    ],
+    wrap: [['W', 'Great meeting. So what are we actually doing?'], ['H', 'I’ll send the notes.'], ['W', 'Perfect. Send them twice.']],
+    chat: ['What does EOD mean again? Asking for me', 'Which link? There are three links', 'Sorry, how do I raise my hand', 'Can someone forward me the invite to this meeting? I’m in it, but still']
+  }
+};
