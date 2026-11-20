@@ -12,10 +12,10 @@
 
 Most fake call pages give you one screen and a frozen grid of faces. This one is built to hold up for a whole meeting.
 
-- **Four app looks, not one.** Teamş, Zooм, Webbex and Meeţ each copy their own app's layout, colours, wording, menus and settings. There is no single design dressed up four ways.
+- **Four app looks, not one.** Teamş, Zooм, Webbex and Meeţ each copy their own app's layout, colours, typeface, wording, menus and settings, down to the small things: Zooм shows names instead of initials when a camera is off, Meeţ shows a blue talking indicator, and each app styles its captions its own way. There is no single design dressed up four ways.
 - **Or design your own app.** Choose a name, logo letter, brand colour, logo shape and one of three layouts (controls on top, a bottom bar or a floating pill).
 - **The whole call, start to finish:**
-  - **Before:** a pre-join screen with a camera preview and mic and camera toggles.
+  - **Before:** each app's own pre-join screen with a camera preview and mic and camera toggles, plus Teamş's audio options and Meeţ's device pickers.
   - **During:** a connecting step, then people drop in one by one.
   - **After:** each app's own leave and end steps lead to an after-call screen with Rejoin and a quality rating.
   - **Rejoin like it's real:** leave for five minutes and the meeting is five minutes further on when you come back, with the same people. If it ended while you were away, you see the host's "meeting ended" screen. A new meeting, or one that was ended for everyone, starts fresh.
