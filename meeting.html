@@ -9,6 +9,7 @@
 <script src="shared.js"></script>
 <script src="talk.js"></script>
 <script src="sample/timeline.js"></script>
+<script src="sample/short/timeline.js"></script>
 <style>
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
@@ -196,7 +197,8 @@ const params = new URLSearchParams(location.search);
 const FAST = params.get('fast') === '1';   /* add &fast=1 to see chat, reactions and hands within seconds when demoing */
 const SPEED = FAST ? 20 : 1;
 /* "With audio" plays the real-video meeting in sample/ instead of the scripted captions. */
-const SAMPLE = !!S.audio && typeof SAMPLE_TIMELINE !== 'undefined';
+const SAMPLE = !!S.audio && !!(window.SAMPLE_TIMELINES && SAMPLE_TIMELINES[S.sample]);
+const SAMPLE_INFO = SAMPLE ? SAMPLES[S.sample] : null;
 /* Leave, then Rejoin: the meeting carried on without you, so you come back to where it is now.
    A new meeting, or one that was ended for everyone, starts from the beginning. */
 const RESUME_KEY = 'trm-resume-v1', MEETING_ID = JSON.stringify(S);
@@ -263,7 +265,7 @@ const state = {
 let stream = null;
 /* Everyone invited. Some are already in the call when you join, the rest drop in over the first minute. */
 const INVITED = SAMPLE
-  ? SAMPLE_CAST.map((c, i) => ({ name: c.name, media: c.media, kind: c.kind, ...AVATAR[i % AVATAR.length], muted: c.kind === 'quiet', speaking: false, hand: false, react: null }))
+  ? sampleCastFor(S).map((c, i) => ({ name: c.name, media: c.media, kind: c.kind, ...AVATAR[i % AVATAR.length], muted: c.kind === 'quiet', speaking: false, hand: false, react: null }))
   : S.names.slice(0, S.count).map((name, i) => ({ name: name.trim() || 'Guest ' + (i + 1), ...AVATAR[i % AVATAR.length], muted: i % 3 === 1, speaking: false, hand: false, react: null }));
 const HOST_NAME = INVITED.length ? INVITED[0].name : 'The organiser';
 const ALREADY = S.timer > 0 || SAMPLE ? INVITED.length : Math.ceil(INVITED.length / 2);
@@ -1344,12 +1346,19 @@ function lobbyAction(b) {
 /* ---------- the real-video meeting ("With audio") ----------
    One clock drives everything. Each filmed person has one video (with their own voice) and each camera-off
    colleague one voice track, all as long as the meeting, so they stay in step and Leave then Rejoin picks up
-   at the right second. sample/timeline.js says who talks when, the word timings for captions, and when people join and leave. */
-const TL = SAMPLE ? SAMPLE_TIMELINE : null;
+   at the right second. The timeline says who talks when, the word timings for captions, cameras off, typed chat messages,
+   and when people join and leave. Its times count from when you join; the clock shows CLK more. */
+const TL = SAMPLE ? SAMPLE_TIMELINES[S.sample] : null;
+const CLK = TL ? TL.clock || 0 : 0;   /* the meeting clock when you join (the short one starts at 15:00) */
 const MEDIA = {};
 const BY_MEDIA = Object.fromEntries(INVITED.map(p => [p.media, p]));
-let sampleTimer = null, needTap = false, sampleCapKey = '', tapNoticeAt = 0;
-const sampleT = () => (Date.now() - state.start) / 1000;
+const OWN = INVITED.filter(p => p.kind === 'quiet');
+/* a chat line for a role nobody plays (fewer names than roles) goes to someone who is there */
+const roleOf = key => BY_MEDIA[key] || (OWN.length ? OWN[Math.max(0, SAMPLE_ROLES.indexOf(key)) % OWN.length] : null);
+/* the timeline knows when its own roles leave; anyone extra drops off just after the talk ends */
+const leaveAt = p => TL.leave[p.media] ?? (/^x\d+$/.test(p.media) ? TL.talkEnd + 2 + (+p.media.slice(1)) * 1.7 : Infinity);
+let sampleTimer = null, needTap = false, sampleCapKey = '', tapNoticeAt = 0, chatAt = 0;
+const sampleT = () => (Date.now() - state.start) / 1000 - CLK;
 const joinAt = p => (TL.join && TL.join[p.media]) || 0;
 if (TL) Object.keys(TL.speaking).forEach(k => {   /* join short pauses so the talking ring doesn't flicker */
   const out = [];
@@ -1366,7 +1375,7 @@ function sampleMedia() {
     if (p.kind !== 'video' && p.kind !== 'voice') return;
     const m = document.createElement(p.kind === 'video' ? 'video' : 'audio');
     m.preload = 'auto'; m.playsInline = true; m.setAttribute('playsinline', '');
-    m.src = 'sample/' + p.media + (p.kind === 'video' ? '.mp4' : '.m4a');
+    m.src = SAMPLE_INFO.dir + p.media + (p.kind === 'video' ? '.mp4' : '.m4a');
     hold.appendChild(m); MEDIA[p.media] = m;
   });
 }
@@ -1386,7 +1395,7 @@ function placeSampleVideos() {
 }
 function startSampleCall() {
   state.phase = 'call';
-  state.start = Date.now() - (+params.get('at') || 0) * 1000;   /* testing: add &at=SECONDS to join that far in */
+  state.start = Date.now() - (CLK + (+params.get('at') || 0)) * 1000;   /* testing: add &at=SECONDS to join that far in */
   sampleMedia();
   sampleRun();
 }
@@ -1394,7 +1403,7 @@ function resumeSampleCall(r) {
   r.muted.forEach((m, i) => INVITED[i] && (INVITED[i].muted = m));
   if (sampleT() >= TL.end) {   /* it finished while you were away */
     state.phase = 'call';
-    const t = Math.floor(TL.end), m = Math.floor(t / 60);
+    const t = Math.floor(CLK + TL.end), m = Math.floor(t / 60);
     state.ended = { how: 'host', dur: String(m).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0') };
     stopCam(); return drawEnd();
   }
@@ -1404,10 +1413,11 @@ function resumeSampleCall(r) {
 }
 function sampleRun() {
   const t = sampleT();
-  state.people.push(...INVITED.filter(p => joinAt(p) <= t && !(t >= (TL.leave[p.media] ?? Infinity))));
-  INVITED.forEach(p => { if (t >= (TL.leave[p.media] ?? Infinity)) p.left = true; });
+  state.people.push(...INVITED.filter(p => joinAt(p) <= t && t < leaveAt(p)));
+  INVITED.forEach(p => { if (t >= leaveAt(p)) p.left = true; });
   makePlan();   /* only used to pace the chat: opening, middle and wrap-up */
-  Object.assign(plan, { agendaAt: 0.3, itemsFrom: 0.3, wrapAt: (TL.talkEnd - 25) / 60, byeAt: TL.talkEnd / 60, endAt: TL.end / 60, chatUntil: Infinity });
+  Object.assign(plan, { agendaAt: CLK / 60 + 0.3, itemsFrom: CLK / 60 + 0.3, wrapAt: (CLK + TL.talkEnd - 25) / 60, byeAt: (CLK + TL.talkEnd) / 60, endAt: (CLK + TL.end) / 60, chatUntil: Infinity });
+  chatAt = (TL.chat || []).findIndex(c => c.at >= t - 1); if (chatAt < 0) chatAt = Infinity;   /* typed before you came in: not shown */
   render(); refreshPanels();
   scheduleChat(true);
   setTimeout(crowdTick, (120 + Math.random() * 180) * 1000 / SPEED);
@@ -1445,12 +1455,12 @@ function sampleTick() {
   if (t >= TL.end) { stopSample(); return hostEnded(); }
   let changed = false;
   INVITED.forEach(p => {   /* latecomers drop in during the first minute */
-    if (p.left || state.people.includes(p) || t < joinAt(p) || t >= (TL.leave[p.media] ?? Infinity)) return;
+    if (p.left || state.people.includes(p) || t < joinAt(p) || t >= leaveAt(p)) return;
     state.people.push(p); changed = true;
     if (t - joinAt(p) < 3) notice(L === 'meet' ? `${p.name} joined` : `${p.name} joined the meeting`);
   });
   state.people.slice().forEach(p => {   /* near the end people drop off one by one */
-    const at = TL.leave[p.media];
+    const at = leaveAt(p);
     if (at == null || t < at) return;
     state.people.splice(state.people.indexOf(p), 1); p.left = true; p.speaking = false; changed = true;
     if (L !== 'zoom') notice(L === 'meet' ? `${p.name} has left` : `${p.name} left the meeting`);
@@ -1466,6 +1476,10 @@ function sampleTick() {
       if (pr) pr.catch(() => { soundBlocked(); m.muted = true; m.play().catch(() => {}); });
     } else if (off > 0.45 && !m.seeking && now - (m._seekAt || 0) > 2000) { m._seekAt = now; m.currentTime = t; }
   });
+  for (; TL.chat && chatAt < TL.chat.length && TL.chat[chatAt].at <= t; chatAt++) {   /* the host's questions and colleagues' reactions */
+    const c = TL.chat[chatAt], p = roleOf(c.who);
+    if (p && state.people.includes(p)) incoming(p, c.text);
+  }
   if (needTap && Date.now() - tapNoticeAt > 8000) { tapNoticeAt = Date.now(); notice('Click anywhere to turn on the meeting sound'); }
   INVITED.forEach(p => {   /* a camera goes off for a moment when its person walks or leans out of frame */
     const off = !!(TL.camOff && TL.camOff[p.media] || []).find(([a, b]) => t >= a && t < b);

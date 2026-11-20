@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from hour_script import PEOPLE
 from ai_edge_litert.interpreter import Interpreter
 FPS = 30000 / 1001; SR = 48000
+XF = 9   # frames of dissolve where one piece of footage follows straight on from another
 W, H = 854, 480
 SEAM, PD, MODEL, WHO = sys.argv[1:5]
 args = sys.argv[5:]
@@ -72,6 +73,7 @@ enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_f
                         '-an', vid_path], stdin=subprocess.PIPE)
 black = np.zeros((H, W, 3), np.uint8).tobytes()
 fi = 0; t_start = time.time(); live = 0
+last_img = None; last_fi = -10   # last picture written, to soften cuts between two runs that touch
 def write_black(upto):
     global fi
     while fi < upto: enc.stdin.write(black); fi += 1
@@ -85,19 +87,27 @@ for r in runs:
     src0 = r['s'] + (T0 + i0 / FPS - r['a'])
     k = np.load(f'{SEAM}/meta/{fid(r["chat"])}.keypoints.npy')
     cx, ey, cw = crop_path(k, int(round(src0 * FPS)), n)
-    s = 0.5
-    cw = int(min(cw * s, 1080)) // 2 * 2; ch = int(cw * 9 / 16) // 2 * 2
-    dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-threads', '3', '-ss', f'{src0:.3f}', '-i', f'{SEAM}/dl/{fid(r["chat"])}.mp4', '-frames:v', str(n),
-                            '-vf', 'scale=1080:1920:flags=bilinear', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
-    fb = 1080 * 1920 * 3; last = None; prev_mask = None
+    # ffmpeg crops at full size, frame by frame (sendcmd), then scales: only small frames reach Python
+    cw = int(min(cw, 2160)) // 2 * 2; ch = int(cw * 9 / 16) // 2 * 2
+    xs = np.clip(cx - cw / 2, 0, 2160 - cw).astype(int); ys = np.clip(ey - 0.42 * ch, 0, 3840 - ch).astype(int)
+    cmd_path = f'{out_dir}/{WHO}_crop.cmd'
+    with open(cmd_path, 'w') as f:
+        f.write(f'0.0 crop x {xs[0]}, crop y {ys[0]};\n')
+        for j in range(1, n):
+            if xs[j] != xs[j - 1] or ys[j] != ys[j - 1]: f.write(f'{(j - 0.5) / FPS:.4f} crop x {xs[j]}, crop y {ys[j]};\n')
+    dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-threads', '2', '-skip_loop_filter', 'all', '-ss', f'{src0:.3f}', '-i', f'{SEAM}/dl/{fid(r["chat"])}.mp4',
+                            '-frames:v', str(n), '-vf', f"sendcmd=f='{cmd_path}',crop={cw}:{ch}:{xs[0]}:{ys[0]},scale={W}:{H}:flags=bicubic",
+                            '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
+    fb = W * H * 3; last = None; prev_mask = None
     for j in range(n):
         buf = dec.stdout.read(fb)
         if len(buf) < fb: buf = last
         last = buf
-        fr = np.frombuffer(buf, np.uint8).reshape(1920, 1080, 3)
-        x0 = int(np.clip(cx[j] * s - cw / 2, 0, 1080 - cw)); y0 = int(np.clip(ey[j] * s - 0.42 * ch, 0, 1920 - ch))
-        img = cv2.resize(fr[y0:y0 + ch, x0:x0 + cw], (W, H), interpolation=cv2.INTER_AREA)
-        enc.stdin.write(blur_bg(img).tobytes()); fi += 1
+        img = blur_bg(np.frombuffer(buf, np.uint8).reshape(H, W, 3))
+        if j < XF and last_img is not None and i0 == last_fi + 1:   # a quick dissolve instead of a jump cut
+            a = (j + 1) / (XF + 1); img = (img * a + last_img * (1 - a)).astype(np.uint8)
+        enc.stdin.write(img.tobytes()); fi += 1
+    last_img = img; last_fi = fi - 1
     dec.stdout.close(); dec.wait(); live += n
     el = time.time() - t_start
     print(f'{WHO} run {r["chat"]} {a:.1f}-{b:.1f} done; {live} live frames, {live / max(el, 1e-3):.1f} fps', flush=True)
