@@ -97,18 +97,24 @@ function topicLines(s) {
   return CHAT_TOPIC[s.topic] || [];
 }
 
-/* "With audio": a meeting with real people on camera and real voices. Two coworkers were filmed for research
-   (Seamless Interaction dataset by Meta, CC BY-NC 4.0); the camera-off colleagues are voiced by text-to-speech (Kokoro).
-   It has its own title and cast. The video, audio and timings live in sample/. */
-const SAMPLE_TITLE = 'Team check-in';
+/* "With audio": an hour-long meeting with real people on camera and real voices. Three pairs of coworkers were filmed
+   for research (Seamless Interaction dataset by Meta, CC BY-NC 4.0); the camera-off colleagues are voiced by
+   text-to-speech (Kokoro). It has its own title and cast. The video, audio and timings live in sample/. */
+const SAMPLE_TITLE = 'Team connect hour';
 const SAMPLE_CAST = [
   { name: 'Priya Shah', media: 'priya', kind: 'voice' },    /* the host, camera off */
   { name: 'Greg Walsh', media: 'greg', kind: 'video' },
   { name: 'Lauren Mills', media: 'lauren', kind: 'video' },
+  { name: 'Mike Torres', media: 'mike', kind: 'video' },
+  { name: 'Ryan Doyle', media: 'ryan', kind: 'video' },
   { name: 'Daniel Brooks', media: 'daniel', kind: 'voice' },
-  { name: 'Aisha Khan', media: 'aisha', kind: 'quiet' }      /* camera off, on mute, listening */
+  { name: 'Hannah Clarke', media: 'hannah', kind: 'voice' },
+  { name: 'Aisha Khan', media: 'aisha', kind: 'quiet' },     /* camera off, on mute, listening */
+  { name: 'Megan Price', media: 'megan', kind: 'video' },
+  { name: 'Bill Novak', media: 'bill', kind: 'video' }
 ];
-const SAMPLE_CHAT = ['The new studio setup looks great btw', 'Labeled boxes, stealing that idea', 'Greg, can you share the mic settings doc?', 'Same, my desk is a disaster right now', 'Nice work on the setup, both of you'];
+const SAMPLE_CHAT = ['Love this format', 'Ha, so relatable', 'This is the best one of these so far', 'Can we do these every month?',
+  'Sorry, had to step away for a sec. What did I miss?', 'My camera is being weird today too', 'Great stories, everyone'];
 
 /* What people say out loud (the captions) lives in talk.js. */
 

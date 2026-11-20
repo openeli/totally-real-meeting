@@ -1344,12 +1344,13 @@ function lobbyAction(b) {
 /* ---------- the real-video meeting ("With audio") ----------
    One clock drives everything. Each filmed person has one video (with their own voice) and each camera-off
    colleague one voice track, all as long as the meeting, so they stay in step and Leave then Rejoin picks up
-   at the right second. sample/timeline.js says who talks when, the word timings for captions, and when people leave. */
+   at the right second. sample/timeline.js says who talks when, the word timings for captions, and when people join and leave. */
 const TL = SAMPLE ? SAMPLE_TIMELINE : null;
 const MEDIA = {};
 const BY_MEDIA = Object.fromEntries(INVITED.map(p => [p.media, p]));
 let sampleTimer = null, needTap = false, sampleCapKey = '', tapNoticeAt = 0;
 const sampleT = () => (Date.now() - state.start) / 1000;
+const joinAt = p => (TL.join && TL.join[p.media]) || 0;
 if (TL) Object.keys(TL.speaking).forEach(k => {   /* join short pauses so the talking ring doesn't flicker */
   const out = [];
   TL.speaking[k].forEach(([a, b]) => { const last = out.at(-1); if (last && a - last[1] < 0.6) last[1] = Math.max(last[1], b); else out.push([a, b]); });
@@ -1403,8 +1404,8 @@ function resumeSampleCall(r) {
 }
 function sampleRun() {
   const t = sampleT();
-  state.people.push(...INVITED.filter(p => !(t >= (TL.leave[p.media] ?? Infinity))));
-  INVITED.forEach(p => { if (!state.people.includes(p)) p.left = true; });
+  state.people.push(...INVITED.filter(p => joinAt(p) <= t && !(t >= (TL.leave[p.media] ?? Infinity))));
+  INVITED.forEach(p => { if (t >= (TL.leave[p.media] ?? Infinity)) p.left = true; });
   makePlan();   /* only used to pace the chat: opening, middle and wrap-up */
   Object.assign(plan, { agendaAt: 0.3, itemsFrom: 0.3, wrapAt: (TL.talkEnd - 25) / 60, byeAt: TL.talkEnd / 60, endAt: TL.end / 60, chatUntil: Infinity });
   render(); refreshPanels();
@@ -1443,6 +1444,11 @@ function sampleTick() {
   const t = sampleT();
   if (t >= TL.end) { stopSample(); return hostEnded(); }
   let changed = false;
+  INVITED.forEach(p => {   /* latecomers drop in during the first minute */
+    if (p.left || state.people.includes(p) || t < joinAt(p) || t >= (TL.leave[p.media] ?? Infinity)) return;
+    state.people.push(p); changed = true;
+    if (t - joinAt(p) < 3) notice(L === 'meet' ? `${p.name} joined` : `${p.name} joined the meeting`);
+  });
   state.people.slice().forEach(p => {   /* near the end people drop off one by one */
     const at = TL.leave[p.media];
     if (at == null || t < at) return;

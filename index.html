@@ -220,7 +220,7 @@ function updateCustomApp(patch) {
 function renderTimer() { $('timerPick').innerHTML = TIMER_STARTS.map(t => `<button class="chip" type="button" data-timer="${t.min}" aria-pressed="${S.timer === t.min}">${t.label}</button>`).join(''); }
 const AUDIO_HINT = {
   off: 'The meeting is silent, so what people say shows as live captions. You can turn captions off during the call.',
-  on: 'A short team check-in, about 4½ minutes, with sound. Two coworkers talk on camera and colleagues with their cameras off speak with computer voices. Captions start off. This meeting has its own topic and people for now, so the topic, people and timer settings above and below don’t apply.'
+  on: 'A “team connect hour”, about an hour, with sound. Six coworkers take turns answering the host’s questions on camera, and colleagues with their cameras off speak with computer voices. Cameras go on and off the way they do in real calls. Captions start off. This meeting has its own topic and people for now, so the topic, people and timer settings above and below don’t apply.'
 };
 function renderAudio() {
   document.querySelectorAll('[data-audio]').forEach(b => b.setAttribute('aria-pressed', (b.dataset.audio === 'on') === S.audio));
