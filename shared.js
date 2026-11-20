@@ -87,13 +87,28 @@ const TOPIC_TITLE = {
 /* 'Custom' lets the visitor write their own meeting title and conversation lines. */
 const CUSTOM_TOPIC = 'Custom';
 function topicTitle(s) {
+  if (s.audio) return SAMPLE_TITLE;
   if (s.topic === CUSTOM_TOPIC) return (s.customTopic.title || '').trim() || 'Team meeting';
   return TOPIC_TITLE[s.topic];
 }
 function topicLines(s) {
+  if (s.audio) return SAMPLE_CHAT;
   if (s.topic === CUSTOM_TOPIC) return (s.customTopic.lines || '').split('\n').map(t => t.trim()).filter(Boolean);
   return CHAT_TOPIC[s.topic] || [];
 }
+
+/* "With audio": a meeting with real people on camera and real voices. Two coworkers were filmed for research
+   (Seamless Interaction dataset by Meta, CC BY-NC 4.0); the camera-off colleagues are voiced by text-to-speech (Kokoro).
+   It has its own title and cast. The video, audio and timings live in sample/. */
+const SAMPLE_TITLE = 'Team check-in';
+const SAMPLE_CAST = [
+  { name: 'Priya Shah', media: 'priya', kind: 'voice' },    /* the host, camera off */
+  { name: 'Greg Walsh', media: 'greg', kind: 'video' },
+  { name: 'Lauren Mills', media: 'lauren', kind: 'video' },
+  { name: 'Daniel Brooks', media: 'daniel', kind: 'voice' },
+  { name: 'Aisha Khan', media: 'aisha', kind: 'quiet' }      /* camera off, on mute, listening */
+];
+const SAMPLE_CHAT = ['The new studio setup looks great btw', 'Labeled boxes, stealing that idea', 'Greg, can you share the mic settings doc?', 'Same, my desk is a disaster right now', 'Nice work on the setup, both of you'];
 
 /* What people say out loud (the captions) lives in talk.js. */
 
@@ -167,7 +182,7 @@ const CHAT_REPLIES = [
 const DEFAULTS = {
   name: 'Guest', cam: true, count: 5, names: NAME_POOL.slice(), spare: SPARE_NAMES.slice(),
   skin: 'teams', topic: 'Finance', theme: 'system',
-  audio: false,   /* no audio files yet: what people say shows as live captions */
+  audio: false,   /* false: silent meeting on the chosen topic, captions on. true: the real-video meeting with sound (SAMPLE_CAST), captions off */
   timer: 0,   /* minutes the call has already been running when you join: 0, 15, 30 or 60 */
   length: 'full',   /* 'full': the meeting runs start to finish (about an hour) and ends; 'loop': it keeps going */
   drift: 'some',    /* 'some': small talk, jokes and side-tracks now and then; 'none': stays on topic */
@@ -194,6 +209,7 @@ function loadSettings() {
   out.timer = TIMER_STARTS.some(t => t.min === +out.timer) ? +out.timer : 0;
   if (out.length !== 'loop') out.length = 'full';
   if (out.drift !== 'none') out.drift = 'some';
+  out.audio = out.audio === true;
   return out;
 }
 function saveSettings(s) { try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) {} }

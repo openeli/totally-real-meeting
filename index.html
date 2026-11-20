@@ -65,9 +65,9 @@
 <div class="field"><span class="f" id="l-audio">Sound</span>
 <div class="seg" role="group" aria-labelledby="l-audio">
 <button class="chip" type="button" data-audio="off" aria-pressed="true">No audio, captions on</button>
-<button class="chip" type="button" data-audio="on" aria-pressed="false" disabled style="opacity:.55;cursor:not-allowed">With audio (coming soon)</button>
+<button class="chip" type="button" data-audio="on" aria-pressed="false">With audio: real people (preview)</button>
 </div>
-<p class="hint">The meeting is silent, so what people say shows as live captions. You can turn captions off during the call.</p></div>
+<p class="hint" id="audioHint"></p></div>
 <div class="field"><span class="f" id="l-timer">Call timer starts at</span>
 <div class="seg" role="group" aria-labelledby="l-timer" id="timerPick"></div>
 <p class="hint">Join a call that has already been going for a while. The meeting clock starts from here.</p></div>
@@ -143,7 +143,7 @@
 <dl class="sum">
 <dt>Topic</dt><dd id="sumTopic"></dd>
 <dt>People</dt><dd id="sumPeople"></dd>
-<dt>Sound</dt><dd>Captions, no audio</dd>
+<dt>Sound</dt><dd id="sumSound"></dd>
 <dt>Timer</dt><dd id="sumTimer"></dd>
 <dt>Length</dt><dd id="sumLength"></dd>
 <dt>Chat</dt><dd id="sumChat"></dd>
@@ -218,6 +218,15 @@ function updateCustomApp(patch) {
   renderApps(); renderCustomApp(); save();
 }
 function renderTimer() { $('timerPick').innerHTML = TIMER_STARTS.map(t => `<button class="chip" type="button" data-timer="${t.min}" aria-pressed="${S.timer === t.min}">${t.label}</button>`).join(''); }
+const AUDIO_HINT = {
+  off: 'The meeting is silent, so what people say shows as live captions. You can turn captions off during the call.',
+  on: 'A short team check-in, about 4½ minutes, with sound. Two coworkers talk on camera and colleagues with their cameras off speak with computer voices. Captions start off. This meeting has its own topic and people for now, so the topic, people and timer settings above and below don’t apply.'
+};
+function renderAudio() {
+  document.querySelectorAll('[data-audio]').forEach(b => b.setAttribute('aria-pressed', (b.dataset.audio === 'on') === S.audio));
+  $('audioHint').textContent = AUDIO_HINT[S.audio ? 'on' : 'off'];
+  $('topic').disabled = S.audio;
+}
 function renderCustomTopic() { $('customTopic').style.display = S.topic === CUSTOM_TOPIC ? 'flex' : 'none'; }
 
 function renderPeople() {
@@ -242,10 +251,12 @@ function renderChat() {
 function summary() {
   $('sumBrand').innerHTML = brand(S.skin, 30);
   $('sumTopic').textContent = topicTitle(S);
-  $('sumPeople').textContent = ((S.name || '').trim() || 'Guest') + ' + ' + S.count + (S.count === 1 ? ' other' : ' others');
+  const others = S.audio ? SAMPLE_CAST.length : S.count;
+  $('sumPeople').textContent = ((S.name || '').trim() || 'Guest') + ' + ' + others + (others === 1 ? ' other' : ' others');
   const srcs = ['generic', 'topic', 'own'].filter(k => S.chat[k]).length;
   $('sumChat').textContent = !S.chat.on || !srcs ? 'Off' : (S.chat.freq === 'rare' ? 'On, rare' : 'On, occasional');
-  $('sumTimer').textContent = TIMER_STARTS.find(t => t.min === S.timer).short;
+  $('sumSound').textContent = S.audio ? 'Real people with audio, captions off' : 'Captions, no audio';
+  $('sumTimer').textContent = S.audio ? 'From 00:00' : TIMER_STARTS.find(t => t.min === S.timer).short;
   $('sumLength').textContent = S.length === 'loop' ? 'On a loop' : 'Start to finish';
   $('sumTheme').textContent = { system: 'Match my device', light: 'Light', dark: 'Dark' }[S.theme];
   $('join').href = settingsUrl('meeting.html', S);
@@ -262,7 +273,7 @@ $('caName').value = S.customApp.name;
 $('caLetter').value = S.customApp.letter;
 $('ownText').value = S.chat.ownText;
 $('ideaClose').innerHTML = ico('x');
-paintTheme(); renderApps(); renderCustomApp(); renderCustomTopic(); renderTimer(); renderPeople(); renderChat(); summary();
+paintTheme(); renderApps(); renderCustomApp(); renderCustomTopic(); renderTimer(); renderPeople(); renderChat(); renderAudio(); summary();
 
 /* Events */
 $('myName').addEventListener('input', e => { S.name = e.target.value; save(); });
@@ -272,6 +283,7 @@ $('loopSwitch').addEventListener('click', () => { S.length = S.length === 'loop'
 $('driftSwitch').addEventListener('click', () => { S.drift = S.drift === 'none' ? 'some' : 'none'; $('driftSwitch').setAttribute('aria-pressed', S.drift !== 'none'); save(); });
 $('camSwitch').addEventListener('click', () => { S.cam = !S.cam; $('camSwitch').setAttribute('aria-pressed', S.cam); save(); });
 $('apps').addEventListener('click', e => { const b = e.target.closest('[data-skin]'); if (!b) return; S.skin = b.dataset.skin; renderApps(); renderCustomApp(); save(); });
+document.querySelectorAll('[data-audio]').forEach(b => b.addEventListener('click', () => { S.audio = b.dataset.audio === 'on'; renderAudio(); save(); b.focus(); }));
 $('topic').addEventListener('change', e => { S.topic = e.target.value; renderCustomTopic(); save(); if (S.topic === CUSTOM_TOPIC) $('ctTitle').focus(); });
 $('timerPick').addEventListener('click', e => { const b = e.target.closest('[data-timer]'); if (!b) return; S.timer = +b.dataset.timer; renderTimer(); save(); $('timerPick').querySelector(`[data-timer="${S.timer}"]`).focus(); });
 $('ctTitle').addEventListener('input', e => { S.customTopic.title = e.target.value; save(); });
