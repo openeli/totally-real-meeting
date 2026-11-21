@@ -22,7 +22,7 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
 - **A meeting that runs about an hour, then ends.** It opens with small talk while people wait, works through four agenda items, then wraps up with a recap, action items and goodbyes. People leave one by one and the host ends the meeting, shown the way each app shows it (Zooм pops up "This meeting has been ended by host"). Prefer it to go on forever? Turn on **Meeting on a loop**. The talk keeps going, but once a normal meeting would have ended the chat goes quiet, and people only answer what you type.
 - **Jokes and side-tracks, if you want them.** Now and then someone talks on mute, a cat walks across a keyboard, or the meeting drifts onto lunch spots before the host pulls it back. One switch keeps the meeting strictly on topic instead.
 - **Live captions that flow.** Words appear one or two at a time as people speak. While someone talks, the text is lowercase and unpunctuated, now and then with a misheard word. When the sentence ends, it settles into its final form, the same way real captions behave.
-- **Someone shares their screen.** In Finance the host shares a spreadsheet on a Windows desktop and moves to the next sheet with each agenda item, and the numbers match what people say. In the email etiquette training the trainer opens the deck on a Mac and plays it as a slide show. In Mandatory Fun, Doug shares his whole desktop by mistake and Brenda shows the company values poster. Each app shows the share its own way (Zooм's "You are viewing" bar, Teаms' "is presenting"), the faces move to a strip, and captions get their own band under the screen. The office apps are lookalikes drawn in the page, so they stay light and sharp. One switch on the setup page turns it off.
+- **Screen sharing.** In Finance, the host presents a spreadsheet on a Windows 11 desktop and moves to the next sheet with each agenda item; the figures on screen match the ones spoken in the captions. In the email etiquette training, the trainer opens a deck on a Mac and plays it as a slide show. In Mandatory Fun, Doug shares his entire desktop by mistake, and Brenda later presents the company values poster. Each app frames a share its own way (Zooм's "You are viewing" bar, Teаms' "is presenting" header), participants move to a strip, and captions get a dedicated band below the shared screen so they never cover it. The office apps are lookalikes drawn in HTML and CSS, which keeps them lightweight and sharp at any size. A single switch on the setup page turns sharing off.
 - **Conversations that fit the topic.** Ten ready-made topics, from Budget review to Town hall, each come with their own meeting title, agenda, captions, action items and chat lines. You can also write your own topic.
 - **Scenarios for a laugh.** Five more topics play it for comedy: Absurd corporate training, Completely pointless brainstorming, Corporate disaster meeting, IT outage and Monday morning status meeting.
 - **A wildcard in the room.** Optionally give one participant a personality: the talker who never lets go of the floor, the know-it-all with a correction for everything, or the confused manager who is lost but supportive. They speak up more, have their own lines and little scenes, and type in the chat in character.
@@ -36,7 +36,8 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
   - Record (just a red pill, nothing is saved), captions and meeting info
   - In-call settings
 - **Your real camera, if you want it.** Your webcam shows in your own tile and never leaves your device.
-- **Background effects on your camera.** Blur your background or put a picture behind you, from each app's own menu: Teаms "Background effects", Zooм "Background & effects", Webbex "Virtual background" and Meeṭ "Effects" (with Meet's lighter "slightly blur"). Open it from the pre-join screen, from More, or from the Video settings. It runs in your browser with Google's MediaPipe selfie segmenter, is only downloaded once you pick an effect, and the site remembers your choice.
+- **Background effects on your camera.** Blur your background or replace it with a picture, from each app's own menu: Teаms "Background effects", Zooм "Background & effects", Webbex "Virtual background" and Meeṭ "Effects" (including Meet's lighter "Slightly blur"). The panel opens from the pre-join screen, from More, or from the Video settings. Processing runs entirely in your browser with Google's MediaPipe selfie segmenter, which loads only once you pick an effect. The site remembers your choice.
+- **Steady video tiles.** In the meetings with filmed participants, cameras stay on for most of the call. A camera that switches off remains off for at least 45 seconds, one that returns stays on for at least a minute, and no two camera changes happen within 20 seconds of each other anywhere in the meeting, so the grid never flickers.
 - **Fits your situation.** The call clock can start at 00:00, 15 minutes, 30 minutes or 1 hour. Join late and you skip the opening and land partway through the agenda, with everyone already there. You can set the participant count (1 to 16), edit or shuffle their names, and turn chat on or off.
 - **Light and dark.** The setup page follows your device or your choice. So do the app looks that have a light mode in real life.
 - **Phones too.** Every look adapts to small screens, for example Zooм's End button moves to the top, like the mobile app.
@@ -52,7 +53,23 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
 | **Your own app (HuddleHub)** | **Meeṭ pre-join screen** |
 | ![Custom app](docs/custom.png) | ![Pre-join screen](docs/prejoin.png) |
 
-<img src="docs/phone.png" alt="Zooм on a phone" width="260">
+### Screen sharing, background effects and video meetings
+
+| Finance spreadsheet, shared in Zooм | Training deck, shared in Meeṭ |
+|---|---|
+| ![A spreadsheet shared in the Zoom parody, with captions below it](docs/share-sheet.jpg) | ![A slide show shared in the Meet parody](docs/share-deck.jpg) |
+| **Mandatory Fun: Doug shares his desktop (Teаms)** | **Background effects (Teаms)** |
+| ![A Windows desktop with a browser, shared in the Teams parody](docs/share-desktop.jpg) | ![The Teams parody's Background effects panel, with an office background behind the user](docs/effects.jpg) |
+
+**Team connect hour with filmed participants (Webbex)**
+
+![The Webex parody's grid with four filmed participants on camera](docs/video-meeting.jpg)
+
+<p>
+  <img src="docs/phone.png" alt="Zooм on a phone" width="260">
+  &nbsp;
+  <img src="docs/phone-share.jpg" alt="A shared spreadsheet in the Teams parody on a phone, with captions and participants below" width="260">
+</p>
 
 ## How to use it
 
@@ -73,7 +90,7 @@ Pick one on the setup page:
 
 - **No audio, captions on** (default): the meeting is silent and what people say appears as live captions. You can turn captions off during the call.
 - **With audio and video: 15 min (preview)**: you join a “team connect” that has been going for 15 minutes, partway through someone’s answer, and it runs about 15 more minutes with sound and captions off. Six coworkers (three pairs) answer questions on camera. The host types the questions in the chat and the camera-off colleagues only chat, so every voice comes from the people on camera.
-- **With audio and video: full hour (preview)**: the whole “team connect hour”, about 58 minutes. The host and two colleagues speak with computer voices between the answers. Cameras switch on and off as they would in a real call, and backgrounds are blurred.
+- **With audio and video: full hour (preview)**: the whole “team connect hour”, about 58 minutes. The host and two colleagues speak with computer voices between the answers. Cameras stay on for most of the meeting and switch off only occasionally, as they would in a real call, and backgrounds are blurred.
 
 Or pick the comedy, **Mandatory Fun: Quarterly Vibe Check** (about 13 minutes). It is a team “fun” meeting where small things keep going wrong: a morale survey, a wellness minute, an escape room offsite, and a manager who talks to his desk lamp. The jokes are original. It plays three ways:
 
@@ -98,10 +115,11 @@ No build step and no server: open `index.html` in a browser.
 - `app.html`: "Get the app", a step-by-step guide with iPhone lookalike pictures for adding the site to the Home Screen.
 - `404.html`: the "meeting doesn't exist" page GitHub Pages shows for any broken link, with a Return to lobby button.
 - `shared.js`: settings, parody logos, names, topics and chat lines.
-- `talk.js`: what people say out loud (the captions): small talk, the agenda for each topic, jokes, side-tracks and the wrap-up.
+- `talk.js`: what people say out loud (the captions): small talk, the agenda for each topic, jokes, side-tracks and the wrap-up. `MEETING_NUMS` picks the percentages and amounts once per meeting, so the captions and the shared spreadsheet agree.
+- `share.js`: the shared screens (a Windows 11 spreadsheet, a Mac slide deck and a desktop with a browser), drawn in HTML and CSS at 1280×720 and scaled to fit. `SHARE_TOPICS` lists the topics that share and what they show; `SHARE_SAMPLE` places the shares on the timeline of a prepared meeting.
 - `site.css`: styles for the setup and disclaimer pages.
 - `effects.js` and `effects/`: background effects for your own camera. `effects.js` cuts you out of each frame with the MediaPipe selfie segmenter (the model file is in `effects/`; the MediaPipe code loads from jsDelivr only when an effect is turned on) and draws you over a blur or a picture. The pictures are drawn by `tools/effects/make_backgrounds.py`.
-- `sample/` (the hour) and `sample/short/` (15 minutes): the audio and video meetings: one video per on-camera person, one voice track per camera-off person (all as long as the meeting, so they stay in sync), and `timeline.js` with who talks when, caption word timings, cameras on and off, typed chat messages, and when people join and leave. `tools/sample/` has the scripts that build it. Add `&at=SECONDS` to the meeting URL to jump in partway.
+- `sample/` (the hour), `sample/short/` (15 minutes) and `sample/humor/` (Mandatory Fun): the audio and video meetings: one video per on-camera person, one voice track per camera-off person (all as long as the meeting, so they stay in sync), and `timeline.js` with who talks when, caption word timings, cameras on and off, typed chat messages, and when people join and leave. `tools/sample/` has the scripts that build it, including `restitch.py`, which re-plans the filmed tiles from existing renders, and `calm_cameras.py --check`, which verifies the camera rules (see `tools/sample/README.md`). Add `&at=SECONDS` to the meeting URL to jump in partway.
 - `docs/`: screenshots for this page.
 
 ### Add or change content

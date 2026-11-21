@@ -111,7 +111,7 @@ function financeSheets(nums) {
   ];
 }
 const COLS = 'ABCDEFGHIJKL';
-function excelScreen(file, step, nums, now) {
+function excelScreen(file, step, nums, now, who) {
   const sheets = financeSheets(nums), sh = sheets[Math.max(0, Math.min(sheets.length - 1, step))];
   const [sr, sc] = sh.sel;   /* the selected cell, by data row and column (0 = labels) */
   const cellRef = COLS[sc] + (sr + 3);
@@ -145,7 +145,7 @@ function excelScreen(file, step, nums, now) {
       <div class="sh-xtitle">
         <span class="l">${appIcon('excel', 18)}<span class="as">AutoSave <span class="tog"><i></i></span> Off</span>${g('save', 16)}${g('undo', 15)}${g('redo', 15)}${g('down', 12)}</span>
         <span class="m">${sx(file.replace(/\.xlsx$/, ''))} &bull; Saved to this PC ${g('down', 11)}</span>
-        <span class="r"><span class="srch">${g('search', 14)}Search</span><span class="me">JR</span>${winTitleButtons('#fff')}</span>
+        <span class="r"><span class="srch">${g('search', 14)}Search</span><span class="me">${sx(initials(who || ''))}</span>${winTitleButtons('#fff')}</span>
       </div>
       <div class="sh-xtabs">${tabs.map(t => `<span${t === 'Home' ? ' class="on"' : ''}>${t}</span>`).join('')}<span class="sp"></span><span class="cm">${g('comment', 14)} Comments</span><span class="shr">${g('up', 13)} Share ${g('down', 11)}</span></div>
       <div class="sh-xribbon">
@@ -233,8 +233,8 @@ function dougScreen(step, now) {
 }
 
 /* ---------- the whole screen, for the current step ---------- */
-function screenHtml(share, step, mode, nums, now) {
-  if (share.app === 'excel') return excelScreen(share.file, step, nums, now);
+function screenHtml(share, step, mode, nums, now, who) {   /* who: the presenter's name, for the account picture in the title bar */
+  if (share.app === 'excel') return excelScreen(share.file, step, nums, now, who);
   if (share.app === 'ppt') return pptScreen(share, step, mode, now);
   if (share.app === 'desktop') return dougScreen(step, now);
   return '';
