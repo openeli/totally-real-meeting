@@ -40,4 +40,20 @@ The comedy: `python tts_humor.py MODEL_DIR HUMOR/tts`, then `python plan_humor.p
 `python to_js.py HUMOR/timeline.json ../../sample/humor/timeline.js humor` and copy `HUMOR/render/*.mp4` and `*.m4a`
 into `sample/humor/`. The captions-only mode uses the same timeline and plays no files.
 
+## Calm cameras (after any render)
+
+The first renders stitched listening footage from many short pieces and turned cameras off for a few seconds at a time, so
+tiles flickered and the picture sometimes jumped. These scripts fix a finished meeting without the source footage:
+
+1. `python cuts.py VIDEO.mp4 OUT.json` finds every visible jump in a tile video (run it for each person; name the outputs
+   `WORK/cuts-src-NAME.json`).
+2. `python restitch.py TIMELINE.js VIDEO_DIR WORK` plans each tile again: every frame where the person talks stays exactly
+   where it was, the rest is filled from their own quiet footage, joined only where two frames look the same, or played
+   back and forth over still footage. A jump nobody can avoid becomes a short freeze, like a network hiccup, at most once
+   every two minutes per person. It writes the new `camOff` into TIMELINE.js and a plan per person into WORK.
+3. `python render_plan.py VIDEO.mp4 WORK/plan-NAME.npy OUT.mp4` builds the new tile video with the original sound.
+4. `python calm_cameras.py TIMELINE.js CUTS_DIR KEY --check` checks the camera rule: once off, a camera stays off for at
+   least 45 seconds and once on for at least a minute, two camera changes anywhere in the meeting are at least 20 seconds
+   apart, and nobody's footage jumps while their camera is on.
+
 Footage: Seamless Interaction by Meta, CC BY-NC 4.0. Voices: Kokoro, Apache 2.0. Background blur: MediaPipe selfie segmenter, Apache 2.0.

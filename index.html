@@ -99,6 +99,9 @@
 <button class="switch" type="button" id="loopSwitch" aria-pressed="false"><span class="track"><span class="knob"></span></span><span>Meeting on a loop <span class="hint" style="display:inline">(off: it runs start to finish, about an hour, then the host ends it)</span></span></button>
 <button class="switch" type="button" id="driftSwitch" aria-pressed="true"><span class="track"><span class="knob"></span></span><span>Small talk, jokes and side-tracks <span class="hint" style="display:inline">(now and then, like a real meeting)</span></span></button>
 </div>
+<div class="field" id="shareField" style="gap:10px">
+<button class="switch" type="button" id="shareSwitch" aria-pressed="true"><span class="track"><span class="knob"></span></span><span>Screen sharing <span class="hint" style="display:inline">(someone shares a spreadsheet, slides or their screen during the meeting)</span></span></button>
+</div>
 <div id="customTopic" class="subpanel">
 <h3>Make your own topic</h3>
 <div class="field"><label class="f" for="ctTitle">Meeting title</label><input class="input" id="ctTitle" type="text" maxlength="60" placeholder="e.g. Weekly team sync"></div>
@@ -281,6 +284,7 @@ function renderAudio() {
     $('sampleTopicTag').textContent = SAMPLES[k].tl === 'humor' ? 'Preselected for the comedy meeting' : 'Preselected for this audio and video meeting';
   }
   ['loopSwitch', 'driftSwitch'].forEach(id => { $(id).disabled = !!k; });
+  renderShare();
   $('loopSwitch').setAttribute('aria-pressed', !k && S.length === 'loop');
   $('driftSwitch').setAttribute('aria-pressed', !!k || S.drift !== 'none');
   document.querySelectorAll('.locked').forEach(el => { el.hidden = !k; });
@@ -362,6 +366,8 @@ paintTheme(); renderApps(); renderCustomApp(); renderChat(); renderAudio(); summ
 /* Events */
 $('myName').addEventListener('input', e => { S.name = e.target.value; save(); });
 $('loopSwitch').addEventListener('click', () => { S.length = S.length === 'loop' ? 'full' : 'loop'; $('loopSwitch').setAttribute('aria-pressed', S.length === 'loop'); save(); });
+function renderShare() { $('shareField').hidden = !hasShare(S); $('shareSwitch').setAttribute('aria-pressed', S.share !== false); }
+$('shareSwitch').addEventListener('click', () => { S.share = S.share === false; renderShare(); save(); });
 $('driftSwitch').addEventListener('click', () => { S.drift = S.drift === 'none' ? 'some' : 'none'; $('driftSwitch').setAttribute('aria-pressed', S.drift !== 'none'); save(); });
 $('camSwitch').addEventListener('click', () => { S.cam = !S.cam; $('camSwitch').setAttribute('aria-pressed', S.cam); save(); });
 $('apps').addEventListener('click', e => { const b = e.target.closest('[data-skin]'); if (!b) return; S.skin = b.dataset.skin; renderApps(); renderCustomApp(); save(); });
@@ -374,7 +380,7 @@ document.querySelectorAll('[data-audio]').forEach(b => b.addEventListener('click
 /* Opened from the home screen it already fills the screen, so the tip has nothing to add. */
 if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) { $('fullTip').hidden = true; $('getApp').hidden = true; }   /* already the app */
 $('wildcard').addEventListener('change', e => { S.wildcard = e.target.value; renderWildcard(); save(); });
-$('topic').addEventListener('change', e => { S.topic = e.target.value; renderCustomTopic(); save(); if (S.topic === CUSTOM_TOPIC) $('ctTitle').focus(); });
+$('topic').addEventListener('change', e => { S.topic = e.target.value; renderCustomTopic(); renderShare(); save(); if (S.topic === CUSTOM_TOPIC) $('ctTitle').focus(); });
 $('timerPick').addEventListener('click', e => { const b = e.target.closest('[data-timer]'); if (!b) return; S.timer = +b.dataset.timer; renderTimer(); save(); $('timerPick').querySelector(`[data-timer="${S.timer}"]`).focus(); });
 $('ctTitle').addEventListener('input', e => { S.customTopic.title = e.target.value; save(); });
 $('ctLines').addEventListener('input', e => { S.customTopic.lines = e.target.value; save(); });
