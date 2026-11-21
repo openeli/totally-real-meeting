@@ -37,7 +37,9 @@
 .more .card p{margin:0;color:var(--muted)}
 .mini{margin:0;padding-left:20px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
 .mini b{color:var(--text)}
-.mini a,.addr a{word-break:break-all}
+.mini a,.addr a{overflow-wrap:anywhere}
+.nb{white-space:nowrap}
+@media (max-width:340px){.ios{zoom:.88}}
 .step p.addr{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;color:var(--text);font-weight:600}
 .copy{min-height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--border);background:var(--field);font-size:14px;font-weight:600;cursor:pointer}
 
@@ -51,8 +53,6 @@
 .ios .page{position:absolute;inset:0;padding:22px 18px;background:linear-gradient(#FFFFFF,#F4F5F8)}
 .ios .page i{display:block;height:10px;border-radius:5px;background:#E4E6EB;margin-bottom:10px}
 .ios .bar{position:absolute;left:12px;right:12px;bottom:14px;height:50px;display:flex;align-items:center;gap:8px}
-.ios .url{flex:1;height:50px;border-radius:25px;background:rgba(255,255,255,.92);box-shadow:0 2px 14px rgba(0,0,0,.14),inset 0 0 0 .5px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;color:#1C1C1E;white-space:nowrap;overflow:hidden;padding:0 14px}
-.ios .url svg{flex:none;color:#3C3C43}
 .ios .round{flex:none;width:50px;height:50px;border-radius:25px;background:rgba(255,255,255,.92);box-shadow:0 2px 14px rgba(0,0,0,.14),inset 0 0 0 .5px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;color:#1C1C1E}
 .ios .menu{position:absolute;left:24px;bottom:76px;width:200px;border-radius:16px;background:rgba(249,249,249,.96);box-shadow:0 10px 40px rgba(0,0,0,.22);overflow:hidden}
 .ios .menu div{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-top:.5px solid var(--ios-line)}
@@ -81,6 +81,45 @@
 .ios .tog i{width:51px;height:31px;border-radius:16px;background:var(--ios-green);position:relative;flex:none}
 .ios .tog i::after{content:"";position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2)}
 .ios .note{margin:8px 4px 0;font-size:12px;color:var(--ios-sub)}
+.truth{margin:0 0 24px;padding:14px 16px;border-radius:12px;border:1px dashed var(--border);background:var(--card);color:var(--muted);font-size:15px;line-height:1.55}
+.truth b{color:var(--text)}
+/* Safari's floating bottom bar: back, address, tabs */
+.ios .sbar{position:absolute;left:6px;right:6px;bottom:14px;height:56px;display:flex;align-items:center;gap:5px;z-index:3}
+.ios .circ{flex:none;width:42px;height:42px;margin-top:10px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#1C1C1E;background:rgba(250,250,252,.82);box-shadow:0 2px 12px rgba(0,0,0,.14),inset 0 0 0 .5px rgba(0,0,0,.1)}
+.ios .pill{flex:1;min-width:0;height:52px;border-radius:26px;display:flex;align-items:center;gap:6px;padding:0 12px;color:#1C1C1E;font-size:14px;background:rgba(250,250,252,.88);box-shadow:0 2px 14px rgba(0,0,0,.16),inset 0 0 0 .5px rgba(0,0,0,.1)}
+.ios .pill .host{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}
+.ios .pill svg{flex:none}
+.ios.tall{height:440px}
+.ios .shade{position:absolute;inset:0;background:rgba(0,0,0,.16);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);z-index:1}
+.ios .lpmenu{position:absolute;left:44px;right:44px;bottom:96px;z-index:2;padding:8px 0;border-radius:28px;background:rgba(242,242,244,.94);box-shadow:0 12px 40px rgba(0,0,0,.25),inset 0 0 0 .5px rgba(255,255,255,.7);transform-origin:50% 100%}
+.ios .lpmenu .it{height:36px;display:flex;align-items:center;gap:12px;padding:0 14px 0 16px;font-size:14.5px;color:#1C1C1E;white-space:nowrap}
+.ios .lpmenu .it span{flex:1}
+.ios .lpmenu .it svg{flex:none}
+.ios .lpmenu .it .chev{opacity:.7}
+.ios .lpmenu .red{color:#E5483F}
+.ios .lpmenu hr{margin:5px 16px;border:0;border-top:1px solid rgba(60,60,67,.18)}
+.ios .lpmenu .share{border-radius:12px;margin:0 6px;padding-left:10px}
+.ios .finger{position:absolute;z-index:4;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(0,122,255,.25);border:2px solid rgba(0,122,255,.8);pointer-events:none}
+.ios .cue{position:absolute;z-index:4;left:50%;bottom:78px;transform:translateX(-50%);padding:4px 10px;border-radius:10px;background:rgba(0,0,0,.72);color:#fff;font-size:12px;font-weight:600;white-space:nowrap;opacity:0}
+/* the press: finger holds the bar, it dips, then lifts as the menu opens, and the finger moves up to tap Share */
+.hold .finger{left:104px;top:74px}
+.hold .lpmenu,.hold .shade{opacity:1}
+.hold .pill{transform:translateY(-10px) scale(1.06)}
+.hold .share{background:rgba(0,0,0,.1)}
+@media (prefers-reduced-motion:no-preference){
+  .hold .finger{animation:hFinger 6s ease-in-out infinite}
+  .hold .pill{animation:hPill 6s ease-in-out infinite}
+  .hold .lpmenu{animation:hMenu 6s ease-in-out infinite}
+  .hold .shade{animation:hShade 6s ease-in-out infinite}
+  .hold .share{animation:hShare 6s ease-in-out infinite}
+  .hold .cue{animation:hCue 6s ease-in-out infinite}
+}
+@keyframes hFinger{0%,8%{left:150px;top:392px;opacity:0;transform:scale(1.3)}14%{opacity:1;transform:scale(1)}16%,34%{left:150px;top:392px;opacity:1;transform:scale(.85)}38%{transform:scale(1)}52%,58%{left:104px;top:74px;opacity:1;transform:scale(1)}62%{transform:scale(.8)}70%{left:104px;top:74px;opacity:1;transform:scale(1)}80%,100%{left:104px;top:74px;opacity:0}}
+@keyframes hPill{0%,14%{transform:none}18%,34%{transform:scale(.96)}40%,86%{transform:translateY(-10px) scale(1.06)}92%,100%{transform:none}}
+@keyframes hMenu{0%,34%{opacity:0;transform:scale(.6)}40%{opacity:1;transform:scale(1.02)}43%,86%{opacity:1;transform:none}92%,100%{opacity:0;transform:scale(.96)}}
+@keyframes hShade{0%,34%{opacity:0}40%,86%{opacity:1}92%,100%{opacity:0}}
+@keyframes hShare{0%,60%{background:transparent}62%,80%{background:rgba(0,0,0,.12)}86%,100%{background:transparent}}
+@keyframes hCue{0%,12%{opacity:0}16%,34%{opacity:1}38%,100%{opacity:0}}
 .ios.home{background:linear-gradient(160deg,#5B7BD5,#9C6FD6 55%,#E59A7C)}
 .ios .apps{position:absolute;inset:26px 16px auto;display:grid;grid-template-columns:repeat(4,1fr);gap:20px 8px;justify-items:center}
 .ios .apps span{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;white-space:nowrap;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
@@ -105,30 +144,42 @@
 <div class="wrap guide">
 <p class="eyebrow">Get the app</p>
 <h1 class="display">Totally Real Meeting, right on your iPhone</h1>
-<p class="lede">Add it to your Home Screen and it opens like any other app: full screen, without the address bar, one tap away. Setup takes about 20 seconds.</p>
+<p class="lede">Add it to your Home Screen and it opens just like an app: full screen, without the address bar, one tap away. Setup takes about 20 seconds.</p>
+<p class="truth"><b>Full honesty:</b> this isn’t an actual app. It’s this website, pinned to your iPhone with its own icon and no browser bars. But it Totally looks like one, and that’s the whole idea behind Totally Real Meeting.</p>
 <p class="already" id="already" hidden>You’re already using the app version. Nothing more to do here.</p>
 
 <ol class="steps">
 <li class="step">
   <div><h2>Open the site in Safari</h2>
   <p>On your iPhone, open <b>Safari</b> and go to:</p>
-  <p class="addr"><a href="https://openeli.github.io/totally-real-meeting/index.html">https://openeli.github.io/totally-real-meeting/index.html</a><button type="button" class="copy" id="copyUrl">Copy link</button></p>
-  <p class="alt">Safari shows only the short name, <b>openeli.github.io</b>, in its address bar. That’s normal.</p></div>
+  <p class="addr"><a href="https://openeli.github.io/totally-real-meeting/">https://openeli.github.io/<wbr><span class="nb">totally-real-meeting/</span></a><button type="button" class="copy" id="copyUrl">Copy link</button></p>
+  <p class="alt">Once the page opens, Safari’s address bar at the bottom shows only <b>openeli.github.io</b>. That’s normal.</p></div>
   <div class="ios" aria-hidden="true">
-    <div class="page"><i style="width:60%"></i><i></i><i style="width:85%"></i><i style="width:70%"></i><i></i><i style="width:40%"></i></div>
-    <div class="bar"><div class="url"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span class="host">openeli.github.io</span></div><div class="round"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></div></div>
+    <div class="page"><i style="width:60%"></i><i></i><i style="width:85%"></i><i style="width:70%"></i><i></i><i style="width:40%"></i><i style="width:75%"></i><i></i></div>
+    <div class="sbar"><span class="circ back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span class="pill"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3.5" y="3.5" width="7" height="5" rx="1.2" fill="currentColor" stroke="none" opacity=".55"/><path d="M4 12h16M4 16h16M4 20h10"/></svg><span class="host">openeli.github.io</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12a7 7 0 1 1-2.05-4.95"/><path d="M19 4v4.5h-4.5"/></svg></span><span class="circ tabs"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 5.5A2 2 0 0 0 14 4H6a2 2 0 0 0-2 2v8a2 2 0 0 0 1.5 1.94"/></svg></span></div>
   </div>
 </li>
 
 <li class="step">
-  <div><h2>Tap Share</h2>
-  <p>Touch and hold the address bar at the bottom of the screen until a menu appears, then tap <b>Share</b>.</p>
-  <p class="alt">Another way: tap <b>•••</b> to the right of the address bar, then <b>Share</b>. If your Safari shows the Share button (a square with an arrow pointing up) in its toolbar, you can tap that instead.</p></div>
-  <div class="ios" aria-hidden="true">
-    <div class="page" style="filter:blur(1px);opacity:.7"><i style="width:60%"></i><i></i><i style="width:85%"></i><i style="width:70%"></i></div>
-    <div class="menu"><div>Copy<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></div><div class="hl">Share<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M7 11H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1"/></svg></div></div>
-    <span class="tap" style="left:72px;top:177px"></span>
-    <div class="bar"><div class="url" style="transform:scale(.97)"><span class="host">openeli.github.io</span></div><div class="round"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></div></div>
+  <div><h2>Press and hold the address bar, then tap Share</h2>
+  <p>Put your finger on the address bar (where it says <b>openeli.github.io</b>) and keep it there for a second. A menu pops up above it. Tap <b>Share</b>, the first option.</p></div>
+  <div class="ios tall hold" aria-hidden="true">
+    <div class="page"><i style="width:60%"></i><i></i><i style="width:85%"></i><i style="width:70%"></i><i></i><i style="width:40%"></i><i style="width:75%"></i><i></i></div>
+    <div class="shade"></div>
+    <div class="lpmenu">
+      <div class="it share"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M8 10H6.5A1.5 1.5 0 0 0 5 11.5v8A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-8a1.5 1.5 0 0 0-1.5-1.5H16"/></svg><span>Share</span></div>
+      <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg><span>Copy</span></div>
+      <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/></svg><span>Voice Search</span></div>
+      <hr>
+      <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 5.5A2 2 0 0 0 14 4H6a2 2 0 0 0-2 2v8a2 2 0 0 0 1.5 1.94"/></svg><span>Switch Tab Groups</span><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></div>
+      <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M10 14l5-5M11 9h4v4"/></svg><span>Move to Tab Group</span><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></div>
+      <hr>
+      <div class="it red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Close All 3 Tabs</span></div>
+      <div class="it red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Close Tab</span></div>
+    </div>
+    <div class="sbar"><span class="circ back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><span class="pill"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3.5" y="3.5" width="7" height="5" rx="1.2" fill="currentColor" stroke="none" opacity=".55"/><path d="M4 12h16M4 16h16M4 20h10"/></svg><span class="host">openeli.github.io</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12a7 7 0 1 1-2.05-4.95"/><path d="M19 4v4.5h-4.5"/></svg></span><span class="circ tabs"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 5.5A2 2 0 0 0 14 4H6a2 2 0 0 0-2 2v8a2 2 0 0 0 1.5 1.94"/></svg></span></div>
+    <span class="finger"></span>
+    <span class="cue">Press and hold</span>
   </div>
 </li>
 
@@ -158,7 +209,7 @@
   <div class="ios" aria-hidden="true">
     <div class="sheet" style="top:18px">
       <div class="nav"><span class="cancel">Cancel</span><b>Add to Home Screen</b><span class="add">Add</span></div>
-      <div class="addcard"><img src="icons/apple-touch-icon.png" alt=""><div class="name"><div>Real Meeting</div><small>https://openeli.github.io/totally-real-meeting/index.html</small></div></div>
+      <div class="addcard"><img src="icons/apple-touch-icon.png" alt=""><div class="name"><div>Real Meeting</div><small>https://openeli.github.io/totally-real-meeting/</small></div></div>
       <div class="tog">Open as Web App<i></i></div>
       <p class="note">An icon will be added to your Home Screen so you can quickly open this website.</p>
     </div>
@@ -179,18 +230,18 @@
 
 <div class="more">
   <div class="card"><h2>On Android</h2><ol class="mini">
-    <li>Open <b>Chrome</b> and go to <a href="https://openeli.github.io/totally-real-meeting/index.html">https://openeli.github.io/totally-real-meeting/index.html</a>.</li>
+    <li>Open <b>Chrome</b> and go to <a href="https://openeli.github.io/totally-real-meeting/">https://openeli.github.io/<wbr><span class="nb">totally-real-meeting/</span></a>.</li>
     <li>Tap <b>⋮</b> (three dots) to the right of the address bar.</li>
     <li>Tap <b>Add to home screen</b>. On some phones it says <b>Install app</b>.</li>
     <li>Tap <b>Install</b>, then confirm. The <b>Real Meeting</b> icon appears on your home screen.</li></ol></div>
-  <div class="card"><h2>Added it before?</h2><p>An icon saved before this site became an app may still open in Safari. Remove it from your Home Screen, then add it again with the steps above.</p></div>
+  <div class="card"><h2>Added it before?</h2><p>An icon saved before this site supported web app mode may still open in Safari. Remove it from your Home Screen, then add it again with the steps above.</p></div>
   <div class="card"><h2>On a computer</h2><p>Chrome and Edge show an install button at the right end of the address bar. Click it to open the site in its own window.</p></div>
 </div>
 </div>
 </main>
 <script>
 /* The site's address, as Eli wants it shown. Safari's address bar shows only the host, so the pictures do too. */
-const SITE_URL = 'https://openeli.github.io/totally-real-meeting/index.html';
+const SITE_URL = 'https://openeli.github.io/totally-real-meeting/';
 document.getElementById('copyUrl').addEventListener('click', async e => {
   try { await navigator.clipboard.writeText(SITE_URL); e.target.textContent = 'Copied'; }
   catch (err) { e.target.textContent = 'Copy failed'; }
