@@ -18,6 +18,7 @@
 <script src="shared.js"></script>
 <script src="talk.js"></script>
 <script src="share.js"></script>
+<script src="effects.js"></script>
 <script src="sample/timeline.js"></script>
 <script src="sample/short/timeline.js"></script>
 <script src="sample/humor/timeline.js"></script>
@@ -55,7 +56,8 @@ a{color:inherit}
 .dense .avatar{width:64px;height:64px;font-size:22px}
 .speaker .main .avatar{width:140px;height:140px;font-size:50px}
 .tile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.tile video.mirror{transform:scaleX(-1)}
+.tile video.mirror,.vslot canvas.mirror{transform:scaleX(-1)}
+.vslot canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .vslot{position:absolute;inset:0;background:#000}
 .name{position:absolute;left:8px;bottom:8px;max-width:calc(100% - 16px);display:flex;align-items:center;gap:4px;padding:3px 4px 3px 8px;border-radius:4px;font-size:13px;z-index:1}
 .name .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -161,6 +163,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[r
 .pre{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .pre video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .pre video.mirror{transform:scaleX(-1)}
+/* background effects panel: tiles of None, blur and pictures */
+.fxgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.fxgrid.meet{grid-template-columns:repeat(4,minmax(0,1fr))}
+.fxt{position:relative;aspect-ratio:16/9;border:0;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;background-size:cover;background-position:center}
+.fxgrid.meet .fxt{aspect-ratio:1}
+.fxt .ring{position:absolute;inset:0;border-radius:inherit;pointer-events:none}
+.fxt small{position:absolute;left:0;right:0;bottom:4px;font-size:11px;text-align:center}
+.fxsec{margin:4px 0 0;font-size:13px;font-weight:600}
+.fxnote{margin:0;font-size:12.5px;opacity:.75}
+@media (max-width:700px){#fxSide{top:auto!important;height:min(48dvh,440px);width:100%;border-radius:14px 14px 0 0!important;box-shadow:0 -8px 24px rgba(0,0,0,.3)}}
 .pre .off{display:flex;flex-direction:column;align-items:center;gap:12px;font-size:14px}
 .prebtns{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;gap:14px;z-index:1}
 .lob-h{margin:0;font-weight:600;font-size:22px}
@@ -206,6 +218,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[r
 <header><span id="setSideTitle">Settings</span><button class="ibtn" data-close aria-label="Close settings" style="width:44px;height:44px"></button></header>
 <div class="body" id="setSideBody"></div>
 </aside>
+<aside id="fxSide" class="side" hidden aria-labelledby="fxTitle">
+<header><span id="fxTitle">Background effects</span><button class="ibtn" data-close aria-label="Close background effects" style="width:44px;height:44px"></button></header>
+<div class="body" id="fxBody"></div>
+</aside>
 <div id="menu" class="menu" role="menu" hidden></div>
 <div id="scrim" class="scrim" hidden><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" id="dlg"></div></div>
 <div id="confirm" class="scrim" hidden><div class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="cfTitle" aria-describedby="cfText" id="cf"></div></div>
@@ -224,7 +240,7 @@ const SAMPLE_INFO = SAMPLE_KEY ? SAMPLES[SAMPLE_KEY] : null;
 const SAMPLE = !!SAMPLE_INFO && !!(window.SAMPLE_TIMELINES && SAMPLE_TIMELINES[SAMPLE_INFO.tl || SAMPLE_KEY]);
 /* Leave, then Rejoin: the meeting carried on without you, so you come back to where it is now.
    A new meeting, or one that was ended for everyone, starts from the beginning. */
-const RESUME_KEY = 'trm-resume-v1', MEETING_ID = JSON.stringify(S);
+const RESUME_KEY = 'trm-resume-v1', MEETING_ID = JSON.stringify(Object.assign({}, S, { fx: undefined }));   /* a background effect picked in the call is not a different meeting */
 const RESUMED = (() => {
   let r = null;
   try { r = JSON.parse(sessionStorage.getItem(RESUME_KEY) || 'null'); sessionStorage.removeItem(RESUME_KEY); } catch (e) {}
@@ -512,6 +528,12 @@ setInterval(() => {
 const selfVid = document.createElement('video');
 selfVid.muted = true; selfVid.autoplay = true; selfVid.playsInline = true;
 selfVid.setAttribute('muted', ''); selfVid.setAttribute('playsinline', '');
+/* A background effect draws on this canvas, laid over the video in the same tile (effects.js). The video keeps playing
+   underneath, because a phone pauses a video it cannot see. */
+const fxCanvas = document.createElement('canvas');
+fxCanvas.setAttribute('aria-hidden', 'true');
+const fx = window.CamFx ? CamFx.attach(selfVid, fxCanvas) : null;
+let fxLoading = false;
 let camAsking = false;
 /* again: a quiet retry after the phone stopped the camera. If that fails, the next tap tries once more. */
 async function startCam(again) {
@@ -556,6 +578,7 @@ function vidHold() {
 function parkVideos() {
   const h = vidHold();
   if (selfVid.parentNode && selfVid.parentNode !== h) h.appendChild(selfVid);
+  if (fxCanvas.parentNode && fxCanvas.parentNode !== h) h.appendChild(fxCanvas);
   Object.values(MEDIA).forEach(m => { if (m.tagName === 'VIDEO' && m.parentNode && m.parentNode !== h) h.appendChild(m); });
 }
 function placeSelf() {
@@ -564,9 +587,63 @@ function placeSelf() {
   if (selfVid.srcObject !== stream) selfVid.srcObject = stream;
   selfVid.className = state.mirror ? 'mirror' : '';
   if (selfVid.parentNode !== slot) slot.appendChild(selfVid);
+  fxCanvas.className = selfVid.className;
+  if (fxCanvas.parentNode !== slot) slot.appendChild(fxCanvas);
   if (selfVid.paused) selfVid.play().catch(() => {});
+  if (fx) fx.wake();
 }
 function setCam(on) { state.camOn = on; S.cam = on; saveSettings(S); if (on) startCam(); else stopCam(); render(); refreshPanels(); }
+
+/* ---------- background effects on your own camera, in each app's own words ---------- */
+ICONS.fxnone = '<circle cx="12" cy="12" r="8"/><path d="M6.4 6.4l11.2 11.2"/>';
+ICONS.fxblur = '<circle cx="12" cy="9.5" r="3"/><path d="M6.8 19a5.2 5.2 0 0 1 10.4 0"/><circle cx="4" cy="6" r=".6"/><circle cx="4" cy="11" r=".6"/><circle cx="4" cy="16" r=".6"/><circle cx="20" cy="6" r=".6"/><circle cx="20" cy="11" r=".6"/><circle cx="20" cy="16" r=".6"/>';
+ICONS.fxslight = '<circle cx="12" cy="9.5" r="3"/><path d="M6.8 19a5.2 5.2 0 0 1 10.4 0"/><circle cx="4.5" cy="8" r=".6"/><circle cx="4.5" cy="14" r=".6"/><circle cx="19.5" cy="8" r=".6"/><circle cx="19.5" cy="14" r=".6"/>';
+const FX_PICS = [['office', 'Office'], ['bookshelf', 'Bookshelf'], ['living', 'Living room'], ['bokeh', 'Evening lights'], ['abstract', 'Soft gradient']];
+const FXW = {
+  teams: { title: 'Background effects', menu: 'Video effects', lobby: 'Effects and avatars', none: 'None', blur: 'Blur' },
+  zoom: { title: 'Background & effects', menu: 'Background & effects', lobby: 'Background & effects', none: 'None', blur: 'Blur', sec: 'Virtual backgrounds' },
+  webex: { title: 'Virtual background', menu: 'Change virtual background', lobby: 'Background', none: 'None', blur: 'Blur' },
+  meet: { title: 'Effects', menu: 'Apply visual effects', lobby: 'Apply visual effects', none: 'Turn off visual effects', slight: 'Slightly blur your background', blur: 'Blur your background', sec: 'Blur and personal backgrounds', sec2: 'Backgrounds' }
+}[L === 'zoom' || L === 'webex' || L === 'meet' ? L : 'teams'];
+if (!['none', 'blur', 'slight'].includes(S.fx) && !(typeof S.fx === 'string' && FX_PICS.some(([k]) => S.fx === 'bg:' + k))) S.fx = 'none';
+if (S.fx === 'slight' && L !== 'meet') S.fx = 'blur';   /* only Meet has a lighter blur */
+const fxName = id => id === 'none' ? FXW.none : id === 'blur' ? FXW.blur : id === 'slight' ? FXW.slight : (FX_PICS.find(([k]) => 'bg:' + k === id) || [, 'Picture'])[1];
+/* Turn an effect on or off. The first effect downloads the segmenter, so your plain video shows until it is ready. */
+function applyFx(id, quiet) {
+  if (!fx) { if (!quiet) notice('Background effects need a newer browser'); return; }
+  S.fx = id; saveSettings(S);
+  if (id !== 'none' && !state.camOn) setCam(true);   /* like "Apply and turn on video" */
+  fxLoading = id !== 'none';
+  refreshPanels();
+  fx.set(id).then(() => { fxLoading = false; refreshPanels(); }, () => {
+    if (S.fx !== id) return;
+    fxLoading = false; S.fx = 'none'; saveSettings(S); fx.stop(); refreshPanels();
+    if (!quiet) notice('Background effects could not load. Check your connection and try again.');
+  });
+}
+function fxHtml() {
+  const fg = C.panelText || C.text, line = C.panelLine || C.line, acc = C.accent, meet = L === 'meet';
+  const tileBg = meet ? '#F1F3F4' : C.field;
+  const tile = (id, inner, style = '') => {
+    const on = S.fx === id;
+    return `<button class="fxt" role="radio" aria-checked="${on}" aria-label="${esc(fxName(id))}" title="${esc(fxName(id))}" data-fx="${id}" style="border-radius:${meet ? '8px' : '6px'};background-color:${tileBg};color:${fg};${style}">${inner}<span class="ring" style="${on ? `box-shadow:inset 0 0 0 ${meet ? 3 : 2}px ${acc}` : `box-shadow:inset 0 0 0 1px ${line}`}"></span></button>`;
+  };
+  const icon = (k, label) => `${ico(k, meet ? 24 : 22)}${label && !meet ? `<small style="color:${fg}">${label}</small>` : ''}`;
+  const pic = ([k]) => tile('bg:' + k, '', `background-image:url('effects/bg-${k}-thumb.jpg')`);
+  const blurTile = meet ? tile('blur', icon('fxblur'))
+    : tile('blur', `<span style="position:absolute;inset:-8px;background:url('effects/bg-office-thumb.jpg') center/cover;filter:blur(4px)"></span><small style="color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7)">${FXW.blur}</small>`);
+  const grid = items => `<div class="fxgrid${meet ? ' meet' : ''}" role="radiogroup" aria-label="${esc(FXW.title)}">${items.join('')}</div>`;
+  const status = fxLoading ? `<p class="fxnote" role="status">Loading effects…</p>`
+    : !state.camOn ? `<p class="fxnote">Your camera is off. Picking an effect turns it on.</p>` : '';
+  const note = `<p class="fxnote">Worked out on this device. Your video is never uploaded.</p>`;
+  if (meet) return `${status}<p class="fxsec">${FXW.sec}</p>${grid([tile('none', icon('fxnone')), tile('slight', icon('fxslight')), blurTile])}<p class="fxsec">${FXW.sec2}</p>${grid(FX_PICS.map(pic))}${note}`;
+  return `${status}${FXW.sec ? `<p class="fxsec">${FXW.sec}</p>` : ''}${grid([tile('none', icon('fxnone', FXW.none)), blurTile, ...FX_PICS.map(pic)])}${note}`;
+}
+document.getElementById('fxSide').addEventListener('click', e => {
+  const b = e.target.closest('[data-fx]'); if (!b) return;
+  applyFx(b.dataset.fx);
+  const again = document.querySelector(`#fxBody [data-fx="${b.dataset.fx}"]`); again && again.focus();
+});
 
 /* ---------- who is "speaking", and live captions ---------- */
 /* Live captions arrive the way real ones do: a word or two at a time, lowercase and unpunctuated while the
@@ -886,7 +963,7 @@ function crowdTick() {
 }
 
 /* ---------- side panels: chat, people, meeting info, settings (Teams style) ---------- */
-const panels = { chat: 'chat', people: 'people', info: 'info', settings: 'setSide' };
+const panels = { chat: 'chat', people: 'people', info: 'info', settings: 'setSide', fx: 'fxSide' };
 function styleSides() {
   const bg = C.panel, fg = C.panelText || C.text, line = C.panelLine || C.line;
   document.querySelectorAll('.side').forEach(el => { el.style.background = bg; el.style.color = fg; el.style.borderLeft = '1px solid ' + line; });
@@ -899,6 +976,7 @@ function styleSides() {
   if (skin === 'zoom' && !document.getElementById('chatTo')) document.getElementById('chatForm').insertAdjacentHTML('beforebegin', `<div id="chatTo" style="padding:8px 16px 0;font-size:12px;color:${C.muted}">To: <span style="display:inline-flex;align-items:center;gap:2px;padding:2px 8px;border-radius:4px;background:#0E72ED;color:#fff;font-weight:600">Everyone ${CHEVRON}</span></div>`);
   document.getElementById('peopleTitle').textContent = W.people;
   document.getElementById('infoTitle').textContent = W.info;
+  document.getElementById('fxTitle').textContent = FXW.title;
 }
 function openPanel(name, focusSel) {
   closeMenu();
@@ -914,7 +992,7 @@ function openPanel(name, focusSel) {
 function closePanel() {
   const was = state.panel; if (!was) return;
   document.getElementById(panels[was]).hidden = true; state.panel = null; render();
-  const back = document.querySelector({ chat: '[data-chat]', people: '[data-people]', info: '[data-info]', settings: '[data-more]' }[was]) || document.querySelector('[data-more]');
+  const back = document.querySelector({ chat: '[data-chat]', people: '[data-people]', info: '[data-info]', settings: '[data-more]', fx: '[data-lobfx]' }[was]) || document.querySelector('[data-more]');
   back && back.focus();
 }
 document.querySelectorAll('.side [data-close]').forEach(b => b.addEventListener('click', closePanel));
@@ -942,6 +1020,7 @@ function refreshPanels() {
   if (state.panel === 'people') document.getElementById('peopleBody').innerHTML = peopleHtml();
   if (state.panel === 'info') document.getElementById('infoBody').innerHTML = infoHtml();
   if (state.panel === 'settings') document.getElementById('setSideBody').innerHTML = settingsBody('all');
+  if (state.panel === 'fx') document.getElementById('fxBody').innerHTML = fxHtml();
   if (!document.getElementById('scrim').hidden) renderDialog();
 }
 document.getElementById('people').addEventListener('click', e => {
@@ -1147,6 +1226,7 @@ function moreItems() {
   if (L !== 'meet' || narrow) items.push({ label: state.cc ? W.ccOff : W.cc, icon: 'cc', action: toggleCC });
   if (L === 'meet' || narrow) items.push({ label: 'Switch to ' + ((v => / View$/.test(v) ? v : v.toLowerCase() + ' layout')(state.view === 'speaker' ? W.gallery : W.speaker)), icon: 'view', action: () => setView(state.view === 'speaker' ? 'gallery' : 'speaker') });
   if (canFull && (L !== 'zoom' || narrow)) items.push({ label: state.full ? 'Exit full screen' : 'Full screen', icon: 'full', action: toggleFull });
+  items.push({ label: FXW.menu, icon: 'sparkle', action: () => openPanel('fx') });
   items.push({ divider: true });
   items.push({ label: W.settings, icon: 'gear', action: openSettings });
   return items;
@@ -1209,7 +1289,8 @@ function settingsBody(tab) {
       + radios('view', 'Layout', [['gallery', W.gallery], ['speaker', W.speaker]], state.view)
       + `<div class="linkrow"><button class="pill-btn" data-share style="border:0;background:${C.accent};color:${C.onAccent}">Share this site</button><a class="pill-btn" href="index.html" style="display:inline-flex;align-items:center;text-decoration:none;border:1px solid rgba(127,127,127,.5)">Change look, topic or people</a></div>`,
     audio: tog('muted', state.muted, 'Mute meeting audio', 'Silences everyone in this call') + `<div class="set"><span class="t">Speaker<small>Default speaker</small></span></div>`,
-    video: tog('cam', state.camOn, 'Camera', 'Your video stays on this device and is never uploaded') + tog('mirror', state.mirror, 'Mirror my video', 'Only changes how you see yourself'),
+    video: tog('cam', state.camOn, 'Camera', 'Your video stays on this device and is never uploaded') + tog('mirror', state.mirror, 'Mirror my video', 'Only changes how you see yourself')
+      + `<div class="set"><span class="t">${FXW.title}<small>${esc(fxName(S.fx))}</small></span><button class="pill-btn" data-fxopen style="border:1px solid rgba(127,127,127,.5);background:transparent">Change</button></div>`,
     chat: tog('chatOn', S.chat.on, 'Messages from others', 'A few words here and there, never a constant stream')
       + radios('freq', 'How often', [['rare', 'Rare'], ['occasional', 'Occasional']], S.chat.freq)
   };
@@ -1241,6 +1322,7 @@ function settingAction(e) {
   if ('dlgclose' in d) return closeSettings();
   if (d.tab) { dlgTab = d.tab; renderDialog(); document.querySelector(`#dlg [data-tab="${d.tab}"]`).focus(); return; }
   if ('share' in d) return shareSite();
+  if ('fxopen' in d) { if (!document.getElementById('scrim').hidden) closeSettings(); return openPanel('fx'); }
   if (d.set === 'muted') toggleMute();
   if (d.set === 'cam') setCam(!state.camOn);
   if (d.set === 'mirror') { state.mirror = !state.mirror; render(); }
@@ -1454,7 +1536,7 @@ function drawLobby() {
     html = `<div style="height:56px;flex:none;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid #EDEDF4">${brand(skin, 24)}</div>
       <div class="lobby"><div style="width:100%;max-width:620px;display:flex;flex-direction:column;gap:16px">
         <h1 class="lob-h" style="text-align:center">${title}</h1>
-        ${preview('12px', '#1A1A1A', `<div class="prebtns">${round('data-premic', micOn, micIco(), micOn ? 'Mute' : 'Unmute')}${round('data-precam', camOn, camIco(), camOn ? 'Stop Video' : 'Start Video')}</div>`)}
+        ${preview('12px', '#1A1A1A', `<div class="prebtns">${round('data-premic', micOn, micIco(), micOn ? 'Mute' : 'Unmute')}${round('data-precam', camOn, camIco(), camOn ? 'Stop Video' : 'Start Video')}</div><button class="ibtn" data-lobfx aria-label="${FXW.lobby}" title="${FXW.lobby}" style="position:absolute;right:14px;bottom:18px;z-index:1;width:40px;height:40px;border-radius:20px;background:rgba(60,60,60,.85);color:#fff">${ico('sparkle', 20)}</button>`)}
         <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#6E7680">Your Name<input readonly value="${esc(me)}" style="height:42px;padding:0 12px;border:1px solid #DFE3E8;border-radius:8px;font-size:15px;color:#232333;background:#fff"></label>
         <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:#232333"><input type="checkbox" checked style="width:16px;height:16px;accent-color:${skin === 'custom' ? C.accent : '#0E72ED'}">Remember my name for future meetings</label>
         <button class="joinbtn" data-join style="border-radius:10px;background:${skin === 'custom' ? C.accent : '#0E72ED'};color:#fff;min-height:44px">Join</button>
@@ -1466,7 +1548,7 @@ function drawLobby() {
       <div class="lobby"><div style="width:100%;max-width:680px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
         <h1 class="lob-h">${title}</h1><p class="lob-sub">${here.length ? `${here.length + ' ' + (here.length > 1 ? 'people are' : 'person is')} in the meeting` : 'The meeting has started'}</p>
         ${preview('12px', C.self)}
-        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">${pill('data-premic', micOn, micIco(), micOn ? 'Mute' : 'Unmute')}${pill('data-precam', camOn, camIco(), camOn ? 'Stop video' : 'Start video')}
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">${pill('data-premic', micOn, micIco(), micOn ? 'Mute' : 'Unmute')}${pill('data-precam', camOn, camIco(), camOn ? 'Stop video' : 'Start video')}<button class="ibtn" data-lobfx style="height:44px;padding:0 16px;gap:8px;border-radius:22px;background:${C.btn};color:${C.text};font-size:14px">${ico('sparkle', 20)}${FXW.lobby}</button>
           <button class="joinbtn" data-join style="border-radius:22px;background:#1D805F;color:#fff;min-height:44px">Join meeting</button></div>
         <button class="ibtn" data-lobdev style="gap:8px;height:36px;padding:0 14px;border-radius:18px;border:1px solid ${C.line};color:${C.text};font-size:13px">${ico('mic', 16)}Use computer for audio${CHEVRON}</button>
         <a href="index.html" style="font-size:14px;color:${C.muted};text-decoration:none">Cancel</a>
@@ -1491,13 +1573,15 @@ function drawLobby() {
   const ae = document.activeElement, key = ae && ae.closest && ae.closest('#room') ? ['data-join', 'data-premic', 'data-precam'].find(a => ae.hasAttribute(a)) : null;
   parkVideos();
   room.innerHTML = html;
+  const lob = room.querySelector('.lobby'); if (lob) lob.style.marginRight = sideRoom() + 'px';
   placeSelf();
   const f = key ? room.querySelector(`[${key}]`) : null; f && f.focus();
 }
 function lobbyAction(b) {
   if ('join' in b.dataset) return joinCall();
   if (b.dataset.lobaudio) { state.lobAudio = +b.dataset.lobaudio; if (state.lobAudio === 3) state.muted = true; return render(); }
-  if ('lobfx' in b.dataset || 'lobdev' in b.dataset) return notice('Not available in this preview');
+  if ('lobfx' in b.dataset) return openPanel('fx');
+  if ('lobdev' in b.dataset) return notice('Not available in this preview');
   if ('premic' in b.dataset) { state.muted = !state.muted; render(); }
   if ('precam' in b.dataset) setCam(!state.camOn);
 }
@@ -1772,6 +1856,7 @@ addEventListener('resize', () => { closeMenu(); placeSides(); render(); });
 function applyLook() { C = palette(); styleSides(); styleToast(); render(); refreshPanels(); }
 applyLook();
 if (state.camOn) startCam();
+if (S.fx !== 'none' && state.camOn) applyFx(S.fx, true);   /* the effect you picked last time */
 if (params.get('skip') === '1') joinCall();   /* add &skip=1 to go straight into the call */
 </script>
 </body>

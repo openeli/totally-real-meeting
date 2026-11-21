@@ -36,6 +36,7 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
   - Record (just a red pill, nothing is saved), captions and meeting info
   - In-call settings
 - **Your real camera, if you want it.** Your webcam shows in your own tile and never leaves your device.
+- **Background effects on your camera.** Blur your background or put a picture behind you, from each app's own menu: Teаms "Background effects", Zooм "Background & effects", Webbex "Virtual background" and Meeṭ "Effects" (with Meet's lighter "slightly blur"). Open it from the pre-join screen, from More, or from the Video settings. It runs in your browser with Google's MediaPipe selfie segmenter, is only downloaded once you pick an effect, and the site remembers your choice.
 - **Fits your situation.** The call clock can start at 00:00, 15 minutes, 30 minutes or 1 hour. Join late and you skip the opening and land partway through the agenda, with everyone already there. You can set the participant count (1 to 16), edit or shuffle their names, and turn chat on or off.
 - **Light and dark.** The setup page follows your device or your choice. So do the app looks that have a light mode in real life.
 - **Phones too.** Every look adapts to small screens, for example Zooм's End button moves to the top, like the mobile app.
@@ -99,6 +100,7 @@ No build step and no server: open `index.html` in a browser.
 - `shared.js`: settings, parody logos, names, topics and chat lines.
 - `talk.js`: what people say out loud (the captions): small talk, the agenda for each topic, jokes, side-tracks and the wrap-up.
 - `site.css`: styles for the setup and disclaimer pages.
+- `effects.js` and `effects/`: background effects for your own camera. `effects.js` cuts you out of each frame with the MediaPipe selfie segmenter (the model file is in `effects/`; the MediaPipe code loads from jsDelivr only when an effect is turned on) and draws you over a blur or a picture. The pictures are drawn by `tools/effects/make_backgrounds.py`.
 - `sample/` (the hour) and `sample/short/` (15 minutes): the audio and video meetings: one video per on-camera person, one voice track per camera-off person (all as long as the meeting, so they stay in sync), and `timeline.js` with who talks when, caption word timings, cameras on and off, typed chat messages, and when people join and leave. `tools/sample/` has the scripts that build it. Add `&at=SECONDS` to the meeting URL to jump in partway.
 - `docs/`: screenshots for this page.
 
