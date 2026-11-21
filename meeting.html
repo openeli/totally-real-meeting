@@ -6,12 +6,23 @@
 <title>Totally Real Meeting: in a parody call</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fredoka:wght@600&family=Inter:wght@400;500;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<!-- Added to a phone's home screen, the site opens like an app: no address bar, and moving between pages stays inside it. -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Real Meeting">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#111114">
 <script src="shared.js"></script>
 <script src="talk.js"></script>
 <script src="sample/timeline.js"></script>
 <script src="sample/short/timeline.js"></script>
 <script src="sample/humor/timeline.js"></script>
 <style>
+/* Moving between pages fades instead of flashing, which matters most when the site runs as a home-screen app. */
+@media (prefers-reduced-motion: no-preference){@view-transition{navigation:auto}}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{font-family:Figtree,system-ui,sans-serif;overflow:hidden}

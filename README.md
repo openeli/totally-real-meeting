@@ -59,6 +59,12 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
 3. Press **Join meeting**, check your camera on the pre-join screen, then join.
 4. Use full screen for the most convincing view.
 
+## Use it like an app
+
+On an iPhone or iPad, open the setup page in Safari, tap Share, then **Add to Home Screen**. Opened from that icon, the site runs on its own, like an app: no address bar, and the setup page, the call and the disclaimer open inside it, fading from one to the next. On Android, Chrome offers **Install app** or **Add to Home screen** in its menu.
+
+If you added an icon before this existed, remove it and add it again so your phone picks up the app settings.
+
 ## Sound
 
 Pick one on the setup page:
