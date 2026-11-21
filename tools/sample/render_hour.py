@@ -81,7 +81,8 @@ def write_black(upto):
 for r in runs:
     a, b = max(r['a'], T0), min(r['b'], T1)
     if b <= a: continue
-    i0 = int(np.ceil((a - T0) * FPS)); i1 = int(np.floor((b - T0) * FPS))
+    # the same rounding at both ends, so two runs that touch leave no black frame between them (ceil/floor did: a one-frame flash)
+    i0 = max(fi, int(round((a - T0) * FPS))); i1 = int(round((b - T0) * FPS))
     write_black(i0)
     n = i1 - i0
     if n <= 0: continue

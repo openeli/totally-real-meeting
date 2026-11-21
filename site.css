@@ -49,6 +49,7 @@ textarea.input{height:auto;padding:10px 12px;resize:vertical}
 .app small{font-size:13px;color:var(--muted)}
 .brand{display:inline-flex;align-items:center;gap:8px}
 .wm{font-family:Fredoka,Figtree,sans-serif;font-weight:600;font-size:17px}
+.wm-teams{font-family:'Segoe UI Variable Display','Segoe UI',-apple-system,BlinkMacSystemFont,system-ui,Roboto,sans-serif;letter-spacing:0}   /* Fredoka has no Cyrillic, and the а in Teаms is Cyrillic: one font with it keeps the word even */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{min-height:40px;padding:0 14px;border-radius:20px;border:1px solid var(--border);background:transparent;font-weight:500;cursor:pointer}
 .chip[aria-pressed="true"]{border:2px solid var(--accent);background:var(--soft);padding:0 13px}
@@ -56,7 +57,7 @@ textarea.input{height:auto;padding:10px 12px;resize:vertical}
 .chip:disabled,.sq:disabled,.switch:disabled,select.input:disabled,.input[readonly]{opacity:.6;cursor:not-allowed}
 .chip[aria-pressed="true"]:disabled{opacity:.85}
 .locked{font-size:13px;color:var(--muted);margin:0}
-.field[hidden]{display:none}
+.field[hidden],.linkbtn[hidden]{display:none}
 .preset{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:12px;border:2px solid var(--accent);background:var(--soft)}
 .preset strong{font-size:16px}.preset span{font-size:14px;color:var(--muted)}
 .preset .tag{align-self:flex-start;margin-top:4px;font-size:12px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em}

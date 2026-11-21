@@ -35,5 +35,10 @@ ROUNDS = [
          after=[('hannah', "From covering one shift to getting promoted. Nice one, Mike 👏")]),
 ]
 
+# Pictures nobody should see, found by eye: Bill stands up and moves around close to the camera here (motion.py misses it
+# because he stays in frame). His camera stays off until he is seated again, which happens as Ryan says
+# "...the guy whose house we were staying in". Seconds from when you join.
+CAM_OFF = {'bill': [(0.0, 19.2), (449.3, 498.7)]}
+
 CLOSE = [('priya', "That's time! Thanks everyone, this was really fun 😊"), ('pause', 3), ('daniel', "Thanks all, have a good weekend!")]
 LEAVE_ORDER = ['daniel', 'megan', 'bill', 'hannah', 'ryan', 'lauren', 'aisha', 'mike', 'greg']

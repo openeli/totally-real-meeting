@@ -12,10 +12,10 @@
 
 Most fake call pages give you one screen and a frozen grid of faces. This one is built to hold up for a whole meeting.
 
-- **Four app looks, not one.** Teamş, Zooм, Webbex and Meeţ each copy their own app's layout, colours, typeface, wording, menus and settings, down to the small things: Zooм shows names instead of initials when a camera is off, Meeţ shows a blue talking indicator, and each app styles its captions its own way. There is no single design dressed up four ways.
+- **Four app looks, not one.** Teаms, Zooм, Webbex and Meeṭ each copy their own app's layout, colours, typeface, wording, menus and settings, down to the small things: Zooм shows names instead of initials when a camera is off, Meeṭ shows a blue talking indicator, and each app styles its captions its own way. There is no single design dressed up four ways.
 - **Or design your own app.** Choose a name, logo letter, brand colour, logo shape and one of three layouts (controls on top, a bottom bar or a floating pill).
 - **The whole call, start to finish:**
-  - **Before:** each app's own pre-join screen with a camera preview and mic and camera toggles, plus Teamş's audio options and Meeţ's device pickers.
+  - **Before:** each app's own pre-join screen with a camera preview and mic and camera toggles, plus Teаms's audio options and Meeṭ's device pickers.
   - **During:** a connecting step, then people drop in one by one.
   - **After:** each app's own leave and end steps lead to an after-call screen with Rejoin and a quality rating.
   - **Rejoin like it's real:** leave for five minutes and the meeting is five minutes further on when you come back, with the same people. If it ended while you were away, you see the host's "meeting ended" screen. A new meeting, or one that was ended for everyone, starts fresh.
@@ -42,12 +42,12 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
 
 ## A look inside
 
-| Teamş, with the chat open | Zooм |
+| Teаms, with the chat open | Zooм |
 |---|---|
-| ![Teamş call with chat](docs/teams.png) | ![Zooм call](docs/zoom.png) |
-| **Webbex (light)** | **Meeţ** |
-| ![Webbex call](docs/webex.png) | ![Meeţ call](docs/meet.png) |
-| **Your own app (HuddleHub)** | **Meeţ pre-join screen** |
+| ![Teаms call with chat](docs/teams.png) | ![Zooм call](docs/zoom.png) |
+| **Webbex (light)** | **Meeṭ** |
+| ![Webbex call](docs/webex.png) | ![Meeṭ call](docs/meet.png) |
+| **Your own app (HuddleHub)** | **Meeṭ pre-join screen** |
 | ![Custom app](docs/custom.png) | ![Pre-join screen](docs/prejoin.png) |
 
 <img src="docs/phone.png" alt="Zooм on a phone" width="260">
@@ -61,7 +61,7 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
 
 ## Use it like an app
 
-On an iPhone or iPad, open the setup page in Safari, tap Share, then **Add to Home Screen**. Opened from that icon, the site runs on its own, like an app: no address bar, and the setup page, the call and the disclaimer open inside it, fading from one to the next. On Android, Chrome offers **Install app** or **Add to Home screen** in its menu.
+On an iPhone or iPad, open the setup page in Safari, tap Share, then **Add to Home Screen**. The **Get the app** link at the top of the setup page walks through it with pictures. Opened from that icon, the site runs on its own, like an app: no address bar, and the setup page, the call and the disclaimer open inside it, fading from one to the next. On Android, Chrome offers **Install app** or **Add to Home screen** in its menu.
 
 If you added an icon before this existed, remove it and add it again so your phone picks up the app settings.
 
@@ -93,6 +93,7 @@ No build step and no server: open `index.html` in a browser.
 - `index.html`: the setup page with every setting, the "Have an idea?" popup and the short disclaimer.
 - `meeting.html`: the meeting room. It draws the chosen look and runs the call.
 - `disclaimer.html`: the full disclaimer.
+- `app.html`: "Get the app", a step-by-step guide with iPhone lookalike pictures for adding the site to the Home Screen.
 - `404.html`: the "meeting doesn't exist" page GitHub Pages shows for any broken link, with a Return to lobby button.
 - `shared.js`: settings, parody logos, names, topics and chat lines.
 - `talk.js`: what people say out loud (the captions): small talk, the agenda for each topic, jokes, side-tracks and the wrap-up.

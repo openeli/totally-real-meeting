@@ -40,10 +40,10 @@ const LOGO = {
   meet: s => `<svg width="${s}" height="${s}" viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="8" width="18" height="16" rx="4" fill="#34A853"/><rect x="3" y="8" width="9" height="8" rx="4" fill="#4285F4"/><rect x="12" y="16" width="9" height="8" rx="4" fill="#FBBC04"/><path d="M21 13.5l7-4.5v14l-7-4.5z" fill="#EA4335"/></svg>`
 };
 const SKINS = [
-  { id: 'teams', name: 'Teamş', say: 'Teams parody', hint: 'Controls along the top, purple accent', modes: 'Light and dark' },
+  { id: 'teams', name: 'Te\u0430ms', say: 'Teams parody', hint: 'Controls along the top, purple accent', modes: 'Light and dark' },
   { id: 'zoom', name: 'Zooм', say: 'Zoom parody', hint: 'Control bar along the bottom, green Share', modes: 'Dark' },
   { id: 'webex', name: 'Webbex', say: 'Webex parody', hint: 'Floating pill of round controls', modes: 'Light and dark' },
-  { id: 'meet', name: 'Meeţ', say: 'Meet parody', hint: 'Round buttons on a charcoal stage', modes: 'Dark' }
+  { id: 'meet', name: 'Mee\u1e6d', say: 'Meet parody', hint: 'Round buttons on a charcoal stage', modes: 'Dark' }
 ];
 SKINS.push({ id: 'custom', name: 'Your app', say: 'Custom meeting app', hint: 'Your own name, colour, logo and layout', modes: 'Light and dark' });
 const SKIN = Object.fromEntries(SKINS.map(s => [s.id, s]));
@@ -75,7 +75,7 @@ LOGO.custom = s => {
   return `<svg width="${s}" height="${s}" viewBox="0 0 32 32" aria-hidden="true">${shape} fill="${c.color}"/><text x="16" y="21.5" text-anchor="middle" font-family="Fredoka, Figtree, sans-serif" font-weight="600" font-size="16" fill="#fff">${escHtml(c.letter)}</text></svg>`;
 };
 /* Visible parody name is hidden from screen readers; they hear the plain description instead. */
-const brand = (id, size = 22) => `<span class="brand">${LOGO[id](size)}<span class="wm" aria-hidden="true" style="font-size:${Math.round(size * 0.72)}px">${escHtml(SKIN[id].name)}</span><span class="sr">${escHtml(SKIN[id].say)}</span></span>`;
+const brand = (id, size = 22) => `<span class="brand">${LOGO[id](size)}<span class="wm wm-${id}" aria-hidden="true" style="font-size:${Math.round(size * 0.72)}px">${escHtml(SKIN[id].name)}</span><span class="sr">${escHtml(SKIN[id].say)}</span></span>`;
 
 const TOPICS = ['Budget review', 'Customer success', 'Engineering standup', 'Finance', 'HR', 'Leadership', 'Marketing', 'Product roadmap', 'Sales', 'Town hall',
   /* scenarios: the funny ones */
