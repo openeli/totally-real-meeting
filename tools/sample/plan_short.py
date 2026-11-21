@@ -13,7 +13,7 @@ import sys, os, json, random
 import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from hour_script import PEOPLE, PAIR
-from short_script import CLOCK, JOIN, OPEN, ROUNDS, CLOSE, LEAVE_ORDER
+from short_script import CLOCK, JOIN, OPEN, ROUNDS, CLOSE, LEAVE_ORDER, CAM_OFF
 from resolve import chat_lines, resolve
 from motion import motion_flags, spans as flag_spans, FPS
 from supply import supply
@@ -114,6 +114,8 @@ for w, ps in pieces.items():
             if ma > cur: on.append([cur, ma])
             cur = max(cur, mb)
         if b > cur: on.append([cur, b])
+    for xa, xb in CAM_OFF.get(w, []):   # spans marked off by hand in short_script.py
+        on = [x for a, b in on for x in ([a, min(b, xa)], [max(a, xb), b]) if x[1] - x[0] > 0.05]
     cam_on[w] = on
 def complement(on, lo, hi):
     out = []; cur = lo
