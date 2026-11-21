@@ -167,6 +167,18 @@ const WRAP_REPLIES = ['Nothing from me.', 'All good here.', 'No, I think we cove
 const GOODBYES = ['Thanks, everyone!', 'Thanks, bye!', 'Have a good one.', 'See you next week.', 'Thanks, all. Talk soon.', 'Bye, everyone!', 'Thank you, take care.'];
 const HOST_CLOSING = ['Great, thanks so much, everyone. I’ll end the meeting here.', 'Thanks, everyone. I’m going to end it now. Have a great day.'];
 
+/* The percentage and the amount in thousands are drawn once per meeting (and kept for a rejoin in the same tab), so every
+   mention matches, and so does the spreadsheet someone shares. */
+const MEETING_NUMS = (() => {
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  let n = null;
+  try { n = JSON.parse(sessionStorage.getItem('trm-nums-v1') || 'null'); } catch (e) {}
+  if (!n || !n.pct || !n.k) {
+    n = { pct: pick(['eight', 'twelve', 'fifteen', 'eighteen', 'twenty', 'twenty-five', 'thirty']), k: pick(['twenty', 'thirty-five', 'forty', 'sixty', 'eighty', 'a hundred and twenty']) };
+    try { sessionStorage.setItem('trm-nums-v1', JSON.stringify(n)); } catch (e) {}
+  }
+  return n;
+})();
 /* Fill the slots in a line. */
 function fillSlots(line, names) {
   const pick = a => a[Math.floor(Math.random() * a.length)];
@@ -174,8 +186,8 @@ function fillSlots(line, names) {
     .replace(/\{other\}/g, () => names.other || 'everyone')
     .replace(/\{you\}/g, () => names.you || '')
     .replace(/\{num\}/g, () => pick(['two', 'three', 'four', 'five', 'six']))
-    .replace(/\{pct\}/g, () => pick(['eight', 'twelve', 'fifteen', 'eighteen', 'twenty', 'twenty-five', 'thirty']))
-    .replace(/\{k\}/g, () => pick(['twenty', 'thirty-five', 'forty', 'sixty', 'eighty', 'a hundred and twenty']))
+    .replace(/\{pct\}/g, () => MEETING_NUMS.pct)
+    .replace(/\{k\}/g, () => MEETING_NUMS.k)
     .replace(/\{day\}/g, () => pick(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']));
 }
 

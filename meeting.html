@@ -17,6 +17,7 @@
 <meta name="theme-color" content="#111114">
 <script src="shared.js"></script>
 <script src="talk.js"></script>
+<script src="share.js"></script>
 <script src="sample/timeline.js"></script>
 <script src="sample/short/timeline.js"></script>
 <script src="sample/humor/timeline.js"></script>
@@ -41,6 +42,14 @@ a{color:inherit}
 .speaker .strip{display:flex;flex-direction:column;gap:8px;overflow:auto;min-height:0}
 .speaker .strip .tile{flex:none;height:130px;min-height:0}
 .speaker .strip .avatar{width:56px;height:56px;font-size:20px}
+.shr-layout{flex:1;min-height:0;min-width:0;display:grid;gap:8px;padding:12px}
+.shr-layout.shr-side{grid-template-columns:minmax(0,1fr) 208px}.shr-layout.shr-top{grid-template-rows:112px minmax(0,1fr)}
+.shr-strip{display:flex;gap:8px;overflow:auto;min-height:0;min-width:0}.shr-side .shr-strip{flex-direction:column}
+.shr-strip .tile{flex:none;min-height:0}.shr-side .shr-strip .tile{height:118px}.shr-top .shr-strip .tile{width:190px;height:100%}
+.shr-strip .avatar{width:48px;height:48px;font-size:18px}.shr-strip .zname{font-size:15px}
+.shr-main{position:relative;display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
+@media (max-width:700px){.shr-layout,.shr-layout.shr-side,.shr-layout.shr-top{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) 96px;padding:8px;gap:6px}
+  .shr-layout.shr-top .shr-strip{order:2}.shr-layout .shr-strip{flex-direction:row}.shr-layout .shr-strip .tile{width:130px;height:100%}}
 .tile{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:120px;transition:outline-color .2s}
 .avatar{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:600}
 .dense .avatar{width:64px;height:64px;font-size:22px}
@@ -270,6 +279,7 @@ const state = {
   muted: false, camOn: !!S.cam, mirror: true, unread: 0, full: false,
   start: Date.now() - S.timer * 60000,   /* the clock can start at 15, 30 or 60 minutes */
   joined: Date.now(),                    /* chat pacing follows when you joined, not the clock */
+  share: null,   /* someone's shared screen: { by, info, step, mode } */
   panel: null, ended: null, view: 'gallery', hand: false, react: null, rec: false, cc: !S.audio, capLines: [],   /* with no audio, captions start on */
   phase: 'lobby',   /* lobby, connecting, call; then ended */
   lobAudio: 0,      /* Teams pre-join: which audio option is picked */
@@ -361,7 +371,34 @@ function placeSides() {
     el.style.borderRadius = r ? '8px' : '0'; el.style.boxShadow = isNarrow() ? '' : 'none';
   });
 }
+/* Someone shares their screen: the content fills the stage and the faces move to a strip, the way each app does it.
+   Teams and Meet put the people down the side, Zoom and Webex along the top. Captions get their own band under the
+   shared screen, so they never cover it. */
+function shareStage() {
+  const sh = state.share, by = sh.by, first = by.name.split(/\s+/)[0];
+  const strip = selfTile() + state.people.map(personTile).join('');
+  const cap = state.cc ? `<div class="captions cap-${skin} inband" id="cap" aria-live="off">${captionsHtml()}</div>` : '';
+  const box = `<div class="sh-box" role="img" aria-label="${esc(by.name)} is sharing their screen: ${esc(shareLabel(sh.info).toLowerCase())}"><div class="sh-scale" aria-hidden="true">${screenHtml(sh.info, sh.step, sh.mode, SHARE_NUMS, new Date())}</div></div>`;
+  let main;
+  if (L === 'zoom') main = `<div class="shr-bar" style="height:30px;margin-bottom:6px"><span style="display:inline-flex;align-items:center;gap:10px;height:28px;padding:0 6px 0 12px;border-radius:6px;background:#23A55A;color:#fff;font-size:13px">You are viewing ${esc(by.name)}'s screen<span style="display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:4px;background:rgba(0,0,0,.18)">View Options ${CHEVRON}</span></span></div>${box}`;
+  else if (L === 'teams') main = `<div class="shr-bar" style="height:36px;justify-content:space-between;padding:0 4px 6px"><span style="display:flex;align-items:center;gap:8px;color:${C.text}"><span class="avatar" style="width:24px;height:24px;font-size:10px;background:${by.bg};color:${by.fg}" aria-hidden="true">${esc(initials(by.name))}</span><span><strong style="font-weight:600">${esc(by.name)}</strong> is presenting</span></span><span class="hide-sm" style="display:flex;gap:8px"><span style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:4px;border:1px solid ${C.line};background:${C.bar};color:${C.text}">Request control</span><span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;color:${C.text}">Pop out</span></span></div>${box}`;
+  else if (L === 'webex') main = `${box}<span class="shr-name" style="background:${C.label};color:${C.text}">${esc(first)} is sharing</span>`;
+  else main = `<div style="position:relative;flex:1;min-height:0;display:flex;border-radius:8px;overflow:hidden;background:#000">${box}<span class="shr-name" style="background:rgba(32,33,36,.6);color:#fff">${esc(by.name)} (presenting)</span></div>`;
+  const where = L === 'zoom' || L === 'webex' ? 'top' : 'side';
+  return `<div class="stage" style="margin-right:${sideRoom()}px"><div class="shr-layout shr-${where}">${where === 'top' ? `<div class="shr-strip">${strip}</div>` : ''}<div class="shr-main">${main}${cap}</div>${where === 'side' ? `<div class="shr-strip">${strip}</div>` : ''}</div>${state.rec ? '<div class="rec"><i aria-hidden="true"></i>Recording</div>' : ''}</div>`;
+}
+/* the drawn screen is 1280 x 720: scale it to fit its box, like a real screen share */
+const shareRO = typeof ResizeObserver === 'function' ? new ResizeObserver(() => fitShares()) : null;
+function fitShares() {
+  document.querySelectorAll('.sh-box').forEach(b => {
+    if (shareRO && !b._watched) { b._watched = true; shareRO.observe(b); }
+    const sc = b.querySelector('.sh-scale'); if (!sc) return;
+    const k = Math.min(b.clientWidth / 1280, b.clientHeight / 720);
+    sc.style.transform = `translate(${-640 * k}px,${-360 * k}px) scale(${k})`;
+  });
+}
 function tiles() {
+  if (state.share && state.share.by && state.phase === 'call') return shareStage();
   const n = state.people.length + 1;
   if (state.view === 'speaker' && state.people.length) {
     let si = state.people.findIndex(p => p.speaking); if (si < 0) si = 0;
@@ -455,6 +492,7 @@ function render() {
   room.innerHTML = html;
   placeSelf();
   if (SAMPLE) placeSampleVideos();
+  fitShares();
   if (focusKey) { const el = room.querySelector(focusKey); el && el.focus(); }
 }
 const ACTIONS = ['data-leave', 'data-leavemenu', 'data-mute', 'data-cam', 'data-full', 'data-chat', 'data-people', 'data-hand', 'data-react', 'data-view', 'data-more', 'data-share', 'data-rec', 'data-cc', 'data-info'];
@@ -672,6 +710,7 @@ function onStage(st) {
     queue.push({ then: () => { plan.agendaAt = Math.min(plan.agendaAt, clockMin()); } });
   }
   if (st === 'wrap') {
+    if (state.share) { hostSays('I’ll stop sharing now.'); queue.push({ then: stopTopicShare }); }
     /* time check, recap of what was covered, action items, next meeting, last questions */
     hostSays(pickOne(WRAP_START));
     const names = plan.items.map(i => i.item);
@@ -711,6 +750,29 @@ function hostEnded() {
 }
 let hostDialog = false;
 
+/* ---------- the shared screen (drawn in share.js) ----------
+   In a topic meeting the host shares during the agenda, one sheet or slide per agenda item, and stops at the wrap-up.
+   A slide deck starts in the editing window for a moment, then plays as a slide show, as it does in real life. */
+const SHARE_ON = S.share !== false;
+const TOPIC_SHARE = !SAMPLE && SHARE_ON ? SHARE_TOPICS[S.topic] || null : null;
+let shareTimer = null;
+function startTopicShare(quietly) {
+  const h = HOST();
+  if (!TOPIC_SHARE || !h || state.share) return;
+  const ppt = TOPIC_SHARE.app === 'ppt';
+  state.share = { by: h, info: TOPIC_SHARE, step: Math.max(0, plan.item), mode: ppt && !quietly ? 'edit' : 'show' };
+  clearTimeout(shareTimer);
+  if (ppt && !quietly) shareTimer = setTimeout(() => { if (state.share) { state.share.mode = 'show'; render(); } }, 3500);
+  render(); refreshPanels();
+}
+function stopTopicShare() {
+  plan.shareDone = true;
+  if (!state.share) return;
+  clearTimeout(shareTimer);
+  const end = () => { state.share = null; render(); refreshPanels(); };
+  if (state.share.info.app === 'ppt') { state.share.mode = 'edit'; render(); shareTimer = setTimeout(end, 1800); } else end();
+}
+
 /* ---------- who talks next ---------- */
 function nextSpeaker() {
   if (state.ended || plan.departing) return;
@@ -732,9 +794,18 @@ function nextSpeaker() {
   if (st === 'agenda' && plan.items.length) {
     let idx = Math.floor((m - plan.itemsFrom) / plan.itemLen);
     idx = LOOP ? ((idx % plan.items.length) + plan.items.length) % plan.items.length : Math.max(0, Math.min(plan.items.length - 1, idx));
+    if (TOPIC_SHARE && !state.share && !plan.shareDone && plan.item !== -1 && !plan.sharePending) startTopicShare(true);   /* joined (or came back) while it was on screen */
     if (idx !== plan.item) {
       const again = plan.item !== -1 && idx === 0;   /* a meeting on a loop starts the agenda over */
+      if (TOPIC_SHARE && plan.item === -1 && !state.share && !plan.shareDone) {
+        plan.sharePending = true;
+        hostSays(pickOne(['Let me share my screen.', 'I’ll share my screen.', 'Okay, sharing my screen now.']));
+        queue.push({ then: () => { plan.sharePending = false; startTopicShare(); } });
+        hostSays('Can everyone see my screen?');
+        if (!enqueue([['A', pickOne(['Yes, we can see it.', 'Yep, looks good.', 'We can see it.'])]])) queue.push({ pause: 1200 });
+      }
       plan.item = idx;
+      if (state.share) { state.share.step = idx; render(); }
       hostSays(plan.items.length > 1 ? (again ? pickOne(['Okay, let’s go round once more, starting with {item}.', 'Let’s circle back to {item} with fresh eyes.', 'Back to the top of the list: {item}.'])
         : idx === 0 ? 'Let’s start with {item}.' : pickOne(NEXT_ITEM)) : 'Okay, let’s dig in.', { item: plan.items[idx].item });
       turn = { p: HOST(), left: 1 + Math.floor(Math.random() * 2) };
@@ -1592,6 +1663,18 @@ function sampleTick() {
     const off = !!(TL.camOff && TL.camOff[p.media] || []).find(([a, b]) => t >= a - 0.25 && t < b + 0.1);
     if (!!p.camOff !== off) { p.camOff = off; changed = true; }
   });
+  {   /* someone shares their screen at set moments of the timeline */
+    const seg = SHARE_ON ? (SHARE_SAMPLE[SAMPLE_INFO.tl || SAMPLE_KEY] || []).find(x => t >= x.from && t < x.to) : null;
+    const by = seg && BY_MEDIA[seg.by];
+    let want = null;
+    if (seg && by && state.people.includes(by)) {
+      const step = seg.steps.reduce((v, [at, k]) => t >= at ? k : v, 0);
+      want = { by, info: seg, step, mode: seg.app === 'ppt' && (t < seg.from + 2.5 || t > seg.to - 1.5) ? 'edit' : 'show' };
+    }
+    const key = want ? [want.by.media, want.info.from, want.step, want.mode].join() : '';
+    const had = state.share ? [state.share.by.media, state.share.info.from, state.share.step, state.share.mode].join() : '';
+    if (key !== had) { state.share = want; changed = true; }
+  }
   INVITED.forEach(p => {
     const s = TL.speaking[p.media];
     const sp = !!s && state.people.includes(p) && !p.muted && s.some(([a, b]) => t >= a && t <= b);

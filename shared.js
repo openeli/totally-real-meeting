@@ -231,6 +231,13 @@ const CHAT_REPLIES = [
     lines: ['👍', '+1', 'Agreed', 'Makes sense', 'Noted, {name}.'] }
 ];
 
+/* Meetings where someone shares their screen (drawn in share.js): two topics and the comedy. */
+const SHARE_TOPIC_NAMES = ['Finance', 'Absurd corporate training'];
+function hasShare(s) {
+  const k = activeSample(s);
+  return k ? (SAMPLES[k].tl || k) === 'humor' : SHARE_TOPIC_NAMES.includes(s.topic);
+}
+
 const DEFAULTS = {
   name: 'Guest', cam: true, count: 5, names: NAME_POOL.slice(), spare: SPARE_NAMES.slice(),
   skin: 'teams', topic: 'Finance', theme: 'system',
@@ -240,6 +247,7 @@ const DEFAULTS = {
   timer: 0,   /* minutes the call has already been running when you join: 0, 15, 30 or 60 */
   length: 'full',   /* 'full': the meeting runs start to finish (about an hour) and ends; 'loop': it keeps going */
   drift: 'some',    /* 'some': small talk, jokes and side-tracks now and then; 'none': stays on topic */
+  share: true,      /* someone shares their screen in the meetings that have something to share (hasShare) */
   wildcard: 'none', /* one participant with a personality (WILDCARDS in talk.js): 'none', 'talker', 'knowitall' or 'confused' */
   customTopic: { title: 'Weekly team sync', lines: 'Can we circle back on this?\nGood progress this week\nWho\u2019s taking the action item?' },
   customApp: { name: 'MeetSpace', color: '#E4572E', letter: 'M', shape: 'square', layout: 'bottom' },
@@ -267,6 +275,7 @@ function loadSettings() {
   if (out.drift !== 'none') out.drift = 'some';
   if (!WILDCARD_KINDS.includes(out.wildcard)) out.wildcard = 'none';
   out.audio = out.audio === true;
+  out.share = out.share !== false;
   if (!SAMPLE_KEYS.includes(out.sample)) out.sample = 'short';
   if (out.sample === 'humortxt' && out.audio) out.sample = 'short';
   return out;
