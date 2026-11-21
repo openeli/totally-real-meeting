@@ -6,11 +6,23 @@
 <title>Totally Real Meeting: in a parody call</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fredoka:wght@600&family=Inter:wght@400;500;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<!-- Added to a phone's home screen, the site opens like an app: no address bar, and moving between pages stays inside it. -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Real Meeting">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#111114">
 <script src="shared.js"></script>
 <script src="talk.js"></script>
 <script src="sample/timeline.js"></script>
 <script src="sample/short/timeline.js"></script>
+<script src="sample/humor/timeline.js"></script>
 <style>
+/* Moving between pages fades instead of flashing, which matters most when the site runs as a home-screen app. */
+@media (prefers-reduced-motion: no-preference){@view-transition{navigation:auto}}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{font-family:Figtree,system-ui,sans-serif;overflow:hidden}
@@ -196,9 +208,10 @@ saveSettings(S);
 const params = new URLSearchParams(location.search);
 const FAST = params.get('fast') === '1';   /* add &fast=1 to see chat, reactions and hands within seconds when demoing */
 const SPEED = FAST ? 20 : 1;
-/* "With audio" plays the real-video meeting in sample/ instead of the scripted captions. */
-const SAMPLE = !!S.audio && !!(window.SAMPLE_TIMELINES && SAMPLE_TIMELINES[S.sample]);
-const SAMPLE_INFO = SAMPLE ? SAMPLES[S.sample] : null;
+/* A sound choice (or the comedy with captions) plays one of the prepared meetings in sample/ instead of the scripted captions. */
+const SAMPLE_KEY = activeSample(S);
+const SAMPLE_INFO = SAMPLE_KEY ? SAMPLES[SAMPLE_KEY] : null;
+const SAMPLE = !!SAMPLE_INFO && !!(window.SAMPLE_TIMELINES && SAMPLE_TIMELINES[SAMPLE_INFO.tl || SAMPLE_KEY]);
 /* Leave, then Rejoin: the meeting carried on without you, so you come back to where it is now.
    A new meeting, or one that was ended for everyone, starts from the beginning. */
 const RESUME_KEY = 'trm-resume-v1', MEETING_ID = JSON.stringify(S);
@@ -265,7 +278,7 @@ const state = {
 let stream = null;
 /* Everyone invited. Some are already in the call when you join, the rest drop in over the first minute. */
 const INVITED = SAMPLE
-  ? sampleCastFor(S).map((c, i) => ({ name: c.name, media: c.media, kind: c.kind, ...AVATAR[i % AVATAR.length], muted: c.kind === 'quiet', speaking: false, hand: false, react: null }))
+  ? sampleCastFor(S).map((c, i) => ({ name: c.name, media: c.media, kind: c.kind, ...AVATAR[i % AVATAR.length], muted: c.kind === 'quiet' || !!c.muted, speaking: false, hand: false, react: null }))
   : S.names.slice(0, S.count).map((name, i) => ({ name: name.trim() || 'Guest ' + (i + 1), ...AVATAR[i % AVATAR.length], muted: i % 3 === 1, speaking: false, hand: false, react: null }));
 /* The wildcard (setup page): one participant with a personality from WILDCARDS in talk.js. Never the host if anyone else
    is invited, and never on mute at the start, so you actually hear from them. */
@@ -1367,13 +1380,13 @@ function lobbyAction(b) {
    colleague one voice track, all as long as the meeting, so they stay in step and Leave then Rejoin picks up
    at the right second. The timeline says who talks when, the word timings for captions, cameras off, typed chat messages,
    and when people join and leave. Its times count from when you join; the clock shows CLK more. */
-const TL = SAMPLE ? SAMPLE_TIMELINES[S.sample] : null;
+const TL = SAMPLE ? SAMPLE_TIMELINES[SAMPLE_INFO.tl || SAMPLE_KEY] : null;
 const CLK = TL ? TL.clock || 0 : 0;   /* the meeting clock when you join (the short one starts at 15:00) */
 const MEDIA = {};
 const BY_MEDIA = Object.fromEntries(INVITED.map(p => [p.media, p]));
 const OWN = INVITED.filter(p => p.kind === 'quiet');
 /* a chat line for a role nobody plays (fewer names than roles) goes to someone who is there */
-const roleOf = key => BY_MEDIA[key] || (OWN.length ? OWN[Math.max(0, SAMPLE_ROLES.indexOf(key)) % OWN.length] : null);
+const roleOf = key => BY_MEDIA[key] || (OWN.length ? OWN[Math.max(0, (SAMPLE_INFO.ownRoles || SAMPLE_ROLES).indexOf(key)) % OWN.length] : null);
 /* the timeline knows when its own roles leave; anyone extra drops off just after the talk ends */
 const leaveAt = p => TL.leave[p.media] ?? (/^x\d+$/.test(p.media) ? TL.talkEnd + 2 + (+p.media.slice(1)) * 1.7 : Infinity);
 let sampleTimer = null, needTap = false, sampleCapKey = '', tapNoticeAt = 0, chatAt = 0;
@@ -1391,7 +1404,7 @@ function sampleMedia() {
   hold.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;overflow:hidden;opacity:0;pointer-events:none';
   document.body.appendChild(hold);
   INVITED.forEach(p => {
-    if (p.kind !== 'video' && p.kind !== 'voice') return;
+    if ((p.kind !== 'video' && p.kind !== 'voice') || SAMPLE_INFO.silent) return;   /* captions only: no sound or pictures */
     const m = document.createElement(p.kind === 'video' ? 'video' : 'audio');
     m.preload = 'auto'; m.playsInline = true; m.setAttribute('playsinline', '');
     m.src = SAMPLE_INFO.dir + p.media + (p.kind === 'video' ? '.mp4' : '.m4a');

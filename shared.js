@@ -91,12 +91,12 @@ const TOPIC_TITLE = {
 /* 'Custom' lets the visitor write their own meeting title and conversation lines. */
 const CUSTOM_TOPIC = 'Custom';
 function topicTitle(s) {
-  if (s.audio) return SAMPLES[s.sample].title;
+  if (activeSample(s)) return SAMPLES[activeSample(s)].title;
   if (s.topic === CUSTOM_TOPIC) return (s.customTopic.title || '').trim() || 'Team meeting';
   return TOPIC_TITLE[s.topic];
 }
 function topicLines(s) {
-  if (s.audio) return SAMPLES[s.sample].chat;
+  if (activeSample(s)) return SAMPLES[activeSample(s)].chat;
   if (s.topic === CUSTOM_TOPIC) return (s.customTopic.lines || '').split('\n').map(t => t.trim()).filter(Boolean);
   return CHAT_TOPIC[s.topic] || [];
 }
@@ -108,12 +108,20 @@ function topicLines(s) {
      and types the questions in the chat, the next ones react there. Files in sample/short/.
    - hour: the full "Team connect hour" from the start; the camera-off colleagues speak with text-to-speech (Kokoro).
      Files in sample/.
-   kind: 'video' is filmed, 'voice' speaks with a computer voice, 'quiet' stays on mute with the camera off. */
+   - humortxt, humor, humorvid: the comedy meeting "Mandatory Fun: Quarterly Vibe Check" (about 13 minutes, original jokes),
+     with captions only (no sound), with computer voices, or with computer voices plus four filmed colleagues who
+     sit in silently. All three share one timeline. Files in sample/humor/.
+   kind: 'video' is filmed, 'voice' speaks with a computer voice, 'quiet' stays on mute with the camera off;
+   muted: true keeps a filmed person on mute (they only listen). */
 const SAMPLE_PEOPLE = {
   priya: 'Priya Shah', greg: 'Greg Walsh', lauren: 'Lauren Mills', mike: 'Mike Torres', ryan: 'Ryan Doyle',
-  daniel: 'Daniel Brooks', hannah: 'Hannah Clarke', aisha: 'Aisha Khan', megan: 'Megan Price', bill: 'Bill Novak'
+  daniel: 'Daniel Brooks', hannah: 'Hannah Clarke', aisha: 'Aisha Khan', megan: 'Megan Price', bill: 'Bill Novak',
+  brenda: 'Brenda Holt', gary: 'Gary Pike', tess: 'Tess Morgan', doug: 'Doug Ferris', nate: 'Nate Coleman'
 };
-const sampleCast = kinds => Object.entries(kinds).map(([media, kind]) => ({ name: SAMPLE_PEOPLE[media], media, kind }));
+const sampleCast = kinds => Object.entries(kinds).map(([media, kind]) => kind === 'listen'
+  ? { name: SAMPLE_PEOPLE[media], media, kind: 'video', muted: true } : { name: SAMPLE_PEOPLE[media], media, kind });
+const HUMOR_VOICES = { brenda: 'voice', gary: 'voice', tess: 'voice', doug: 'voice', nate: 'voice' };
+const HUMOR = { title: 'Mandatory Fun: Quarterly Vibe Check', dir: 'sample/humor/', tl: 'humor', ownNames: true, ownRoles: ['p1', 'p2', 'p3', 'p4'], chat: [] };
 const SAMPLES = {
   short: {
     title: 'Team connect', dir: 'sample/short/',
@@ -126,16 +134,27 @@ const SAMPLES = {
     cast: sampleCast({ priya: 'voice', greg: 'video', lauren: 'video', mike: 'video', ryan: 'video', daniel: 'voice', hannah: 'voice', aisha: 'quiet', megan: 'video', bill: 'video' }),
     chat: ['Love this format', 'Ha, so relatable', 'This is the best one of these so far', 'Can we do these every month?',
       'Sorry, had to step away for a sec. What did I miss?', 'My camera is being weird today too', 'Great stories, everyone']
-  }
+  },
+  humortxt: { ...HUMOR, silent: true, cast: sampleCast(HUMOR_VOICES) },   /* no sound: the voices show as captions */
+  humor: { ...HUMOR, cast: sampleCast(HUMOR_VOICES) },
+  humorvid: { ...HUMOR, cast: sampleCast({ brenda: 'voice', lauren: 'listen', gary: 'voice', mike: 'listen', tess: 'voice', megan: 'listen', doug: 'voice', greg: 'listen', nate: 'voice' }) }
 };
-/* Everyone in a real-people meeting, in tile order. With ownNames, the visitor's names fill the chat-only roles of the
-   timeline (priya hosts and asks the questions, daniel and hannah react, aisha listens); names past those get x4, x5... */
+/* Which of these meetings the settings pick, if any: the comedy with captions plays with sound off, the rest with sound on. */
+const SAMPLE_KEYS = ['short', 'hour', 'humortxt', 'humor', 'humorvid'];
+function activeSample(s) {
+  if (s.sample === 'humortxt') return s.audio ? null : 'humortxt';
+  return s.audio ? s.sample : null;
+}
+/* Everyone in one of these meetings, in tile order. With ownNames, the visitor's names fill the chat-only roles of the
+   timeline (in the short one priya hosts and asks the questions, daniel and hannah react, aisha listens; in the comedy
+   p1 to p4 chat); names past those get x4, x5... In the short one your first name hosts, so it comes first. */
 const SAMPLE_ROLES = ['priya', 'daniel', 'hannah', 'aisha'];
 function sampleCastFor(s) {
-  const info = SAMPLES[s.sample];
+  const info = SAMPLES[activeSample(s)];
   if (!info.ownNames) return info.cast;
-  const own = s.names.slice(0, s.count).map((n, i) => ({ name: n.trim() || 'Guest ' + (i + 1), media: SAMPLE_ROLES[i] || 'x' + i, kind: 'quiet' }));
-  return [own[0], ...info.cast, ...own.slice(1)];
+  const roles = info.ownRoles || SAMPLE_ROLES;
+  const own = s.names.slice(0, s.count).map((n, i) => ({ name: n.trim() || 'Guest ' + (i + 1), media: roles[i] || 'x' + i, kind: 'quiet' }));
+  return info.ownRoles ? [...info.cast, ...own] : [own[0], ...info.cast, ...own.slice(1)];
 }
 
 /* What people say out loud (the captions) lives in talk.js. */
@@ -216,7 +235,8 @@ const DEFAULTS = {
   name: 'Guest', cam: true, count: 5, names: NAME_POOL.slice(), spare: SPARE_NAMES.slice(),
   skin: 'teams', topic: 'Finance', theme: 'system',
   audio: false,   /* false: silent meeting on the chosen topic, captions on. true: a real-video meeting with sound (SAMPLES), captions off */
-  sample: 'short',   /* which real-video meeting plays with audio on: 'short' (15 minutes, joining at 15:00) or 'hour' */
+  sample: 'short',   /* which prepared meeting plays: 'short' (15 minutes, joining at 15:00) or 'hour' with audio on, the comedy as
+                         'humortxt' (audio off, captions) or 'humor' / 'humorvid' (audio on); see activeSample() */
   timer: 0,   /* minutes the call has already been running when you join: 0, 15, 30 or 60 */
   length: 'full',   /* 'full': the meeting runs start to finish (about an hour) and ends; 'loop': it keeps going */
   drift: 'some',    /* 'some': small talk, jokes and side-tracks now and then; 'none': stays on topic */
@@ -247,7 +267,8 @@ function loadSettings() {
   if (out.drift !== 'none') out.drift = 'some';
   if (!WILDCARD_KINDS.includes(out.wildcard)) out.wildcard = 'none';
   out.audio = out.audio === true;
-  if (out.sample !== 'hour') out.sample = 'short';
+  if (!SAMPLE_KEYS.includes(out.sample)) out.sample = 'short';
+  if (out.sample === 'humortxt' && out.audio) out.sample = 'short';
   return out;
 }
 function saveSettings(s) { try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) {} }

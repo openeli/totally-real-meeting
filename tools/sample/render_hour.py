@@ -4,7 +4,7 @@ Each run of footage is cropped to a webcam-like framing that follows the face, t
 blurred (MediaPipe selfie segmenter through LiteRT), and everything outside the runs is black
 (the page shows their avatar then). Their own voice plays only during their answers.
 
-usage: render_hour.py SEAM PLAN_DIR SEG_MODEL WHO [--from S --to S]   (--from/--to: a test slice)
+usage: render_hour.py SEAM PLAN_DIR SEG_MODEL WHO [--from S --to S] [--blur SIGMA]   (--from/--to: a test slice)
 """
 import sys, os, json, subprocess, time
 import numpy as np, cv2, soundfile as sf
@@ -19,6 +19,7 @@ args = sys.argv[5:]
 T0 = float(args[args.index('--from') + 1]) if '--from' in args else 0.0
 plan = json.load(open(f'{PD}/plan.json'))
 T1 = float(args[args.index('--to') + 1]) if '--to' in args else plan['end']
+BLUR = float(args[args.index('--blur') + 1]) if '--blur' in args else 4.0   # background blur at quarter size; bigger hides camera movement more
 sess, pid = PEOPLE[WHO]
 fid = lambda chat: f'V03_{sess}_I00000{chat}_P{pid}'
 
@@ -61,7 +62,7 @@ def blur_bg(img):
     m = cv2.resize(m, (W, H), interpolation=cv2.INTER_LINEAR)
     m = cv2.GaussianBlur(np.clip((m - 0.3) / 0.4, 0, 1).astype(np.float32), (0, 0), 3)[..., None]
     small = cv2.resize(img, (W // 4, H // 4), interpolation=cv2.INTER_AREA)
-    bg = cv2.resize(cv2.GaussianBlur(small, (0, 0), 4), (W, H), interpolation=cv2.INTER_LINEAR)
+    bg = cv2.resize(cv2.GaussianBlur(small, (0, 0), BLUR), (W, H), interpolation=cv2.INTER_LINEAR)
     return (img * m + bg * (1 - m)).astype(np.uint8)
 
 out_dir = f'{PD}/render'; os.makedirs(out_dir, exist_ok=True)

@@ -7,6 +7,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="site.css">
+<!-- Added to a phone's home screen, the site opens like an app: no address bar, and moving between pages stays inside it. -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Real Meeting">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#111114">
 <script src="shared.js"></script>
 <script>applySiteTheme(loadSettings());</script>
 <style>
@@ -43,7 +52,7 @@
 
 <section><h2>Fictional people and conversations</h2>
 <p>Participant names, voices and chat messages are invented. Any resemblance to real people or real meetings is coincidental.</p>
-<p>The one exception is the audio and video meetings. The six people on camera there are volunteers who were filmed for a research dataset. They are not the people named in the call, and they never took part in this site. In the full-hour version, the colleagues with their cameras off speak with computer-generated voices.</p></section>
+<p>The one exception is the people on camera in the audio and video meetings and in the comedy with video. They are volunteers who were filmed for a research dataset. They are not the people named in the call, and they never took part in this site. In the full-hour version, the colleagues with their cameras off speak with computer-generated voices. In the comedy, every voice is computer-generated, the lines are original, and the four people on camera only listen.</p></section>
 
 <section><h2>Credits</h2>
 <p>On-camera video and voices: <a href="https://ai.meta.com/research/seamless-interaction/">Seamless Interaction dataset</a> by Meta, used under <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a>. We cropped, trimmed and reordered the clips, blurred their backgrounds and adjusted the sound. Because of this licence, the site is non-commercial.</p>
