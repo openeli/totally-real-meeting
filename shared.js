@@ -234,6 +234,7 @@ const CHAT_REPLIES = [
 const DEFAULTS = {
   name: 'Guest', cam: true, count: 5, names: NAME_POOL.slice(), spare: SPARE_NAMES.slice(),
   skin: 'teams', topic: 'Finance', theme: 'system',
+  fx: 'none',   /* background effect on your own camera: 'none', 'blur', 'slight' (Meet only) or 'bg:<picture>' (effects/) */
   audio: false,   /* false: silent meeting on the chosen topic, captions on. true: a real-video meeting with sound (SAMPLES), captions off */
   sample: 'short',   /* which prepared meeting plays: 'short' (15 minutes, joining at 15:00) or 'hour' with audio on, the comedy as
                          'humortxt' (audio off, captions) or 'humor' / 'humorvid' (audio on); see activeSample() */
