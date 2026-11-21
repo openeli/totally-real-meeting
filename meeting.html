@@ -31,9 +31,10 @@ a{color:inherit}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .brand{display:inline-flex;align-items:center;gap:8px;flex:none}
 .wm{font-family:Fredoka,Figtree,sans-serif;font-weight:600;letter-spacing:.01em}
-#room{position:relative;height:100dvh;display:flex;flex-direction:column;overflow:hidden;transition:opacity .22s}
+.wm-teams{font-family:'Segoe UI Variable Display','Segoe UI',-apple-system,BlinkMacSystemFont,system-ui,Roboto,sans-serif;letter-spacing:0}
+#room{position:relative;height:100dvh;display:flex;flex-direction:column;overflow:hidden;transition:opacity .22s;padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .stage{position:relative;flex:1;min-height:0;display:flex}
-.grid{flex:1;min-height:0;display:grid;gap:8px;padding:12px;grid-auto-rows:minmax(0,1fr);overflow:auto}
+.grid{flex:1;min-height:0;display:grid;gap:8px;padding:12px;grid-auto-rows:minmax(120px,1fr);overflow:auto}   /* rows never shrink below a tile: with many people the grid scrolls instead of stacking tiles on top of each other */
 .speaker{flex:1;min-height:0;display:grid;gap:8px;padding:12px;grid-template-columns:minmax(0,1fr) 220px}
 .speaker .main{display:flex;min-height:0}
 .speaker .main .tile{flex:1}
@@ -91,7 +92,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[r
 #notice{position:fixed;z-index:9;left:50%;top:76px;transform:translate(-50%,-6px);padding:10px 16px;border-radius:8px;background:#2B2B2B;color:#fff;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.35);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:calc(100% - 32px)}
 #notice.show{opacity:1;transform:translate(-50%,0)}
 .av{width:32px;height:32px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
-.side{position:fixed;z-index:5;top:0;right:0;bottom:0;width:340px;max-width:100%;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.25)}
+.side{position:fixed;z-index:5;top:0;right:0;bottom:0;width:340px;max-width:100%;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.25);padding-bottom:env(safe-area-inset-bottom)}
 .side[hidden]{display:none}
 .side header{display:flex;align-items:center;justify-content:space-between;padding:12px 8px 12px 16px;font-weight:600;font-size:16px}
 .side .body{flex:1;overflow:auto;padding:8px 16px 16px;display:flex;flex-direction:column;gap:14px}
@@ -171,7 +172,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[r
 @media (max-width:860px){.meetlob{grid-template-columns:1fr;gap:24px}}
 @media (max-width:420px){.hide-xs{display:none!important}}
 @media (min-width:701px){.show-sm{display:none!important}}
-@media (max-width:700px){.show-sm{display:flex}.grid{gap:6px;padding:8px}.avatar{width:64px;height:64px;font-size:22px}.name{font-size:12px}.lbl{width:46px!important}.lbl span{display:none}.hide-sm{display:none!important}#toast{left:16px;right:16px!important}
+@media (max-width:700px){.show-sm{display:flex}.grid{gap:6px;padding:8px;grid-auto-rows:minmax(92px,1fr)}.grid .tile{min-height:92px}.grid.dense .avatar{width:48px;height:48px;font-size:18px}.avatar{width:64px;height:64px;font-size:22px}.name{font-size:12px}.lbl{width:46px!important}.lbl span{display:none}.hide-sm{display:none!important}#toast{left:16px;right:16px!important}
   .speaker{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 110px;padding:8px;gap:6px}.speaker .strip{flex-direction:row}.speaker .strip .tile{width:140px;height:100%}.speaker .main .avatar{width:96px;height:96px;font-size:34px}
   .dialog{height:calc(100dvh - 32px)}.dialog .cols{flex-direction:column}.dialog nav{width:auto;flex-direction:row;overflow-x:auto;padding:4px 8px}.dialog nav button{flex:none}.dialog .pane{padding:8px 16px 20px}.captions{left:8px;right:8px;bottom:8px;transform:none;max-width:none;font-size:15px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -276,6 +277,7 @@ const state = {
 
 };
 let stream = null;
+const MEDIA = {};   /* the prepared meetings' video and voice files, by person (see sampleMedia) */
 /* Everyone invited. Some are already in the call when you join, the rest drop in over the first minute. */
 const INVITED = SAMPLE
   ? sampleCastFor(S).map((c, i) => ({ name: c.name, media: c.media, kind: c.kind, ...AVATAR[i % AVATAR.length], muted: c.kind === 'quiet' || !!c.muted, speaking: false, hand: false, react: null }))
@@ -322,7 +324,7 @@ function avatar(p, ini, name) {
 function selfTile() {
   const video = state.camOn && stream;
   return `<div class="tile" style="background:${video ? C.self : C.tile};border-radius:${C.radius}">
-      ${video ? `<video id="selfVideo" class="${state.mirror ? 'mirror' : ''}" autoplay muted playsinline></video>` : avatar(ME_AV, initials(me), me)}
+      ${video ? '<span class="vslot" data-self></span>' : avatar(ME_AV, initials(me), me)}
       ${state.hand ? `<span class="hand" title="Hand raised">${handIco(18)}</span>` : ''}
       ${state.react ? `<span class="react" aria-hidden="true">${state.react}</span>` : ''}
       ${nameLabel(`${me} (You)`, state.muted, `data-mute aria-label="${state.muted ? 'Unmute meeting audio' : 'Mute meeting audio'}" aria-pressed="${state.muted}"`, false)}</div>`;
@@ -449,8 +451,9 @@ function render() {
 
   const ae = document.activeElement;
   const focusKey = ae && ae.closest && ae.closest('#room') ? focusSignature(ae) : null;
+  parkVideos();
   room.innerHTML = html;
-  const v = document.getElementById('selfVideo'); if (v && stream) v.srcObject = stream;
+  placeSelf();
   if (SAMPLE) placeSampleVideos();
   if (focusKey) { const el = room.querySelector(focusKey); el && el.focus(); }
 }
@@ -466,13 +469,65 @@ setInterval(() => {
 }, 1000);
 
 /* ---------- camera (local only) ---------- */
-async function startCam() {
-  if (stream || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-  try { stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false }); }
-  catch (e) { stream = null; state.camOn = false; notice('Camera blocked. Allow it in your browser to show your video.'); }
+/* Your own picture is one <video> kept for the whole visit and moved into whichever tile shows it, like the filmed
+   people's videos. A new element on every redraw made phones restart the picture, and sometimes lose it. */
+const selfVid = document.createElement('video');
+selfVid.muted = true; selfVid.autoplay = true; selfVid.playsInline = true;
+selfVid.setAttribute('muted', ''); selfVid.setAttribute('playsinline', '');
+let camAsking = false;
+/* again: a quiet retry after the phone stopped the camera. If that fails, the next tap tries once more. */
+async function startCam(again) {
+  if (stream || camAsking || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+  camAsking = true;
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
+    if (!state.camOn || state.ended) s.getTracks().forEach(t => t.stop());   /* switched off while the browser was asking */
+    else { stream = s; watchCam(s); }
+  } catch (e) {
+    stream = null;
+    /* a retry that hits a busy camera keeps trying on the next tap; a refusal turns it off, so taps never keep asking */
+    if (!again || e.name === 'NotAllowedError' || e.name === 'SecurityError') { state.camOn = false; notice('Camera blocked. Allow it in your browser to show your video.'); }
+  } finally { camAsking = false; }
   render(); refreshPanels();
 }
-function stopCam() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }
+function stopCam() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } selfVid.srcObject = null; }
+/* A phone can end the camera by itself: the screen locks, another app takes the camera, or the call app is left for a while. */
+function watchCam(s) {
+  s.getVideoTracks().forEach(t => t.addEventListener('ended', () => {
+    if (stream !== s) return;
+    stream = null; selfVid.srcObject = null; render(); refreshPanels();
+    if (state.camOn && !document.hidden) startCam(true);
+  }));
+}
+function camCheck() {
+  if (!state.camOn || state.ended) return;
+  const t = stream && stream.getVideoTracks()[0];
+  if (!t || t.readyState === 'ended') { stream = null; return startCam(true); }
+  if (selfVid.paused && selfVid.isConnected) selfVid.play().catch(() => {});
+}
+function vidHold() {
+  let h = document.getElementById('vidHold');
+  if (!h) {
+    h = document.createElement('div'); h.id = 'vidHold'; h.setAttribute('aria-hidden', 'true');
+    h.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;overflow:hidden;opacity:0;pointer-events:none';
+    document.body.appendChild(h);
+  }
+  return h;
+}
+/* Before a redraw the live videos step out of the room, so they never leave the page (a phone pauses a video that does). */
+function parkVideos() {
+  const h = vidHold();
+  if (selfVid.parentNode && selfVid.parentNode !== h) h.appendChild(selfVid);
+  Object.values(MEDIA).forEach(m => { if (m.tagName === 'VIDEO' && m.parentNode && m.parentNode !== h) h.appendChild(m); });
+}
+function placeSelf() {
+  const slot = document.querySelector('#room [data-self]');
+  if (!slot || !stream) return;
+  if (selfVid.srcObject !== stream) selfVid.srcObject = stream;
+  selfVid.className = state.mirror ? 'mirror' : '';
+  if (selfVid.parentNode !== slot) slot.appendChild(selfVid);
+  if (selfVid.paused) selfVid.play().catch(() => {});
+}
 function setCam(on) { state.camOn = on; S.cam = on; saveSettings(S); if (on) startCam(); else stopCam(); render(); refreshPanels(); }
 
 /* ---------- who is "speaking", and live captions ---------- */
@@ -743,7 +798,7 @@ function crowdTick() {
   const others = state.people.filter(p => !p.speaking);
   if (others.length) {
     const p = others[Math.floor(Math.random() * others.length)];
-    if (Math.random() < 0.8 || state.people.some(x => x.hand)) {
+    if (SAMPLE || Math.random() < 0.8 || state.people.some(x => x.hand)) {   /* a prepared meeting follows its script: a raised hand would never be called on */
       const r = CROWD_REACTS[Math.floor(Math.random() * CROWD_REACTS.length)];
       crowdReact(p, r);
       /* reactions often come in small clusters, like after good news */
@@ -830,7 +885,7 @@ const msgsEl = document.getElementById('msgs'), toastEl = document.getElementByI
 function styleToast() {
   toastEl.style.background = skin === 'meet' ? '#2D2E31' : C.panel; toastEl.style.color = skin === 'meet' ? '#E8EAED' : C.text;
   toastEl.style.top = toastEl.style.bottom = '';
-  toastEl.style[L === 'teams' ? 'top' : 'bottom'] = L === 'teams' ? '76px' : '96px';
+  toastEl.style[L === 'teams' ? 'top' : 'bottom'] = L === 'teams' ? '76px' : 'calc(96px + env(safe-area-inset-bottom))';
   toastEl.style.right = '16px';
 }
 function addMsg(from, text, av) {
@@ -1285,7 +1340,7 @@ function endAction(b) {
 /* ---------- pre-join screen, drawn the way each app asks you to check your camera and mic ---------- */
 function preview(radius, bg, extra = '') {
   const video = state.camOn && stream;
-  return `<div class="pre" style="background:${bg};border-radius:${radius}">${video ? `<video id="preVideo" class="${state.mirror ? 'mirror' : ''}" autoplay muted playsinline></video>`
+  return `<div class="pre" style="background:${bg};border-radius:${radius}">${video ? '<span class="vslot" data-self></span>'
     : `<div class="off" style="color:${C.text}">${avatar(ME_AV, initials(me), me)}<span>${state.camOn ? 'Starting your camera…' : 'Your camera is off'}</span></div>`}${extra}</div>`;
 }
 const sw = (attr, on, label) => `<span class="swrow">${label}<button class="tog" role="switch" aria-checked="${on}" aria-label="${label}" ${attr} style="background:${on ? C.accent : '#8A8A8A'}"></button></span>`;
@@ -1363,8 +1418,9 @@ function drawLobby() {
   }
   room.style.background = bg; room.style.color = fg; document.body.style.background = bg;
   const ae = document.activeElement, key = ae && ae.closest && ae.closest('#room') ? ['data-join', 'data-premic', 'data-precam'].find(a => ae.hasAttribute(a)) : null;
+  parkVideos();
   room.innerHTML = html;
-  const v = document.getElementById('preVideo'); if (v && stream) v.srcObject = stream;
+  placeSelf();
   const f = key ? room.querySelector(`[${key}]`) : null; f && f.focus();
 }
 function lobbyAction(b) {
@@ -1382,7 +1438,6 @@ function lobbyAction(b) {
    and when people join and leave. Its times count from when you join; the clock shows CLK more. */
 const TL = SAMPLE ? SAMPLE_TIMELINES[SAMPLE_INFO.tl || SAMPLE_KEY] : null;
 const CLK = TL ? TL.clock || 0 : 0;   /* the meeting clock when you join (the short one starts at 15:00) */
-const MEDIA = {};
 const BY_MEDIA = Object.fromEntries(INVITED.map(p => [p.media, p]));
 const OWN = INVITED.filter(p => p.kind === 'quiet');
 /* a chat line for a role nobody plays (fewer names than roles) goes to someone who is there */
@@ -1399,10 +1454,7 @@ if (TL) Object.keys(TL.speaking).forEach(k => {   /* join short pauses so the ta
 });
 function sampleMedia() {
   if (Object.keys(MEDIA).length) return;
-  const hold = document.createElement('div');
-  hold.id = 'sampleHold'; hold.setAttribute('aria-hidden', 'true');
-  hold.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;overflow:hidden;opacity:0;pointer-events:none';
-  document.body.appendChild(hold);
+  const hold = vidHold();
   INVITED.forEach(p => {
     if ((p.kind !== 'video' && p.kind !== 'voice') || SAMPLE_INFO.silent) return;   /* captions only: no sound or pictures */
     const m = document.createElement(p.kind === 'video' ? 'video' : 'audio');
@@ -1413,12 +1465,15 @@ function sampleMedia() {
 }
 /* Called from the Join click: starting each clip once inside a click lets phones play sound later. */
 function sampleUnlock() {
+  /* iPhones: say this page plays media, so its sound uses the loudspeaker and keeps playing while your camera is on.
+     Without it, the camera could switch the call's sound to the quiet earpiece or cut it. */
+  try { if (navigator.audioSession && !SAMPLE_INFO.silent) navigator.audioSession.type = 'playback'; } catch (e) {}
   sampleMedia();
   Object.values(MEDIA).forEach(m => { const pr = m.play(); if (pr) pr.then(() => { if (!sampleTimer) m.pause(); }).catch(() => {}); });
 }
 /* Videos live in a hidden holder and move into their tile after every render, so they never restart. */
 function placeSampleVideos() {
-  const hold = document.getElementById('sampleHold'); if (!hold) return;
+  const hold = vidHold();
   Object.entries(MEDIA).forEach(([k, m]) => {
     if (m.tagName !== 'VIDEO') return;
     const home = document.querySelector(`#room [data-vs="${k}"]`) || hold;
@@ -1456,13 +1511,32 @@ function sampleRun() {
   sampleTick();
 }
 function stopSample() { clearTimeout(sampleTimer); sampleTimer = null; Object.values(MEDIA).forEach(m => m.pause()); }
-/* The browser refused sound before any click: play muted and ask for one click. */
-function soundBlocked() {
-  if (needTap) return;
-  needTap = true;
-  const on = () => { needTap = false; removeEventListener('pointerdown', on, true); removeEventListener('keydown', on, true); };
-  addEventListener('pointerdown', on, true); addEventListener('keydown', on, true);
+/* The browser refused sound: play muted and ask for one tap (wakeMedia below turns it back on inside that tap). */
+function soundBlocked() { needTap = true; }
+/* Phones, iPhones most of all, can pause the meeting's sound or stop your camera when the screen locks, a call or another
+   app takes the audio, or you switch away for a moment. Coming back, or any tap, brings both back at once. The sound is
+   started inside the tap itself: a phone only trusts a play() that runs during a tap (touchend or click, not pointerdown). */
+function wakeMedia() {
+  if (state.phase !== 'call' || state.ended) return;
+  camCheck();
+  if (!SAMPLE || !sampleTimer) return;
+  needTap = false;
+  const t = sampleT();
+  INVITED.forEach(p => {
+    const m = MEDIA[p.media];
+    if (!m || !state.people.includes(p) || (m.duration && t >= m.duration - 0.05)) return;
+    m.muted = p.muted;
+    if (m.paused) { if (Math.abs(m.currentTime - t) > 0.25) m.currentTime = t; m.play().catch(() => {}); }
+  });
 }
+['touchend', 'click', 'keydown'].forEach(ev => addEventListener(ev, wakeMedia, true));
+function backOnPage() {
+  if (document.hidden) return;
+  camCheck();
+  if (SAMPLE && sampleTimer && !state.ended) { clearTimeout(sampleTimer); sampleTick(); }   /* catch up at once, not on the next tick */
+}
+document.addEventListener('visibilitychange', backOnPage);
+addEventListener('pageshow', backOnPage);
 const capWords = words => words.map(w => { const t = w.replace(/[.,!?;:“”"]/g, ''); return t === 'I' || /^I[’']/.test(t) ? t : t.toLowerCase(); }).join(' ');
 function sampleCaptions(t) {
   const out = [];
@@ -1512,9 +1586,10 @@ function sampleTick() {
     const c = TL.chat[chatAt], p = roleOf(c.who);
     if (p && state.people.includes(p)) incoming(p, c.text);
   }
-  if (needTap && Date.now() - tapNoticeAt > 8000) { tapNoticeAt = Date.now(); notice('Click anywhere to turn on the meeting sound'); }
+  if (needTap && Date.now() - tapNoticeAt > 8000) { tapNoticeAt = Date.now(); notice(`${matchMedia('(pointer:coarse)').matches ? 'Tap' : 'Click'} anywhere to turn on the meeting sound`); }
   INVITED.forEach(p => {   /* a camera goes off for a moment when its person walks or leans out of frame */
-    const off = !!(TL.camOff && TL.camOff[p.media] || []).find(([a, b]) => t >= a && t < b);
+    /* checked 5 times a second, so switch a moment early and late: the video itself is black for exactly the span */
+    const off = !!(TL.camOff && TL.camOff[p.media] || []).find(([a, b]) => t >= a - 0.25 && t < b + 0.1);
     if (!!p.camOff !== off) { p.camOff = off; changed = true; }
   });
   INVITED.forEach(p => {
