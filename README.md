@@ -4,9 +4,43 @@
 
 **Try it live: https://openeli.github.io/totally-real-meeting/**
 
-![The setup page](docs/landing.png)
+[![The setup page: pick an app look, a topic, the sound and who joins](docs/look-setup.jpg "Setup page. Captured Nov 21, 2026, 10:23 AM MST. Click to open the live site.")](https://openeli.github.io/totally-real-meeting/)
 
 > Made for fun. The meeting screens are parodies of popular apps and are not affiliated with or endorsed by their makers. Don't use it to mislead anyone. [Read the full disclaimer](https://openeli.github.io/totally-real-meeting/disclaimer.html).
+
+## Screen sharing, background effects and video meetings
+
+Every picture below opens that meeting on the live site. Hover over one to see which meeting it is and when in the call it was captured.
+
+| Finance spreadsheet, shared in Zooм | Training deck, shared in Meeṭ |
+|---|---|
+| [![A spreadsheet shared in the Zoom parody, with captions below it](docs/share-sheet.jpg "Finance: Q3 numbers, Zooм, 15:14 into the call. Captured Nov 21, 2026, 10:20 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22zoom%22%2C%22topic%22%3A%22Finance%22%2C%22timer%22%3A15%7D) | [![A slide show shared in the Meet parody](docs/share-deck.jpg "Mandatory training: email etiquette (module 7 of 12), Meeṭ, 15:14 into the call. Captured Nov 21, 2026, 10:20 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22meet%22%2C%22topic%22%3A%22Absurd%20corporate%20training%22%2C%22timer%22%3A15%7D) |
+| **Mandatory Fun: Doug shares his desktop (Teаms)** | **Background effects (Teаms)** |
+| [![A Windows desktop with a browser, shared in the Teams parody](docs/share-desktop.jpg "Mandatory Fun: Quarterly Vibe Check, Teаms, 03:02 into the call. Captured Nov 21, 2026, 10:20 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22teams%22%2C%22audio%22%3Atrue%2C%22sample%22%3A%22humorvid%22%7D&at=168) | [![The Teams parody's Background effects panel, with an office background behind the user](docs/effects.jpg "Product roadmap planning, Teаms, 00:46 into the call. Captured Nov 21, 2026, 10:20 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22teams%22%2C%22topic%22%3A%22Product%20roadmap%22%2C%22fx%22%3A%22bg%3Aoffice%22%7D) |
+
+### Team connect hour with filmed participants (Webbex)
+
+[![The Webex parody's grid with four filmed participants on camera](docs/video-meeting.jpg "Team connect hour, Webbex, 25:07 into the call. Captured Nov 21, 2026, 10:20 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22webex%22%2C%22audio%22%3Atrue%2C%22sample%22%3A%22hour%22%7D&at=1500)
+
+## A look inside
+
+The chat, menus and settings work in every app look, each drawn in that app's own style.
+
+| Meeting chat that answers you (Teаms) | Participants and Mute All (Zooм) |
+|---|---|
+| [![The Teams parody with the meeting chat open, where participants reply to the user](docs/look-chat.jpg "Marketing campaign review, Teаms, 15:25 into the call. Captured Nov 21, 2026, 10:22 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22teams%22%2C%22topic%22%3A%22Marketing%22%2C%22timer%22%3A15%7D) | [![The Zoom parody's Participants panel with Mute All and mute toggles](docs/look-people.jpg "Sales pipeline review, Zooм, 30:10 into the call. Captured Nov 21, 2026, 10:23 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22zoom%22%2C%22topic%22%3A%22Sales%22%2C%22timer%22%3A30%2C%22fx%22%3A%22blur%22%7D) |
+| **In-call settings (Webbex)** | **More menu in dark mode (Teаms)** |
+| [![The Webex parody's in-call Settings dialog](docs/look-settings.jpg "HR: policy update, Webbex, 15:10 into the call. Captured Nov 21, 2026, 10:21 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22webex%22%2C%22topic%22%3A%22HR%22%2C%22timer%22%3A15%7D) | [![The Teams parody in dark mode with the More menu open](docs/look-more.jpg "All-hands town hall, Teаms, 30:10 into the call. Captured Nov 21, 2026, 10:21 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22teams%22%2C%22theme%22%3A%22dark%22%2C%22topic%22%3A%22Town%20hall%22%2C%22timer%22%3A30%2C%22count%22%3A9%2C%22fx%22%3A%22blur%22%7D) |
+| **Raised hand and reactions (Meeṭ)** | **Your own app (HuddleHub)** |
+| [![The Meet parody with a raised hand and the reactions bar open](docs/look-reactions.jpg "Budget review: next quarter, Meeṭ, 15:13 into the call. Captured Nov 21, 2026, 10:22 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22meet%22%2C%22topic%22%3A%22Budget%20review%22%2C%22timer%22%3A15%7D) | [![A custom meeting app called HuddleHub with a floating control pill](docs/look-custom.jpg "Engineering standup, HuddleHub, 15:09 into the call. Captured Nov 21, 2026, 10:22 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22custom%22%2C%22topic%22%3A%22Engineering%20standup%22%2C%22timer%22%3A15%2C%22customApp%22%3A%7B%22name%22%3A%22HuddleHub%22%2C%22color%22%3A%22%230F9D8A%22%2C%22letter%22%3A%22H%22%2C%22shape%22%3A%22circle%22%2C%22layout%22%3A%22pill%22%7D%7D) |
+| **Pre-join screen with camera check (Meeṭ)** | **After the call, with Rejoin (Zooм)** |
+| [![The Meet parody's pre-join screen with camera preview and device pickers](docs/look-prejoin.jpg "Product roadmap planning, Meeṭ pre-join screen. Captured Nov 21, 2026, 10:21 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22meet%22%2C%22topic%22%3A%22Product%20roadmap%22%2C%22fx%22%3A%22blur%22%7D) | [![The Zoom parody after leaving: meeting length, a quality rating and Rejoin](docs/look-after.jpg "Leadership sync, Zooм, after leaving at 30:08. Captured Nov 21, 2026, 10:24 AM MST. Click to open this meeting (camera and mic check first).")](https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22zoom%22%2C%22topic%22%3A%22Leadership%22%2C%22timer%22%3A30%7D) |
+
+<p>
+  <a href="https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22zoom%22%2C%22topic%22%3A%22Customer%20success%22%2C%22timer%22%3A15%7D"><img src="docs/look-phone.jpg" alt="The Zoom parody on a phone" title="Customer success weekly, Zooм, 15:09 into the call. Captured Nov 21, 2026, 10:22 AM MST. Click to open this meeting (camera and mic check first)." width="260"></a>
+  &nbsp;
+  <a href="https://openeli.github.io/totally-real-meeting/meeting.html?s=%7B%22skin%22%3A%22teams%22%2C%22topic%22%3A%22Finance%22%2C%22timer%22%3A15%7D"><img src="docs/phone-share.jpg" alt="A shared spreadsheet in the Teams parody on a phone, with captions and participants below" title="Finance: Q3 numbers, Teаms, 15:14 into the call. Captured Nov 21, 2026, 10:21 AM MST. Click to open this meeting (camera and mic check first)." width="260"></a>
+</p>
 
 ## Why it stands out
 
@@ -42,34 +76,6 @@ Most fake call pages give you one screen and a frozen grid of faces. This one is
 - **Light and dark.** The setup page follows your device or your choice. So do the app looks that have a light mode in real life.
 - **Phones too.** Every look adapts to small screens, for example Zooм's End button moves to the top, like the mobile app.
 - **Private and simple.** It's a static site with no accounts, no analytics and no server. Everything runs in your browser.
-
-## A look inside
-
-| Teаms, with the chat open | Zooм |
-|---|---|
-| ![Teаms call with chat](docs/teams.png) | ![Zooм call](docs/zoom.png) |
-| **Webbex (light)** | **Meeṭ** |
-| ![Webbex call](docs/webex.png) | ![Meeṭ call](docs/meet.png) |
-| **Your own app (HuddleHub)** | **Meeṭ pre-join screen** |
-| ![Custom app](docs/custom.png) | ![Pre-join screen](docs/prejoin.png) |
-
-### Screen sharing, background effects and video meetings
-
-| Finance spreadsheet, shared in Zooм | Training deck, shared in Meeṭ |
-|---|---|
-| ![A spreadsheet shared in the Zoom parody, with captions below it](docs/share-sheet.jpg) | ![A slide show shared in the Meet parody](docs/share-deck.jpg) |
-| **Mandatory Fun: Doug shares his desktop (Teаms)** | **Background effects (Teаms)** |
-| ![A Windows desktop with a browser, shared in the Teams parody](docs/share-desktop.jpg) | ![The Teams parody's Background effects panel, with an office background behind the user](docs/effects.jpg) |
-
-**Team connect hour with filmed participants (Webbex)**
-
-![The Webex parody's grid with four filmed participants on camera](docs/video-meeting.jpg)
-
-<p>
-  <img src="docs/phone.png" alt="Zooм on a phone" width="260">
-  &nbsp;
-  <img src="docs/phone-share.jpg" alt="A shared spreadsheet in the Teams parody on a phone, with captions and participants below" width="260">
-</p>
 
 ## How to use it
 
